@@ -1,0 +1,8 @@
+.toast-container{ @apply fixed top-4 right-4 flex flex-col gap-2 z-[9999]; }
+.toast{ @apply flex items-center gap-3 min-w-[260px] max-w-[420px] px-4 py-3 rounded-md shadow text-text-light dark:text-text-dark; }
+.toast-success{ @apply bg-success/10 border border-success; }
+.toast-error{ @apply bg-danger/10 border border-danger; }
+.toast-info{ @apply bg-info/10 border border-info; }
+.message{ @apply flex-1; }
+.close{ @apply bg-transparent border-0 text-xl leading-none text-text-muted-light dark:text-text-muted-dark cursor-pointer; }
+.close:hover{ @apply text-text-light dark:text-text-dark; }

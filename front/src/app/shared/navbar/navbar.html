@@ -1,0 +1,29 @@
+<nav class="w-full surface border-b border-border-light dark:border-border-dark p-4 flex items-center justify-between shadow-sm">
+  <div class="flex items-center gap-2">
+    <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+    </svg>
+    <span class="font-bold text-lg text-text-light dark:text-text-dark">Biblioteca Digital</span>
+  </div>
+  <div class="flex gap-2 items-center">
+    <a routerLink="/" routerLinkActive="active" (click)="goTo('/')" class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Início</a>
+    @if (!isLoggedIn()) {
+      <a routerLink="/register" routerLinkActive="active" (click)="goTo('register')" class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Cadastrar-se</a>
+      <a routerLink="/login" routerLinkActive="active" (click)="goTo('login')" class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Login</a>
+    }
+    @if (isLoggedIn()) {
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="goTo('dashboard')" class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Acervo</a>
+      <button (click)="logout()" class="hidden md:inline-block px-3 py-2 rounded bg-danger hover:bg-danger-dark text-white font-medium transition cursor-pointer">Sair</button>
+    }
+    
+    <!-- Botão de alternância de tema -->
+    <app-theme-toggle></app-theme-toggle>
+    
+    <!-- Botão de menu mobile -->
+    <button class="md:hidden p-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark focus:outline-none text-text-light dark:text-text-dark" aria-label="Abrir menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+</nav>

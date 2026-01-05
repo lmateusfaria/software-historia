@@ -1,0 +1,65 @@
+/* Fonte padrão deve vir antes de qualquer outra regra */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base global para tema claro/escuro */
+@layer base {
+  html { 
+    @apply font-sans transition-colors duration-300; 
+  }
+  
+  /* Tema claro (padrão) */
+  body { 
+    @apply bg-background-light text-text-light transition-colors duration-300; 
+  }
+  
+  /* Tema escuro */
+  .dark body { 
+    @apply bg-background-dark text-text-dark; 
+  }
+  
+  a { 
+    @apply font-medium no-underline hover:opacity-80 transition-opacity; 
+  }
+  
+  /* Customizações para melhor contraste */
+  .dark a {
+    @apply text-text-dark;
+  }
+}
+
+/* Componentes utilitários para tema */
+@layer components {
+  .surface {
+    @apply bg-surface-light text-text-light border border-border-light;
+  }
+  
+  .dark .surface {
+    @apply bg-surface-dark text-text-dark border-border-dark;
+  }
+  
+  .card {
+    @apply surface rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .btn-theme-toggle {
+    @apply p-2 rounded-full surface hover:opacity-80 transition-all duration-200;
+  }
+  
+  /* Classes de texto adaptativas */
+  .text-adaptive {
+    @apply text-text-light dark:text-text-dark;
+  }
+  
+  .text-muted-adaptive {
+    @apply text-text-muted-light dark:text-text-muted-dark;
+  }
+  
+  /* Inputs adaptativos */
+  .input-adaptive {
+    @apply border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors;
+  }
+}

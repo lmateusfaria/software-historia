@@ -1,0 +1,176 @@
+<div class="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300 flex flex-col items-center p-4">
+  <header class="w-full max-w-4xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-primary-text-light dark:text-primary-text-dark mb-1">Dashboard Financeiro</h1>
+      <p class="text-text-muted-light dark:text-text-muted-dark">Bem-vindo! Acompanhe seu saldo, contas, lançamentos e gerencie usuários.</p>
+      @if (usuarioError) {
+        <div class="text-danger text-sm mt-2">{{ usuarioError }}</div>
+      }
+      
+      <div class="flex flex-wrap gap-3 justify-between items-center">
+        <div class="flex gap-3">
+          <button (click)="onShowNewTransaction()" class="bg-primary text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-primary-light transition">Nova Transação</button>
+          <button (click)="onShowUser()" class="bg-primary text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-primary-light transition">Mostrar Dados do Usuário</button>
+        </div>
+        <button (click)="onConfirmDeleteAccount()" class="bg-danger text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-danger-dark transition">Excluir Conta</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full max-w-4xl mx-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <!-- Card Saldo -->
+    <section class="col-span-1 md:col-span-1 bg-gradient-to-br from-primary to-primary-light text-white rounded-2xl p-6 flex flex-col items-center shadow-lg">
+      <span class="text-lg">Saldo Atual</span>
+      <span class="text-4xl font-bold mt-2 mb-1">R$ {{ saldo | number:'1.2-2' }}</span>
+      @if (lastUpdated) {
+        <span class="text-sm opacity-80">Atualizado em {{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}</span>
+      }
+    </section>
+    <!-- Card Lançamentos -->
+    <section class="card col-span-1 flex flex-col">
+      <h2 class="text-xl font-semibold mb-4 text-primary-text-light dark:text-primary-text-dark">{{ (filterTipo !== 'TODOS' || filterDia) ? 'Lançamentos' : 'Últimos Lançamentos' }}</h2>
+      <!-- Filtros (Toolbar) -->
+      <div class="flex flex-nowrap items-center gap-1 mb-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-1.5 overflow-hidden whitespace-nowrap" role="region" aria-labelledby="filtros-title">
+        <span id="filtros-title" class="inline-block text-[11px] font-semibold text-primary-text-light dark:text-primary-text-dark bg-primary/10 dark:bg-white/10 border border-primary/20 dark:border-white/20 rounded-full px-1.5 py-0.5 shrink-0">Filtros</span>
+        <div class="flex flex-col items-start shrink-0">
+          <label for="f-tipo" class="text-[10px] leading-none text-text-muted-light dark:text-text-muted-dark mb-0.5">Tipo</label>
+          <select id="f-tipo" class="h-8 border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded px-1.5 text-sm w-24 shrink-0" [(ngModel)]="filterTipo" (change)="onFiltroChange()">
+            <option value="TODOS">Todos</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SAIDA">Saída</option>
+          </select>
+        </div>
+        <div class="flex flex-col items-start shrink-0">
+          <label for="f-dia" class="text-[10px] leading-none text-text-muted-light dark:text-text-muted-dark mb-0.5">Data</label>
+          <input id="f-dia" type="date" class="h-8 border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded px-1.5 text-sm w-32 shrink-0" [(ngModel)]="filterDia" (change)="onFiltroChange()" placeholder="dd/mm/aaaa" title="Filtrar por dia específico" />
+        </div>
+        <button class="ml-auto h-8 bg-text-muted-light dark:bg-text-muted-dark text-white px-2 text-xs rounded hover:opacity-80 transition shrink-0" (click)="clearFiltros()">Limpar</button>
+      </div>
+      @if (lancamentos.length > 0) {
+        <ul class="flex flex-col gap-3">
+          @for (l of lancamentos; track l.data) {
+            <li class="flex justify-between items-center border-b border-border-light dark:border-border-dark pb-2">
+              <div class="flex flex-col">
+                <span class="font-medium text-text-light dark:text-text-dark">{{ l.descricao || (l.tipo === 'ENTRADA' ? 'Entrada' : 'Saída') }}</span>
+                @if (l.dataObj) {
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark">{{ l.dataObj | date:'dd/MM/yyyy HH:mm' }}</span>
+                }
+              </div>
+              <span [class]="l.tipo === 'ENTRADA' ? 'text-success font-bold text-sm' : 'text-danger font-bold text-sm'">{{ l.tipo === 'ENTRADA' ? '+' : '-' }}R$ {{ l.valor | number:'1.2-2' }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-text-muted-light dark:text-text-muted-dark">Nenhum lançamento encontrado.</p>
+      }
+    </section>
+  </main>
+
+  <!-- Modal para exibir e editar os dados do usuário -->
+  @if (showUser) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
+        @if (usuarioLoading) {
+          <div class="text-center py-6">Carregando dados do usuário…</div>
+        } @else {
+          @if (usuario && editUsuario) {
+            <form (ngSubmit)="onSaveEdit()" autocomplete="off">
+              <span class="font-bold">Usuário logado</span>
+              <div class="mt-4">
+                <label class="block font-medium">Nome:</label>
+                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.nome" name="nome" [disabled]="!editMode" required>
+              </div>
+              <div class="mt-4">
+                <label class="block font-medium">Email:</label>
+                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.email" name="email" [disabled]="!editMode" required>
+              </div>
+              <div class="mt-4">
+                <label class="block font-medium">CPF:</label>
+                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.cpf" name="cpf" [disabled]="!editMode" required>
+              </div>
+              <div class="mt-4">
+                <label class="block font-medium">Senha:</label>
+                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.senha" name="senha" type="password" [disabled]="!editMode" [required]="editMode">
+              </div>
+              <div class="flex justify-between gap-4 mt-6">
+                @if (!editMode) {
+                  <button type="button" (click)="onEditUser()" class="bg-warning text-white px-4 py-2 rounded font-medium hover:bg-warning-dark transition">Alterar</button>
+                }
+                @if (editMode) {
+                  <button type="submit" class="bg-success text-white px-4 py-2 rounded font-medium hover:bg-success-dark transition">Salvar Alterações</button>
+                }
+                <button type="button" (click)="onCloseUser()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Fechar</button>
+              </div>
+            </form>
+          } @else {
+            <div class="flex flex-col gap-4">
+              @if (usuarioError) {
+                <div class="text-danger">{{ usuarioError }}</div>
+              }
+              <div class="text-text-muted-light dark:text-text-muted-dark">Não foi possível carregar os dados do usuário.</div>
+              <div class="flex justify-end gap-2">
+                <button type="button" (click)="loadUser()" class="bg-primary text-white px-4 py-2 rounded font-medium hover:bg-primary-light transition">Tentar novamente</button>
+                <button type="button" (click)="onCloseUser()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Fechar</button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Modal para confirmação de exclusão da conta -->
+  @if (showDeleteAccountModal) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
+        <form (ngSubmit)="onDeleteAccount()" autocomplete="off">
+          <h2 class="text-lg font-bold text-danger">Confirmar Exclusão da Conta</h2>
+          <p class="mt-4">Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.</p>
+          <div class="mt-4">
+            <label class="block font-medium">Senha:</label>
+            <input class="border rounded p-2 w-full" [(ngModel)]="deleteAccountPassword" name="deleteAccountPassword" type="password" required>
+          </div>
+          <div class="flex justify-between gap-4 mt-6">
+            <button type="submit" class="bg-danger text-white px-4 py-2 rounded font-medium hover:bg-danger-dark transition">Confirmar</button>
+            <button type="button" (click)="onCancelDeleteAccount()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Nova Transação -->
+  @if (showNewTransacaoModal) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
+        <form (ngSubmit)="onSubmitNewTransaction()" autocomplete="off">
+          <h2 class="text-lg font-bold text-primary-text-light dark:text-primary-text-dark">Nova Transação</h2>
+          <div class="mt-4">
+            <label class="block font-medium">Tipo</label>
+            <select class="border rounded p-2 w-full" [(ngModel)]="newTransacao.tipo" name="tipo" required>
+              <option value="ENTRADA">Entrada</option>
+              <option value="SAIDA">Saída</option>
+            </select>
+          </div>
+          <div class="mt-4">
+            <label class="block font-medium">Valor</label>
+            <input class="border rounded p-2 w-full" type="number" min="0" step="0.01" [(ngModel)]="newTransacao.valor" name="valor" required>
+          </div>
+          <div class="mt-4">
+            <label class="block font-medium">Data</label>
+            <input class="border rounded p-2 w-full" type="datetime-local" [(ngModel)]="newTransacaoDataLocal" name="data">
+            <p class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">Se vazio, usa a data/hora atual.</p>
+          </div>
+          <div class="mt-4">
+            <label class="block font-medium">Descrição</label>
+            <input class="border rounded p-2 w-full" type="text" [(ngModel)]="newTransacao.descricao" name="descricao">
+          </div>
+          <div class="flex justify-between gap-4 mt-6">
+            <button type="submit" [disabled]="savingNewTransacao" class="bg-success text-white px-4 py-2 rounded font-medium hover:bg-success-dark transition disabled:opacity-60 disabled:cursor-not-allowed">Salvar</button>
+            <button type="button" (click)="onCancelNewTransaction()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

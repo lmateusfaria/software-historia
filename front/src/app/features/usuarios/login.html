@@ -1,0 +1,12 @@
+<div class="min-h-screen flex flex-col items-center justify-center bg-background-light dark:bg-background-dark transition-colors duration-300 p-4">
+  <form class="w-full max-w-md card flex flex-col gap-4" (ngSubmit)="onSubmit()" autocomplete="off">
+    <h1 class="text-2xl font-bold text-primary-text-light dark:text-primary-text-dark mb-2 text-center">Entrar</h1>
+    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="text" placeholder="E-mail" [(ngModel)]="login" name="login" required>
+    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="password" placeholder="Senha" [(ngModel)]="password" name="password" required>
+    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium text-lg shadow hover:bg-primary-light transition disabled:opacity-60" type="submit" [disabled]="loading">{{ loading ? 'Entrando...' : 'Entrar' }}</button>
+    <button class="w-full surface text-primary-text-light dark:text-primary-text-dark border border-primary py-3 rounded-lg font-medium text-lg shadow hover:bg-primary hover:text-white transition" type="button" (click)="router.navigate(['/register'])">Criar conta</button>
+    @if (error) {
+      <div class="text-danger text-center">{{ error }}</div>
+    }
+  </form>
+</div>

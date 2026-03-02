@@ -14,9 +14,9 @@ export interface UsuarioInfo {
 @Injectable({ providedIn: 'root' })
 export class UserInfoService {
   // Ajustado para usar o endpoint /usuarios/me
-  private apiUrl = 'http://localhost:8080/usuarios/me';
+  private apiUrl = '/api/usuarios/me';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getMe(): Observable<UsuarioInfo> {
     return this.http.get<UsuarioInfo>(this.apiUrl);

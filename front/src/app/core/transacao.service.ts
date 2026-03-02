@@ -15,9 +15,9 @@ export interface TransacaoDTO {
 
 @Injectable({ providedIn: 'root' })
 export class TransacaoService {
-  private apiUrl = 'http://localhost:8080/transacoes';
+  private apiUrl = '/api/transacoes';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
   private authHeaders(): { headers?: HttpHeaders } {
     const token = this.auth.getToken();

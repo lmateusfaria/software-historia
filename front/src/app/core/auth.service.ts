@@ -13,7 +13,7 @@ interface TokenDTO {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/auth/login'; // ajuste se necessário
+  private apiUrl = '/api/auth/login'; // ajustado para proxy Nginx
 
   constructor(private http: HttpClient) {}
 

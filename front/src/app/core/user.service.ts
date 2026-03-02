@@ -17,9 +17,9 @@ export interface UsuarioDTO {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/usuarios'; // ajuste se necessário
+  private apiUrl = '/api/usuarios'; // ajustado para proxy Nginx
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
   register(usuario: UsuarioDTO): Observable<any> {
     const token = this.auth.getToken();
@@ -70,8 +70,8 @@ export class UserService {
     const token = this.auth.getToken();
     let headers = new HttpHeaders();
     if (token) {
-        headers = headers.set('Authorization', `Bearer ${token}`);
+      headers = headers.set('Authorization', `Bearer ${token}`);
     }
-    return this.http.post<boolean>('http://localhost:8080/auth/validate-password', { password }, { headers });
+    return this.http.post<boolean>('/api/auth/validate-password', { password }, { headers });
   }
 }

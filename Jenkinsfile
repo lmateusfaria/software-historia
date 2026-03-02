@@ -42,11 +42,11 @@ pipeline {
             steps {
                 echo 'Realizando deploy no ambiente de Produção...'
                 script {
-                    // Copiamos o .env do host (onde está o token do cloudflare)
-                    sh 'cp /home/user/bibliotecadigitalunifef/.env .env || true'
+                    // Tenta copiar o .env de locais prováveis
+                    sh 'cp /home/user/bibliotecadigitalunifef/.env .env || cp /home/user/.env .env || echo "AVISO: .env nao encontrado"'
                     
                     sh "docker compose -p bibliotecadigital pull"
-                    sh "docker compose -p bibliotecadigital up -d"
+                    sh "docker compose -p bibliotecadigital up -d --remove-orphans"
                     
                     // Limpa imagens antigas (dangling) para economizar recursos
                     sh "docker image prune -af || true"

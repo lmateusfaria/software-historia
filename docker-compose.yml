@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  back_biblioteca_digital_unifef:
+    image: agenciatelabranca/bibliotecadigital-backend:latest
+    container_name: back_biblioteca_digital_unifef
+    networks:
+      - default
+      - infra_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://atb-db-postgres:5432/db_biblioteca_digital_unifef
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postdba
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 8080 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  front_biblioteca_digital_unifef:
+    image: agenciatelabranca/bibliotecadigital-frontend:latest
+    container_name: front_biblioteca_digital_unifef
+    depends_on:
+      back_biblioteca_digital_unifef:
+        condition: service_healthy
+    networks:
+      - default
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tunnel_biblioteca_digital_unifef:
+    image: cloudflare/cloudflared:latest
+    container_name: tunnel_biblioteca_digital_unifef
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - default
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  infra_network:
+    external: true
+    name: infra_default

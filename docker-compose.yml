@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  back_biblioteca_digital_unifef:
+  back-biblioteca-digital:
     image: agenciatelabranca/bibliotecadigital-backend:latest
-    container_name: back_biblioteca_digital_unifef
+    container_name: back-biblioteca-digital
     networks:
       - default
       - infra_network
@@ -24,11 +24,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  front_biblioteca_digital_unifef:
+  biblioteca-digital-unifef:
     image: agenciatelabranca/bibliotecadigital-frontend:latest
-    container_name: front_biblioteca_digital_unifef
+    container_name: biblioteca-digital-unifef
     depends_on:
-      back_biblioteca_digital_unifef:
+      back-biblioteca-digital:
         condition: service_healthy
     networks:
       - default

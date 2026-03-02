@@ -42,8 +42,9 @@ pipeline {
             steps {
                 echo 'Realizando deploy no ambiente de Produção...'
                 script {
-                    // O arquivo .env já deve estar no diretório do projeto no servidor
-                    // Jenkins deve rodar o comando no diretório correto
+                    // Copiamos o .env do host (onde está o token do cloudflare)
+                    sh 'cp /home/user/bibliotecadigitalunifef/.env .env || true'
+                    
                     sh "docker compose -p bibliotecadigital pull"
                     sh "docker compose -p bibliotecadigital up -d"
                     

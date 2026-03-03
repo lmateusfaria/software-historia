@@ -21,18 +21,20 @@ public class DBService {
     private PasswordEncoder encoder;
 
     public void initDB() {
+        try {
+            if (!usuarioRepository.existsByCpf("34637449618") && !usuarioRepository.existsByEmail("adm@email.com")) {
+                Usuario user1 = new Usuario(null, "34637449618", "Administrador",
+                        "adm@email.com", encoder.encode("1234"), LocalDate.now());
+                usuarioRepository.save(user1);
+            }
 
-        if (!usuarioRepository.existsByCpf("34637449618") && !usuarioRepository.existsByEmail("adm@email.com")) {
-            Usuario user1 = new Usuario(null, "34637449618", "Administrador",
-                    "adm@email.com", encoder.encode("1234"), LocalDate.now());
-            usuarioRepository.save(user1);
+            if (!usuarioRepository.existsByCpf("16963985332") && !usuarioRepository.existsByEmail("usuario@email.com")) {
+                Usuario user2 = new Usuario(null, "16963985332", "Usuario",
+                        "usuario@email.com", encoder.encode("1234"), LocalDate.now());
+                usuarioRepository.save(user2);
+            }
+        } catch (Exception e) {
+            System.err.println("Aviso: Tabelas ainda não criadas. O Hibernate deve gerá-las no próximo boot ou durante esse ciclo. Erro: " + e.getMessage());
         }
-
-        if (!usuarioRepository.existsByCpf("16963985332") && !usuarioRepository.existsByEmail("usuario@email.com")) {
-            Usuario user2 = new Usuario(null, "16963985332", "Usuario",
-                    "usuario@email.com", encoder.encode("1234"), LocalDate.now());
-            usuarioRepository.save(user2);
-        }
-
     }
 }

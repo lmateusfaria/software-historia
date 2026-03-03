@@ -42,17 +42,35 @@ pipeline {
             steps {
                 echo 'Realizando deploy no ambiente de Produção...'
                 script {
-                    // Tenta copiar o .env de locais prováveis
-                    sh 'cp /home/user/bibliotecadigitalunifef/.env .env || cp /home/user/.env .env || echo "AVISO: .env nao encontrado"'
+                    // Tenta copiar o .env de locais prováveis, mas garante a execução mesmo se falhar
+                    sh '''
+                        if [ -f /home/user/bibliotecadigitalunifef/.env ]; then
+                            cp /home/user/bibliotecadigitalunifef/.env .env
+                        elif [ -f /home/user/.env ]; then
+                            cp /home/user/.env .env
+                        else
+                            echo "AVISO: .env não encontrado em locais padrão. Usando configurações internas."
+                            touch .env
+                        fi
+                    '''
                     
                     sh "docker compose -p bibliotecadigital pull"
                     sh "docker compose -p bibliotecadigital up -d --remove-orphans"
                     
+                    echo 'Aguardando inicialização dos serviços...'
+                    sh 'sleep 20'
+                    
+                    // Verifica logs se o backend não estiver saudável
+                    sh '''
+                        STATUS=$(docker inspect -f '{{.State.Health.Status}}' back-biblioteca-digital || echo "unknown")
+                        if [ "$STATUS" != "healthy" ]; then
+                            echo "ERRO: Backend não está saudável. Verificando logs..."
+                            docker logs --tail 50 back-biblioteca-digital
+                        fi
+                    '''
+                    
                     // Limpa imagens antigas (dangling) para economizar recursos
                     sh "docker image prune -af || true"
-                    
-                    echo 'Aguardando serviços ficarem saudáveis...'
-                    sh 'sleep 15'
                 }
             }
         }

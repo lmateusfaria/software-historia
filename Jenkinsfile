@@ -46,6 +46,8 @@ pipeline {
                     sh '''
                         if [ -f /home/user/bibliotecadigitalunifef/.env ]; then
                             cp /home/user/bibliotecadigitalunifef/.env .env
+                        elif [ -f /home/user/pdv/bibliotecadigital/.env ]; then
+                            cp /home/user/pdv/bibliotecadigital/.env .env
                         elif [ -f /home/user/.env ]; then
                             cp /home/user/.env .env
                         else

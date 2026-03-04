@@ -35,6 +35,7 @@
     "@angular/ssr": "^18.2.12",
     "express": "^5.1.0",
     "framer-motion": "^12.23.12",
+    "gsap": "^3.14.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"

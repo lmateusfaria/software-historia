@@ -1,5 +1,6 @@
-import { Component, OnInit, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-home',
@@ -7,174 +8,149 @@ import { Router } from '@angular/router';
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
-export class Home implements OnInit, AfterViewInit {
+export class Home implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
-  private isBrowser(): boolean {
-    return typeof window !== 'undefined' && typeof document !== 'undefined';
-  }
-
-  ngOnInit(): void {
-    // Inicialização básica
-  }
+  ngOnInit(): void { }
 
   ngAfterViewInit(): void {
-    if (this.isBrowser()) {
-      this.initializeAnimations();
-      this.startCounters();
-      this.observeElements();
-      this.optimizeAnimations();
+    if (isPlatformBrowser(this.platformId)) {
+      this.runHeroGSAP();
+      this.observeScrollElements();
+      this.runCounters();
     }
   }
 
-  private initializeAnimations(): void {
-    // Adiciona animações de entrada suaves
-    const elements = document.querySelectorAll('.fade-in, .fade-in-delay, .fade-in-delay-2');
-    elements.forEach((element, index) => {
-      setTimeout(() => {
-        element.classList.add('animate-in');
-      }, index * 100);
-    });
+  ngOnDestroy(): void { }
+
+  private async runHeroGSAP(): Promise<void> {
+    const gsap = (await import('gsap')).gsap;
+
+    // Sequência de entrada do hero
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to('#hero-badge', { opacity: 1, y: 0, duration: 0.6, delay: 0.2 })
+      .to('#hero-title', { opacity: 1, y: 0, duration: 0.7 }, '-=0.3')
+      .to('#hero-sub', { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+      .to('#hero-ctas', { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+      .to('#hero-scroll', { opacity: 1, duration: 0.5 }, '-=0.2');
+
+    // Configurar posição inicial para animação GSAP
+    gsap.set(['#hero-badge', '#hero-title', '#hero-sub', '#hero-ctas'], { y: 30 });
+
+    // Partículas flutuantes no canvas
+    this.drawParticles();
   }
 
-  private startCounters(): void {
-    const counters = document.querySelectorAll('.counter');
-    
-    counters.forEach((counter) => {
-      const target = parseInt(counter.getAttribute('data-target') || '0');
-      const duration = 2000; // 2 segundos
-      const step = target / (duration / 16); // 60fps
-      let current = 0;
+  private drawParticles(): void {
+    const canvas = document.getElementById('hero-particles') as HTMLCanvasElement;
+    if (!canvas) return;
 
-      const updateCounter = () => {
-        current += step;
-        if (current < target) {
-          counter.textContent = Math.floor(current).toString();
-          requestAnimationFrame(updateCounter);
-        } else {
-          counter.textContent = target.toString();
-        }
-      };
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      // Inicia o contador com um pequeno delay
-      setTimeout(() => {
-        updateCounter();
-      }, 500);
-    });
+    // Tamanho responsivo
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles: Array<{
+      x: number; y: number; vx: number; vy: number;
+      r: number; alpha: number; color: string;
+    }> = [];
+
+    const colors = ['#00A79D', '#F7941D', '#33BBAF', '#FAA84A'];
+    for (let i = 0; i < 50; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 3 + 1,
+        alpha: Math.random() * 0.4 + 0.1,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, '0');
+        ctx.fill();
+      }
+      requestAnimationFrame(animate);
+    };
+    animate();
   }
 
-  private observeElements(): void {
-    // Intersection Observer para animações durante o scroll
+  private observeScrollElements(): void {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
+          (entry.target as HTMLElement).style.animation = 'fadeUpIn 0.7s ease-out both';
+          (entry.target as HTMLElement).style.opacity = '1';
+          observer.unobserve(entry.target);
         }
       });
-    }, {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
 
-    // Observa os cards de features
-    const featureCards = document.querySelectorAll('.feature-card');
-    featureCards.forEach((card) => {
-      observer.observe(card);
-    });
-
-    // Observa os itens de estatísticas
-    const statItems = document.querySelectorAll('.stat-item');
-    statItems.forEach((item) => {
-      observer.observe(item);
+    document.querySelectorAll('.feat-animate, .stat-item, .cta-animate').forEach(el => {
+      observer.observe(el);
     });
   }
 
-  private optimizeAnimations(): void {
-    if (this.isBrowser()) {
-      // Detecta se o usuário prefere movimento reduzido
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      
-      if (prefersReducedMotion) {
-        // Desabilita animações para melhor acessibilidade
-        document.body.classList.add('reduced-motion');
-      }
-
-      // Pausa animações quando a página não está visível
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          document.body.classList.add('paused-animations');
-        } else {
-          document.body.classList.remove('paused-animations');
+  private runCounters(): void {
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target as HTMLElement;
+          const target = parseInt(el.getAttribute('data-target') || '0');
+          let current = 0;
+          const step = target / 60;
+          const tick = () => {
+            current += step;
+            if (current < target) {
+              el.textContent = Math.floor(current).toString();
+              requestAnimationFrame(tick);
+            } else {
+              el.textContent = target.toString();
+            }
+          };
+          tick();
+          counterObserver.unobserve(entry.target);
         }
       });
-    }
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
   }
 
-  // Método para navegar para diferentes seções
-  goTo(path: string): void {
-    this.router.navigate([path]);
-  }
-
-  // Método para navegar para o registro
   onGetStarted(): void {
     this.router.navigate(['/register']);
   }
 
-  // Método para navegar para o dashboard (se logado) ou login
   onExploreFeatures(): void {
     this.router.navigate(['/login']);
   }
 
-  // Método para smooth scroll (caso implemente âncoras na página)
   scrollToSection(sectionId: string): void {
-    if (this.isBrowser()) {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
+    if (isPlatformBrowser(this.platformId)) {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
     }
-  }
-
-  // Método para adicionar efeito de ripple nos botões
-  addRippleEffect(event: MouseEvent): void {
-    if (!this.isBrowser()) return;
-
-    const button = event.currentTarget as HTMLElement;
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-
-    const ripple = document.createElement('div');
-    ripple.style.cssText = `
-      position: absolute;
-      width: ${size}px;
-      height: ${size}px;
-      left: ${x}px;
-      top: ${y}px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      transform: scale(0);
-      animation: ripple 0.6s ease-out;
-      pointer-events: none;
-    `;
-
-    button.style.position = 'relative';
-    button.style.overflow = 'hidden';
-    button.appendChild(ripple);
-
-    // Remove o ripple após a animação
-    setTimeout(() => {
-      if (ripple.parentNode) {
-        ripple.parentNode.removeChild(ripple);
-      }
-    }, 600);
   }
 }

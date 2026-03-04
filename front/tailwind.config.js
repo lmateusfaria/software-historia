@@ -4,59 +4,48 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Tema principal baseado em branco e preto
+        // Paleta Oficial UNIFEF
+        unifef: {
+          teal: '#00A79D',
+          'teal-dark': '#00877E',
+          'teal-light': '#33BBAF',
+          orange: '#F7941D',
+          'orange-dark': '#D97A0E',
+          'orange-light': '#FAA84A',
+        },
         primary: {
-          DEFAULT: '#000000', // preto puro
-          light: '#333333',   // preto claro
-          dark: '#000000',    // preto escuro
-          accent: '#ffffff',  // branco para contraste
-          // Cores adaptáveis para texto
+          DEFAULT: '#00A79D',
+          dark: '#00877E',
+          light: '#33BBAF',
+          accent: '#F7941D',
           text: {
-            light: '#000000', // preto no tema claro
-            dark: '#ffffff',  // branco no tema escuro
+            light: '#111827',
+            dark: '#F9FAFB',
           },
         },
-        // Cores semânticas para padronizar o projeto inteiro
-        success: {
-          DEFAULT: '#16a34a', // verde 600
-          light: '#22c55e',   // verde 500
-          dark: '#166534',    // verde 800
-        },
-        warning: {
-          DEFAULT: '#f59e0b', // amber 500
-          light: '#fbbf24',   // amber 400
-          dark: '#b45309',    // amber 700
-        },
-        danger: {
-          DEFAULT: '#dc2626', // red 600
-          light: '#ef4444',   // red 500
-          dark: '#991b1b',    // red 800
-        },
-        info: {
-          DEFAULT: '#3b82f6', // blue 500
-          light: '#60a5fa',   // blue 400
-          dark: '#1e40af',    // blue 800
-        },
-        // Sistema de cores para tema claro/escuro
+        success: { DEFAULT: '#16a34a', light: '#22c55e', dark: '#166534' },
+        warning: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#b45309' },
+        danger: { DEFAULT: '#dc2626', light: '#ef4444', dark: '#991b1b' },
+        info: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#1e40af' },
         background: {
-          light: '#ffffff',   // branco puro (tema claro)
-          dark: '#000000',    // preto puro (tema escuro)
+          light: '#F8FAF9',
+          dark: '#0B1210',
         },
         surface: {
-          light: '#f8f9fa',   // cinza muito claro (tema claro)
-          dark: '#1a1a1a',    // cinza muito escuro (tema escuro)
+          light: '#FFFFFF',
+          dark: '#121A19',
         },
         text: {
-          light: '#000000',   // preto (texto no tema claro)
-          dark: '#ffffff',    // branco (texto no tema escuro)
+          light: '#111827',
+          dark: '#F9FAFB',
           muted: {
-            light: '#6b7280', // cinza médio (tema claro)
-            dark: '#9ca3af',  // cinza claro (tema escuro)
+            light: '#6B7280',
+            dark: '#9CA3AF',
           },
         },
         border: {
-          light: '#e5e7eb',   // borda clara
-          dark: '#374151',    // borda escura
+          light: '#E5E7EB',
+          dark: '#1F3330',
         },
       },
       fontFamily: {
@@ -64,16 +53,25 @@ module.exports = {
       },
       keyframes: {
         gradient: {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
         },
       },
       animation: {
-        gradient: "gradient 8s ease infinite",
+        gradient: 'gradient 8s ease infinite',
+        float: 'float 6s ease-in-out infinite',
+        shimmer: 'shimmer 2.5s linear infinite',
       },
     },
   },
-
   plugins: [],
-  darkMode: 'class'
+  darkMode: 'class',
 };

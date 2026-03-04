@@ -1,242 +1,277 @@
-<div class="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300 overflow-hidden">
-  <!-- Hero Section -->
-  <section class="relative px-4 py-16 sm:py-24">
-    <!-- Background Animation -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="floating-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-        <div class="shape shape-4"></div>
-      </div>
+<div class="min-h-screen bg-background-light dark:bg-background-dark overflow-x-hidden">
+
+  <!-- ═══════════════════════════════════════════════
+       HERO SECTION
+  ════════════════════════════════════════════════ -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center px-4 pt-20 pb-12 overflow-hidden">
+
+    <!-- Canvas de partículas GSAP -->
+    <canvas id="hero-particles" class="absolute inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- Glow de fundo -->
+    <div
+      class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-unifef-teal/10 rounded-full blur-[120px] pointer-events-none">
+    </div>
+    <div
+      class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-unifef-orange/10 rounded-full blur-[100px] pointer-events-none">
     </div>
 
-    <div class="relative max-w-4xl mx-auto text-center z-10">
-      <!-- Hero Icon with Animation -->
-      <div class="hero-icon-container mb-8">
-        <div class="hero-icon">
-          <svg class="w-24 h-24 mx-auto text-primary animate-pulse" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
+    <div class="relative z-10 max-w-5xl mx-auto text-center">
+
+      <!-- Badge -->
+      <div id="hero-badge"
+        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-unifef-teal/30 bg-unifef-teal/10 text-unifef-teal text-sm font-semibold mb-8 opacity-0">
+        <span class="w-2 h-2 rounded-full bg-unifef-teal animate-pulse"></span>
+        Centro Universitário UNIFEF · Memória e Preservação
       </div>
 
-      <!-- Hero Title -->
-      <h1 class="text-4xl sm:text-6xl font-bold text-primary-text-light dark:text-primary-text-dark mb-6 fade-in">
+      <!-- Título principal -->
+      <h1 id="hero-title"
+        class="text-5xl sm:text-7xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white mb-6 opacity-0">
         Biblioteca Digital
-        <span class="text-primary-text-light dark:text-primary-text-dark">
+        <span class="block mt-1"
+          style="background: linear-gradient(135deg, #00A79D 0%, #F7941D 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
           UNIFEF
         </span>
       </h1>
 
-      <!-- Hero Subtitle -->
-      <p
-        class="text-xl sm:text-2xl text-text-muted-light dark:text-text-muted-dark mb-8 max-w-3xl mx-auto fade-in-delay">
-        Preservando e democratizando o acesso à informação com uma plataforma robusta e intuitiva.
-        <br class="hidden sm:block">
-        Organize, consulte e preserve o conhecimento! 📚
+      <!-- Subtítulo -->
+      <p id="hero-sub"
+        class="text-lg sm:text-xl text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto mb-10 opacity-0">
+        Preservando documentos históricos e democratizando o acesso ao conhecimento da nossa comunidade.
+        Uma plataforma criada por alunos, para o mundo.
       </p>
 
-      <!-- CTA Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 fade-in-delay-2">
-        <button class="cta-primary group" (click)="onGetStarted(); addRippleEffect($event)">
-          <span class="flex items-center gap-2">
-            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+      <!-- CTAs -->
+      <div id="hero-ctas" class="flex flex-col sm:flex-row gap-4 justify-center opacity-0">
+        <button (click)="onGetStarted()"
+          class="group relative px-8 py-4 rounded-xl font-bold text-white text-base overflow-hidden shadow-lg shadow-unifef-teal/30 transition-all duration-300 hover:shadow-unifef-teal/50 hover:-translate-y-0.5"
+          style="background: linear-gradient(135deg, #00A79D, #00877E);">
+          <span class="relative z-10 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
               viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-            Acessar Acervo
+            Acessar o Acervo
           </span>
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            style="background: linear-gradient(135deg, #00877E, #006B63);"></div>
         </button>
-        <button class="cta-secondary group" (click)="onExploreFeatures(); addRippleEffect($event)">
-          <span class="flex items-center gap-2">
+        <button (click)="onExploreFeatures()"
+          class="group px-8 py-4 rounded-xl font-bold text-base border-2 border-unifef-teal text-unifef-teal hover:bg-unifef-teal hover:text-white transition-all duration-300 hover:-translate-y-0.5">
+          <span class="flex items-center justify-center gap-2">
             <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor"
               viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            Explorar Recursos
+            Criar uma Conta
           </span>
         </button>
+      </div>
+
+      <!-- Scroll indicator -->
+      <div id="hero-scroll" class="mt-16 flex flex-col items-center gap-2 opacity-0">
+        <span class="text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-widest">Explorar</span>
+        <div class="w-px h-12 bg-gradient-to-b from-unifef-teal/60 to-transparent"></div>
       </div>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="py-16 px-4">
+  <!-- ═══════════════════════════════════════════════
+       FEATURES SECTION
+  ════════════════════════════════════════════════ -->
+  <section id="features" class="py-24 px-4 bg-surface-light dark:bg-surface-dark">
     <div class="max-w-6xl mx-auto">
-      <!-- Section Header -->
-      <div class="text-center mb-16">
-        <h2 class="text-3xl sm:text-4xl font-bold text-primary-text-light dark:text-primary-text-dark mb-4">
-          Por que escolher a Biblioteca Digital UNIFEF?
+
+      <div class="text-center mb-16 feat-animate opacity-0">
+        <span
+          class="inline-block px-3 py-1 rounded-full bg-unifef-orange/10 text-unifef-orange text-sm font-semibold mb-4 border border-unifef-orange/20">Funcionalidades</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+          Por que usar a Biblioteca Digital UNIFEF?
         </h2>
-        <p class="text-lg text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
-          Recursos poderosos para preservação, organização e acesso democrático ao conhecimento
+        <p class="text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
+          Ferramentas pensadas para preservar, organizar e compartilhar a memória histórica da nossa região.
         </p>
       </div>
 
-      <!-- Features Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Feature 1 - Upload System -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-blue-500 to-blue-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card 1 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
+            <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Upload Múltiplo
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Interface intuitiva para envio de arquivos em lote ou individualmente, com suporte para PDF, DOCX, TXT, JPG,
-            PNG e diversos outros formatos.
-          </p>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Digitalização em Lote</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Envio intuitivo de
+            documentos, jornais e fotografias históricas com suporte a PDF, JPG e PNG.</p>
         </div>
 
-        <!-- Feature 2 - Advanced Search -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-green-500 to-green-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Busca Avançada
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Ferramenta de pesquisa que permite encontrar arquivos por palavra-chave, título, autor, categoria ou data de
-            publicação com filtros e ordenação.
-          </p>
-        </div>
-
-        <!-- Feature 3 - Categorization -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-purple-500 to-purple-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Categorização Flexível
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Sistema de organização em categorias com adição de metadados relevantes para facilitar a identificação e
-            recuperação de documentos.
-          </p>
-        </div>
-
-        <!-- Feature 4 - Integrated Viewer -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-orange-500 to-orange-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Visualizador Integrado
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Exibição de documentos e imagens diretamente no navegador, sem necessidade de download prévio para consulta
-            rápida e eficiente.
-          </p>
-        </div>
-
-        <!-- Feature 5 - Download -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-pink-500 to-pink-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Download Offline
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Baixe arquivos para acesso e uso offline, permitindo consulta de documentos mesmo sem conexão com a
-            internet.
-          </p>
-        </div>
-
-        <!-- Feature 6 - Security -->
-        <div class="feature-card group">
-          <div class="feature-icon bg-gradient-to-br from-indigo-500 to-indigo-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
+        <!-- Card 2 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
+            <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
-            Segurança e Integridade
-          </h3>
-          <p class="text-text-muted-light dark:text-text-muted-dark">
-            Controle de acesso com perfis de usuário e sistema robusto que garante a segurança e integridade dos dados
-            armazenados.
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Fluxo de Aprovação</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Professores revisam e
+            aprovam digitalizações enviadas pelos alunos antes de torná-las públicas.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
+            <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Busca Avançada</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Pesquisadores encontram
+            documentos por palavra-chave, período histórico, autor e categoria.</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
+            <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Visualizador Integrado</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Visualize imagens e
+            documentos históricos diretamente no navegador, sem downloads.</p>
+        </div>
+
+        <!-- Card 5 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
+            <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Acesso por Perfil</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Três perfis distintos:
+            Professor, Aluno e Pesquisador — cada um com permissões específicas.</p>
+        </div>
+
+        <!-- Card 6 -->
+        <div
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
+            <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">OCR com IA</h3>
+          <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed">Extração automática de
+            texto de imagens usando Spring AI + GPT-4o mini para indexação e busca.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       STATS SECTION
+  ════════════════════════════════════════════════ -->
+  <section id="stats" class="py-20 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none"
+      style="background: linear-gradient(135deg, #00A79D08, #F7941D08);"></div>
+    <div class="relative max-w-4xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="stat-item opacity-0">
+          <div class="text-5xl font-black mb-1"
+            style="background: linear-gradient(135deg, #00A79D, #F7941D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            <span class="counter" data-target="10">0</span>K+
+          </div>
+          <div class="text-sm text-text-muted-light dark:text-text-muted-dark font-medium">Documentos</div>
+        </div>
+        <div class="stat-item opacity-0">
+          <div class="text-5xl font-black mb-1"
+            style="background: linear-gradient(135deg, #00A79D, #F7941D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            <span class="counter" data-target="5">0</span>K+
+          </div>
+          <div class="text-sm text-text-muted-light dark:text-text-muted-dark font-medium">Usuários</div>
+        </div>
+        <div class="stat-item opacity-0">
+          <div class="text-5xl font-black mb-1"
+            style="background: linear-gradient(135deg, #00A79D, #F7941D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            <span class="counter" data-target="20">0</span>+
+          </div>
+          <div class="text-sm text-text-muted-light dark:text-text-muted-dark font-medium">Categorias</div>
+        </div>
+        <div class="stat-item opacity-0">
+          <div class="text-5xl font-black mb-1"
+            style="background: linear-gradient(135deg, #00A79D, #F7941D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            24/7
+          </div>
+          <div class="text-sm text-text-muted-light dark:text-text-muted-dark font-medium">Disponível</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       CTA FINAL
+  ════════════════════════════════════════════════ -->
+  <section id="cta" class="py-24 px-4">
+    <div class="max-w-3xl mx-auto text-center cta-animate opacity-0">
+      <div
+        class="relative p-10 rounded-3xl overflow-hidden border border-unifef-teal/20 shadow-2xl shadow-unifef-teal/10"
+        style="background: linear-gradient(135deg, #00A79D12, #F7941D10);">
+        <!-- Glow interno -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-unifef-orange/10 rounded-full blur-[80px] pointer-events-none">
+        </div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-unifef-teal/10 rounded-full blur-[80px] pointer-events-none">
+        </div>
+        <div class="relative z-10">
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+            Pronto para explorar a memória histórica?
+          </h2>
+          <p class="text-text-muted-light dark:text-text-muted-dark mb-8 text-lg max-w-xl mx-auto">
+            Junte-se a pesquisadores, professores e estudantes que preservam e acessam o patrimônio cultural da nossa
+            comunidade.
           </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button (click)="onGetStarted()"
+              class="group relative px-8 py-4 rounded-xl font-bold text-white text-base overflow-hidden shadow-lg shadow-unifef-teal/30 transition-all duration-300 hover:shadow-unifef-teal/50 hover:-translate-y-0.5"
+              style="background: linear-gradient(135deg, #00A79D, #00877E);">
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                Começar Agora
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+            </button>
+            <button (click)="onExploreFeatures()"
+              class="px-8 py-4 rounded-xl font-bold text-base border-2 border-unifef-orange text-unifef-orange hover:bg-unifef-orange hover:text-white transition-all duration-300 hover:-translate-y-0.5">
+              Fazer Login
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Statistics Section -->
-  <section class="py-16 px-4 bg-surface-light dark:bg-surface-dark">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl font-bold text-primary-text-light dark:text-primary-text-dark mb-12">
-        Impacto e Alcance
-      </h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div class="stat-item">
-          <div class="text-4xl font-bold text-primary mb-2 counter" data-target="10">0</div>
-          <div class="text-text-muted-light dark:text-text-muted-dark">K+ Documentos</div>
-        </div>
-        <div class="stat-item">
-          <div class="text-4xl font-bold text-primary mb-2 counter" data-target="5">0</div>
-          <div class="text-text-muted-light dark:text-text-muted-dark">K+ Usuários</div>
-        </div>
-        <div class="stat-item">
-          <div class="text-4xl font-bold text-primary mb-2 counter" data-target="20">0</div>
-          <div class="text-text-muted-light dark:text-text-muted-dark">+ Categorias</div>
-        </div>
-        <div class="stat-item">
-          <div class="text-4xl font-bold text-primary mb-2 counter" data-target="24">0</div>
-          <div class="text-text-muted-light dark:text-text-muted-dark">/ 7 Acesso</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-16 px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl sm:text-4xl font-bold text-primary-text-light dark:text-primary-text-dark mb-6">
-        Pronto para explorar o conhecimento?
-      </h2>
-      <p class="text-xl text-text-muted-light dark:text-text-muted-dark mb-8">
-        Junte-se a pesquisadores, estudantes e cidadãos que preservam e acessam a memória histórica e cultural
-      </p>
-      <button class="cta-primary text-lg px-8 py-4" (click)="onGetStarted(); addRippleEffect($event)">
-        <span class="flex items-center gap-2">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          Acessar Biblioteca
-        </span>
-      </button>
-    </div>
-  </section>
 </div>

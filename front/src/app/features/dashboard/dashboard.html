@@ -120,8 +120,8 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          @if (lancamentos.length > 0) {
-          @for (l of lancamentos; track l.data) {
+          @if (documentos.length > 0) {
+          @for (l of documentos; track l.descricao) {
           <div class="card-premium !p-5 flex gap-4 group">
             <div
               class="w-16 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700">

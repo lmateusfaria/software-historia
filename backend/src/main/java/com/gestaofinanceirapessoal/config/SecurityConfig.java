@@ -82,7 +82,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",
             "http://localhost:8080",
-            "https://bibliotecadigital.agenciatelabranca.com.br"
+            "https://bibliotecadigital.agenciatelabranca.com.br",
+            "https://pdv.agenciatelabranca.com.br"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

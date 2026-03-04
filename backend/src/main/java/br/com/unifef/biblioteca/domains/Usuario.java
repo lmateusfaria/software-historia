@@ -47,6 +47,16 @@ public class Usuario {
         this.dataCriacao = dataCriacao;
     }
 
+    public Usuario(Long id, String cpf, String nome, String email, String senha, LocalDate dataCriacao, Perfil perfil) {
+        this.id = id;
+        this.cpf = cpf;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.dataCriacao = dataCriacao;
+        this.perfil = perfil;
+    }
+
     public Usuario(UsuarioDTO usuarioDTO) {
         this.id = usuarioDTO.getId();
         this.cpf = usuarioDTO.getCpf();

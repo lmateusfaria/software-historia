@@ -69,12 +69,6 @@ public class UsuarioService {
 
     public void delete(Long id) {
         Usuario obj = findById(id);
-
-        if (!obj.getTransacoes().isEmpty()) {
-            throw new DataIntegrityViolationException("Não é possível deletar o usuário que possui transações associadas.");
-        }
-
-        // Remover a entidade gerenciada para permitir cascade remove nas transações
         usuarioRepo.delete(obj);
     }
 

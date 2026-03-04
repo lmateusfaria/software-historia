@@ -35,7 +35,7 @@ public class DocumentoService {
         doc.setTitulo(dto.getTitulo());
         doc.setDescricao(dto.getDescricao());
         // doc.setUrlImagem(dto.getUrlImagem()); // Entidade usa imagensUrls (List)
-        doc.setStatus(br.com.unifef.biblioteca.domains.StatusDocumento.AGUARDANDO_APROVACAO);
+        doc.setStatus(StatusDocumento.AGUARDANDO_APROVACAO);
         doc.setDataDigitalizacao(LocalDate.now());
         
         Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())

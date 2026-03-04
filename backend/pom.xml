@@ -13,10 +13,10 @@
 	</parent>
 
 	<groupId>com.gestaofinanceirapessoal</groupId>
-	<artifactId>Main</artifactId>
+	<artifactId>unifef-biblioteca</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Main</name>
-	<description>Gestão Financeira Pessoal Spring Boot</description>
+	<name>Biblioteca Digital UNIFEF</name>
+	<description>Plataforma de preservação e consulta de documentos históricos - UNIFEF</description>
 
 	<properties>
 		<java.version>17</java.version>

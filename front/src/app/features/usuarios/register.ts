@@ -16,12 +16,13 @@ export class Register {
   email = '';
   senha = '';
   cpf = '';
+  perfil = 'PESQUISADOR';
   error = '';
   loading = false;
   success = false;
 
-  constructor(public router: Router, private userService: UserService, public auth: AuthService) {}
-  
+  constructor(public router: Router, private userService: UserService, public auth: AuthService) { }
+
   isLoggedIn(): boolean {
     return !!this.auth.getToken();
   }
@@ -35,8 +36,7 @@ export class Register {
       email: this.email,
       senha: this.senha,
       cpf: this.cpf,
-      contasIds: [],
-      centrosCustoIds: []
+      perfil: this.perfil
     };
     this.userService.register(usuario).subscribe({
       next: (res: any) => {

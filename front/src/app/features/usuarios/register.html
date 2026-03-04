@@ -1,17 +1,75 @@
-<div class="min-h-screen flex flex-col items-center justify-center bg-background-light dark:bg-background-dark transition-colors duration-300 p-4">
-  <form class="w-full max-w-md card flex flex-col gap-4" (ngSubmit)="onSubmit()" autocomplete="off">
-    <h1 class="text-2xl font-bold text-primary-text-light dark:text-primary-text-dark mb-2 text-center">Criar Conta</h1>
-    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="text" placeholder="Nome completo" [(ngModel)]="nome" name="nome" required>
-    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="email" placeholder="E-mail" [(ngModel)]="email" name="email" required>
-    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="text" placeholder="CPF" [(ngModel)]="cpf" name="cpf" required>
-    <input class="border border-border-light dark:border-border-dark rounded p-3 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:border-primary outline-none transition-colors" type="password" placeholder="Senha" [(ngModel)]="senha" name="senha" required>
-    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium text-lg shadow hover:bg-primary-light transition disabled:opacity-60" type="submit" [disabled]="loading">{{ loading ? 'Registrando...' : 'Cadastrar-se' }}</button>
-    <button class="w-full surface text-primary-text-light dark:text-primary-text-dark border border-primary py-3 rounded-lg font-medium text-lg shadow hover:bg-primary hover:text-white transition" type="button" (click)="router.navigate(['/login'])">Já tenho conta</button>
-    @if (error) {
-      <div class="text-danger text-center">{{ error }}</div>
-    }
-    @if (success) {
-      <div class="text-success text-center">Usuário cadastrado com sucesso! Redirecionando...</div>
-    }
-  </form>
+<div
+  class="min-h-screen flex items-center justify-center bg-[#fdfaf6] dark:bg-[#0f1115] relative overflow-hidden p-6 font-sans">
+  <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+    <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="w-full max-w-2xl relative z-10 fade-in">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Junte-se a nós</h1>
+      <p class="text-gray-500 dark:text-gray-400">Faça parte da preservação da nossa história</p>
+    </div>
+
+    <div class="card-premium">
+      <form (ngSubmit)="onSubmit()" autocomplete="off" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nome Completo</label>
+          <input class="input-premium" type="text" placeholder="Seu nome" [(ngModel)]="nome" name="nome" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">E-mail</label>
+          <input class="input-premium" type="email" placeholder="nome@exemplo.com" [(ngModel)]="email" name="email"
+            required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CPF</label>
+          <input class="input-premium" type="text" placeholder="000.000.000-00" [(ngModel)]="cpf" name="cpf" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha</label>
+          <input class="input-premium" type="password" placeholder="••••••••" [(ngModel)]="senha" name="senha" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Eu sou...</label>
+          <select class="input-premium appearance-none cursor-pointer" [(ngModel)]="perfil" name="perfil" required>
+            <option value="PESQUISADOR">Pesquisador (Comunidade)</option>
+            <option value="ALUNO">Aluno (Digitalizador)</option>
+            <option value="PROFESSOR">Professor (Gestor)</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          @if (error) {
+          <div
+            class="p-4 mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm text-center">
+            {{ error }}
+          </div>
+          }
+          @if (success) {
+          <div
+            class="p-4 mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-600 dark:text-green-400 text-sm text-center">
+            Conta criada com sucesso! Redirecionando...
+          </div>
+          }
+
+          <button class="btn-premium bg-primary text-white hover:bg-gray-900" type="submit" [disabled]="loading">
+            {{ loading ? 'Processando...' : 'Criar Conta' }}
+          </button>
+        </div>
+
+        <div class="md:col-span-2 text-center">
+          <button
+            class="text-gray-600 dark:text-gray-400 font-medium hover:text-primary dark:hover:text-white transition-colors"
+            type="button" (click)="router.navigate(['/login'])">
+            Já possui uma conta? Entrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

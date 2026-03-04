@@ -6,13 +6,11 @@ import type { UsuarioInfo } from './user-info.service';
 
 export interface UsuarioDTO {
   id?: number;
-  cpf: string;
   nome: string;
   email: string;
-  senha: string;
-  dataCriacao?: string;
-  contasIds?: number[];
-  centrosCustoIds?: number[];
+  cpf: string;
+  senha?: string;
+  perfil?: string;
 }
 
 @Injectable({ providedIn: 'root' })

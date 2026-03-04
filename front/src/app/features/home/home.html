@@ -10,46 +10,52 @@
         <div class="shape shape-4"></div>
       </div>
     </div>
-    
+
     <div class="relative max-w-4xl mx-auto text-center z-10">
       <!-- Hero Icon with Animation -->
       <div class="hero-icon-container mb-8">
         <div class="hero-icon">
-          <svg class="w-24 h-24 mx-auto text-primary animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          <svg class="w-24 h-24 mx-auto text-primary animate-pulse" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
       </div>
-      
+
       <!-- Hero Title -->
       <h1 class="text-4xl sm:text-6xl font-bold text-primary-text-light dark:text-primary-text-dark mb-6 fade-in">
-        Biblioteca
+        Biblioteca Digital
         <span class="text-primary-text-light dark:text-primary-text-dark">
-          Digital
+          UNIFEF
         </span>
       </h1>
-      
+
       <!-- Hero Subtitle -->
-      <p class="text-xl sm:text-2xl text-text-muted-light dark:text-text-muted-dark mb-8 max-w-3xl mx-auto fade-in-delay">
-        Preservando e democratizando o acesso à informação com uma plataforma robusta e intuitiva. 
+      <p
+        class="text-xl sm:text-2xl text-text-muted-light dark:text-text-muted-dark mb-8 max-w-3xl mx-auto fade-in-delay">
+        Preservando e democratizando o acesso à informação com uma plataforma robusta e intuitiva.
         <br class="hidden sm:block">
         Organize, consulte e preserve o conhecimento! 📚
       </p>
-      
+
       <!-- CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 fade-in-delay-2">
         <button class="cta-primary group" (click)="onGetStarted(); addRippleEffect($event)">
           <span class="flex items-center gap-2">
-            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
             Acessar Acervo
           </span>
         </button>
         <button class="cta-secondary group" (click)="onExploreFeatures(); addRippleEffect($event)">
           <span class="flex items-center gap-2">
-            <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             Explorar Recursos
           </span>
@@ -64,103 +70,122 @@
       <!-- Section Header -->
       <div class="text-center mb-16">
         <h2 class="text-3xl sm:text-4xl font-bold text-primary-text-light dark:text-primary-text-dark mb-4">
-          Por que escolher nossa Biblioteca Digital?
+          Por que escolher a Biblioteca Digital UNIFEF?
         </h2>
         <p class="text-lg text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
           Recursos poderosos para preservação, organização e acesso democrático ao conhecimento
         </p>
       </div>
-      
+
       <!-- Features Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Feature 1 - Upload System -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-blue-500 to-blue-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Upload Múltiplo
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Interface intuitiva para envio de arquivos em lote ou individualmente, com suporte para PDF, DOCX, TXT, JPG, PNG e diversos outros formatos.
+            Interface intuitiva para envio de arquivos em lote ou individualmente, com suporte para PDF, DOCX, TXT, JPG,
+            PNG e diversos outros formatos.
           </p>
         </div>
-        
+
         <!-- Feature 2 - Advanced Search -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-green-500 to-green-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Busca Avançada
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Ferramenta de pesquisa que permite encontrar arquivos por palavra-chave, título, autor, categoria ou data de publicação com filtros e ordenação.
+            Ferramenta de pesquisa que permite encontrar arquivos por palavra-chave, título, autor, categoria ou data de
+            publicação com filtros e ordenação.
           </p>
         </div>
-        
+
         <!-- Feature 3 - Categorization -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-purple-500 to-purple-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Categorização Flexível
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Sistema de organização em categorias com adição de metadados relevantes para facilitar a identificação e recuperação de documentos.
+            Sistema de organização em categorias com adição de metadados relevantes para facilitar a identificação e
+            recuperação de documentos.
           </p>
         </div>
-        
+
         <!-- Feature 4 - Integrated Viewer -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-orange-500 to-orange-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Visualizador Integrado
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Exibição de documentos e imagens diretamente no navegador, sem necessidade de download prévio para consulta rápida e eficiente.
+            Exibição de documentos e imagens diretamente no navegador, sem necessidade de download prévio para consulta
+            rápida e eficiente.
           </p>
         </div>
-        
+
         <!-- Feature 5 - Download -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-pink-500 to-pink-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Download Offline
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Baixe arquivos para acesso e uso offline, permitindo consulta de documentos mesmo sem conexão com a internet.
+            Baixe arquivos para acesso e uso offline, permitindo consulta de documentos mesmo sem conexão com a
+            internet.
           </p>
         </div>
-        
+
         <!-- Feature 6 - Security -->
         <div class="feature-card group">
           <div class="feature-icon bg-gradient-to-br from-indigo-500 to-indigo-600">
-            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            <svg class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <h3 class="text-xl font-bold text-primary-text-light dark:text-primary-text-dark mb-3">
             Segurança e Integridade
           </h3>
           <p class="text-text-muted-light dark:text-text-muted-dark">
-            Controle de acesso com perfis de usuário e sistema robusto que garante a segurança e integridade dos dados armazenados.
+            Controle de acesso com perfis de usuário e sistema robusto que garante a segurança e integridade dos dados
+            armazenados.
           </p>
         </div>
       </div>
@@ -206,7 +231,8 @@
       <button class="cta-primary text-lg px-8 py-4" (click)="onGetStarted(); addRippleEffect($event)">
         <span class="flex items-center gap-2">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
           Acessar Biblioteca
         </span>

@@ -1,176 +1,240 @@
-<div class="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300 flex flex-col items-center p-4">
-  <header class="w-full max-w-4xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div
+  class="min-h-screen bg-[#fdfaf6] dark:bg-[#0f1115] text-[#2c2c2c] dark:text-[#e0e0e0] transition-colors duration-300 font-sans p-6 md:p-10 relative overflow-hidden">
+
+  <!-- Background Elements -->
+  <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+  <header
+    class="max-w-7xl mx-auto mb-12 relative z-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6 fade-in">
     <div>
-      <h1 class="text-3xl font-bold text-primary-text-light dark:text-primary-text-dark mb-1">Dashboard Financeiro</h1>
-      <p class="text-text-muted-light dark:text-text-muted-dark">Bem-vindo! Acompanhe seu saldo, contas, lançamentos e gerencie usuários.</p>
-      @if (usuarioError) {
-        <div class="text-danger text-sm mt-2">{{ usuarioError }}</div>
-      }
-      
-      <div class="flex flex-wrap gap-3 justify-between items-center">
-        <div class="flex gap-3">
-          <button (click)="onShowNewTransaction()" class="bg-primary text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-primary-light transition">Nova Transação</button>
-          <button (click)="onShowUser()" class="bg-primary text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-primary-light transition">Mostrar Dados do Usuário</button>
-        </div>
-        <button (click)="onConfirmDeleteAccount()" class="bg-danger text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-danger-dark transition">Excluir Conta</button>
+      <div class="flex items-center gap-3 mb-4">
+        <span
+          class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold tracking-widest uppercase rounded-full border border-primary/20">Console
+          Digital</span>
+        <span class="text-xs text-gray-400">•</span>
+        <span class="text-xs text-gray-400 font-medium">Versão 1.0.0</span>
       </div>
+      <h1 class="text-5xl font-bold tracking-tight mb-2">
+        Olá, <span class="text-primary">{{ usuario?.nome?.split(' ')[0] }}</span>
+      </h1>
+      <p class="text-gray-500 dark:text-gray-400 text-lg max-w-xl">
+        Bem-vindo de volta ao acervo histórico. Aqui você pode gerenciar digitalizações e explorar documentos
+        preservados.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <button (click)="onShowUser()"
+        class="p-3 glass rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </button>
+      <button (click)="logout()"
+        class="p-3 glass rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
     </div>
   </header>
 
-  <main class="w-full max-w-4xl mx-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-    <!-- Card Saldo -->
-    <section class="col-span-1 md:col-span-1 bg-gradient-to-br from-primary to-primary-light text-white rounded-2xl p-6 flex flex-col items-center shadow-lg">
-      <span class="text-lg">Saldo Atual</span>
-      <span class="text-4xl font-bold mt-2 mb-1">R$ {{ saldo | number:'1.2-2' }}</span>
-      @if (lastUpdated) {
-        <span class="text-sm opacity-80">Atualizado em {{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}</span>
-      }
-    </section>
-    <!-- Card Lançamentos -->
-    <section class="card col-span-1 flex flex-col">
-      <h2 class="text-xl font-semibold mb-4 text-primary-text-light dark:text-primary-text-dark">{{ (filterTipo !== 'TODOS' || filterDia) ? 'Lançamentos' : 'Últimos Lançamentos' }}</h2>
-      <!-- Filtros (Toolbar) -->
-      <div class="flex flex-nowrap items-center gap-1 mb-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-1.5 overflow-hidden whitespace-nowrap" role="region" aria-labelledby="filtros-title">
-        <span id="filtros-title" class="inline-block text-[11px] font-semibold text-primary-text-light dark:text-primary-text-dark bg-primary/10 dark:bg-white/10 border border-primary/20 dark:border-white/20 rounded-full px-1.5 py-0.5 shrink-0">Filtros</span>
-        <div class="flex flex-col items-start shrink-0">
-          <label for="f-tipo" class="text-[10px] leading-none text-text-muted-light dark:text-text-muted-dark mb-0.5">Tipo</label>
-          <select id="f-tipo" class="h-8 border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded px-1.5 text-sm w-24 shrink-0" [(ngModel)]="filterTipo" (change)="onFiltroChange()">
-            <option value="TODOS">Todos</option>
-            <option value="ENTRADA">Entrada</option>
-            <option value="SAIDA">Saída</option>
-          </select>
+  <main class="max-w-7xl mx-auto relative z-10 space-y-8 fade-in" style="animation-delay: 0.1s">
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="card-premium flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total de Acervos</p>
+            <h3 class="text-4xl font-bold">1,280</h3>
+          </div>
+          <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2-2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
         </div>
-        <div class="flex flex-col items-start shrink-0">
-          <label for="f-dia" class="text-[10px] leading-none text-text-muted-light dark:text-text-muted-dark mb-0.5">Data</label>
-          <input id="f-dia" type="date" class="h-8 border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded px-1.5 text-sm w-32 shrink-0" [(ngModel)]="filterDia" (change)="onFiltroChange()" placeholder="dd/mm/aaaa" title="Filtrar por dia específico" />
+        <div class="mt-4 flex items-center text-xs text-green-500 font-bold">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+          <span>12% este mês</span>
         </div>
-        <button class="ml-auto h-8 bg-text-muted-light dark:bg-text-muted-dark text-white px-2 text-xs rounded hover:opacity-80 transition shrink-0" (click)="clearFiltros()">Limpar</button>
       </div>
-      @if (lancamentos.length > 0) {
-        <ul class="flex flex-col gap-3">
+
+      <div class="card-premium flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Aguardando Revisão</p>
+            <h3 class="text-4xl font-bold text-primary">24</h3>
+          </div>
+          <div class="p-3 bg-primary/10 rounded-xl text-primary">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center text-xs text-gray-400">
+          <span>Última revisão há 2 horas</span>
+        </div>
+      </div>
+
+      <div class="card-premium border-primary bg-primary text-white">
+        <h4 class="text-xl font-bold mb-4">Ação Rápida</h4>
+        <div class="flex flex-col sm:flex-row gap-4 mb-12 fade-in anim-delay-200">
+          <button (click)="onShowNewTransaction()"
+            class="btn-premium flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-neutral-900 font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-amber-900/20">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nova Digitalização
+          </button>
+          <button (click)="onExplorarAcervo()"
+            class="btn-premium flex items-center justify-center gap-2 bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-100 font-bold py-3 px-8 rounded-lg transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Explorar Acervo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- Recent Documents Section -->
+      <section class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold">Digitalizações Recentes</h2>
+          <button class="text-primary font-bold text-sm hover:underline">Ver tudo</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @if (lancamentos.length > 0) {
           @for (l of lancamentos; track l.data) {
-            <li class="flex justify-between items-center border-b border-border-light dark:border-border-dark pb-2">
-              <div class="flex flex-col">
-                <span class="font-medium text-text-light dark:text-text-dark">{{ l.descricao || (l.tipo === 'ENTRADA' ? 'Entrada' : 'Saída') }}</span>
-                @if (l.dataObj) {
-                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark">{{ l.dataObj | date:'dd/MM/yyyy HH:mm' }}</span>
-                }
+          <div class="card-premium !p-5 flex gap-4 group">
+            <div
+              class="w-16 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="flex flex-col justify-between py-1">
+              <div>
+                <h4
+                  class="font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate w-40">
+                  {{ l.descricao || 'Documento sem título' }}
+                </h4>
+                <p class="text-xs text-gray-400">Preservado em {{ l.dataObj | date:'dd MMM, yyyy' }}</p>
               </div>
-              <span [class]="l.tipo === 'ENTRADA' ? 'text-success font-bold text-sm' : 'text-danger font-bold text-sm'">{{ l.tipo === 'ENTRADA' ? '+' : '-' }}R$ {{ l.valor | number:'1.2-2' }}</span>
-            </li>
+              <span
+                class="inline-flex px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-bold rounded uppercase w-fit">
+                Aprovado
+              </span>
+            </div>
+          </div>
           }
-        </ul>
-      } @else {
-        <p class="text-text-muted-light dark:text-text-muted-dark">Nenhum lançamento encontrado.</p>
-      }
-    </section>
+          } @else {
+          <div class="col-span-2 text-center py-12 glass rounded-2xl">
+            <p class="text-gray-400 italic">Nenhum documento digitalizado ainda.</p>
+          </div>
+          }
+        </div>
+      </section>
+
+      <!-- Active Users / Activity Section -->
+      <section class="space-y-6">
+        <h2 class="text-2xl font-bold">Atividade</h2>
+        <div class="card-premium !bg-transparent border-dashed">
+          <ul class="space-y-6">
+            <li class="flex gap-4">
+              <div
+                class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
+                P
+              </div>
+              <div>
+                <p class="text-sm font-bold">Professor Carlos</p>
+                <p class="text-xs text-gray-500">Aprovou 3 novos documentos hoje.</p>
+                <span class="text-[10px] text-gray-400">14 min atrás</span>
+              </div>
+            </li>
+            <li class="flex gap-4">
+              <div
+                class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold shrink-0">
+                A
+              </div>
+              <div>
+                <p class="text-sm font-bold">Aluno Ricardo</p>
+                <p class="text-xs text-gray-500">Iniciou o processo de OCR no lote #44.</p>
+                <span class="text-[10px] text-gray-400">1 hora atrás</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+    </div>
   </main>
 
-  <!-- Modal para exibir e editar os dados do usuário -->
+  <!-- Modals (Mantendo a funcionalidade existente, mas com novo estilo) -->
   @if (showUser) {
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
-        @if (usuarioLoading) {
-          <div class="text-center py-6">Carregando dados do usuário…</div>
-        } @else {
-          @if (usuario && editUsuario) {
-            <form (ngSubmit)="onSaveEdit()" autocomplete="off">
-              <span class="font-bold">Usuário logado</span>
-              <div class="mt-4">
-                <label class="block font-medium">Nome:</label>
-                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.nome" name="nome" [disabled]="!editMode" required>
-              </div>
-              <div class="mt-4">
-                <label class="block font-medium">Email:</label>
-                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.email" name="email" [disabled]="!editMode" required>
-              </div>
-              <div class="mt-4">
-                <label class="block font-medium">CPF:</label>
-                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.cpf" name="cpf" [disabled]="!editMode" required>
-              </div>
-              <div class="mt-4">
-                <label class="block font-medium">Senha:</label>
-                <input class="border rounded p-2 w-full" [(ngModel)]="editUsuario!.senha" name="senha" type="password" [disabled]="!editMode" [required]="editMode">
-              </div>
-              <div class="flex justify-between gap-4 mt-6">
-                @if (!editMode) {
-                  <button type="button" (click)="onEditUser()" class="bg-warning text-white px-4 py-2 rounded font-medium hover:bg-warning-dark transition">Alterar</button>
-                }
-                @if (editMode) {
-                  <button type="submit" class="bg-success text-white px-4 py-2 rounded font-medium hover:bg-success-dark transition">Salvar Alterações</button>
-                }
-                <button type="button" (click)="onCloseUser()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Fechar</button>
-              </div>
-            </form>
-          } @else {
-            <div class="flex flex-col gap-4">
-              @if (usuarioError) {
-                <div class="text-danger">{{ usuarioError }}</div>
-              }
-              <div class="text-text-muted-light dark:text-text-muted-dark">Não foi possível carregar os dados do usuário.</div>
-              <div class="flex justify-end gap-2">
-                <button type="button" (click)="loadUser()" class="bg-primary text-white px-4 py-2 rounded font-medium hover:bg-primary-light transition">Tentar novamente</button>
-                <button type="button" (click)="onCloseUser()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Fechar</button>
-              </div>
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-in">
+    <div class="card-premium w-full max-w-lg !bg-white dark:!bg-[#1a1c23]">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold">Perfil de Usuário</h2>
+        <button (click)="onCloseUser()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="onSaveEdit()" class="space-y-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Nome Completo</label>
+            <input class="input-premium" [(ngModel)]="editUsuario!.nome" name="nome" [disabled]="!editMode">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">E-mail</label>
+            <input class="input-premium" [(ngModel)]="editUsuario!.email" name="email" [disabled]="!editMode">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">CPF</label>
+            <input class="input-premium" [(ngModel)]="editUsuario!.cpf" name="cpf" [disabled]="!editMode">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Perfil</label>
+            <div
+              class="px-4 py-3 rounded-xl bg-primary/5 border border-primary/20 text-primary font-bold uppercase text-xs tracking-tighter">
+              {{ usuario?.perfil }}
             </div>
+          </div>
+        </div>
+
+        <div class="pt-6 flex gap-3">
+          @if (!editMode) {
+          <button type="button" (click)="onEditUser()" class="flex-1 btn-premium bg-primary text-white">Editar
+            Dados</button>
+          } @else {
+          <button type="submit" class="flex-1 btn-premium bg-green-600 text-white">Salvar Alterações</button>
+          <button type="button" (click)="onCancelEdit()"
+            class="flex-1 btn-premium bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white">Cancelar</button>
           }
-        }
-      </div>
+        </div>
+      </form>
     </div>
-  }
-
-  <!-- Modal para confirmação de exclusão da conta -->
-  @if (showDeleteAccountModal) {
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
-        <form (ngSubmit)="onDeleteAccount()" autocomplete="off">
-          <h2 class="text-lg font-bold text-danger">Confirmar Exclusão da Conta</h2>
-          <p class="mt-4">Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.</p>
-          <div class="mt-4">
-            <label class="block font-medium">Senha:</label>
-            <input class="border rounded p-2 w-full" [(ngModel)]="deleteAccountPassword" name="deleteAccountPassword" type="password" required>
-          </div>
-          <div class="flex justify-between gap-4 mt-6">
-            <button type="submit" class="bg-danger text-white px-4 py-2 rounded font-medium hover:bg-danger-dark transition">Confirmar</button>
-            <button type="button" (click)="onCancelDeleteAccount()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- Modal de Nova Transação -->
-  @if (showNewTransacaoModal) {
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow p-6 w-full max-w-md text-black">
-        <form (ngSubmit)="onSubmitNewTransaction()" autocomplete="off">
-          <h2 class="text-lg font-bold text-primary-text-light dark:text-primary-text-dark">Nova Transação</h2>
-          <div class="mt-4">
-            <label class="block font-medium">Tipo</label>
-            <select class="border rounded p-2 w-full" [(ngModel)]="newTransacao.tipo" name="tipo" required>
-              <option value="ENTRADA">Entrada</option>
-              <option value="SAIDA">Saída</option>
-            </select>
-          </div>
-          <div class="mt-4">
-            <label class="block font-medium">Valor</label>
-            <input class="border rounded p-2 w-full" type="number" min="0" step="0.01" [(ngModel)]="newTransacao.valor" name="valor" required>
-          </div>
-          <div class="mt-4">
-            <label class="block font-medium">Data</label>
-            <input class="border rounded p-2 w-full" type="datetime-local" [(ngModel)]="newTransacaoDataLocal" name="data">
-            <p class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">Se vazio, usa a data/hora atual.</p>
-          </div>
-          <div class="mt-4">
-            <label class="block font-medium">Descrição</label>
-            <input class="border rounded p-2 w-full" type="text" [(ngModel)]="newTransacao.descricao" name="descricao">
-          </div>
-          <div class="flex justify-between gap-4 mt-6">
-            <button type="submit" [disabled]="savingNewTransacao" class="bg-success text-white px-4 py-2 rounded font-medium hover:bg-success-dark transition disabled:opacity-60 disabled:cursor-not-allowed">Salvar</button>
-            <button type="button" (click)="onCancelNewTransaction()" class="surface text-text-light dark:text-text-dark px-4 py-2 rounded font-medium hover:opacity-80 transition">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
+  </div>
   }
 </div>

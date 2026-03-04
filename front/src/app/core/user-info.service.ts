@@ -7,6 +7,7 @@ export interface UsuarioInfo {
   nome: string;
   email: string;
   cpf: string;
+  perfil: string;
   dataCriacao: string;
   senha?: string; // campo opcional para edição
 }

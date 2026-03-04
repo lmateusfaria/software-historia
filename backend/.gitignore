@@ -33,7 +33,7 @@ build/
 .vscode/
 
 # Arquivos de configuração sensíveis
-application-*.properties
+# application-*.properties
 
 # Logs
 *.log

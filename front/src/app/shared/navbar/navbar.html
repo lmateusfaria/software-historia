@@ -8,9 +8,9 @@
     <span class="font-bold text-lg text-text-light dark:text-text-dark">Biblioteca Digital</span>
   </a>
   <div class="flex gap-2 items-center">
+    @if (!isLoggedIn()) {
     <a routerLink="/" routerLinkActive="active" (click)="goTo('/')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Início</a>
-    @if (!isLoggedIn()) {
     <a routerLink="/register" routerLinkActive="active" (click)="goTo('register')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Cadastrar-se</a>
     <a routerLink="/login" routerLinkActive="active" (click)="goTo('login')"
@@ -18,9 +18,13 @@
     }
     @if (isLoggedIn()) {
     <a routerLink="/dashboard" routerLinkActive="active" (click)="goTo('dashboard')"
+      class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Dashboard</a>
+    <a routerLink="/acervo" routerLinkActive="active" (click)="goTo('acervo')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Acervo</a>
-    <button (click)="logout()"
-      class="hidden md:inline-block px-3 py-2 rounded bg-danger hover:bg-danger-dark text-white font-medium transition cursor-pointer">Sair</button>
+    <a routerLink="/escaneamento" routerLinkActive="active" (click)="goTo('escaneamento')"
+      class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Escaneamento</a>
+    <!-- <button (click)="logout()"
+      class="hidden md:inline-block px-3 py-2 rounded bg-danger hover:bg-danger-dark text-white font-medium transition cursor-pointer">Sair</button> -->
     }
 
     <!-- Botão de alternância de tema -->

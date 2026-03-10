@@ -64,10 +64,10 @@ pipeline {
                     
                     // Verifica logs se o backend não estiver saudável
                     sh '''
-                        STATUS=$(docker inspect -f '{{.State.Health.Status}}' atb-bd-backend || echo "unknown")
+                        STATUS=$(docker inspect -f '{{.State.Health.Status}}' bibliotecadigitalunifef-back || echo "unknown")
                         if [ "$STATUS" != "healthy" ]; then
                             echo "ERRO: Backend não está saudável. Verificando logs..."
-                            docker logs --tail 50 atb-bd-backend
+                            docker logs --tail 50 bibliotecadigitalunifef-back
                         fi
                     '''
                     

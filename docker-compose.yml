@@ -1,7 +1,7 @@
 services:
-  atb-bd-backend:
+  bibliotecadigitalunifef-back:
     image: agenciatelabranca/bibliotecadigital-backend:latest
-    container_name: atb-bd-backend
+    container_name: bibliotecadigitalunifef-back
     networks:
       default:
         aliases:
@@ -26,11 +26,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  atb-bd-frontend:
+  bibliotecadigitalunifef-front:
     image: agenciatelabranca/bibliotecadigital-frontend:latest
-    container_name: atb-bd-frontend
+    container_name: bibliotecadigitalunifef-front
     depends_on:
-      atb-bd-backend:
+      bibliotecadigitalunifef-back:
         condition: service_healthy
     networks:
       default:
@@ -48,9 +48,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  atb-bd-tunnel:
+  bibliotecadigitalunifef-tunnel:
     image: cloudflare/cloudflared:latest
-    container_name: atb-bd-tunnel
+    container_name: bibliotecadigitalunifef-tunnel
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}

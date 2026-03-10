@@ -9,7 +9,9 @@ import br.com.unifef.biblioteca.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +19,10 @@ import java.util.stream.Collectors;
 public class DocumentoService {
 
     @Autowired
-    private DocumentoRepository repository;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private FileStorageService fileStorageService;
 
     public List<DocumentoDTO> findAll() {
         return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
@@ -30,17 +32,23 @@ public class DocumentoService {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
-    public DocumentoDTO create(DocumentoDTO dto) {
+    public DocumentoDTO create(DocumentoDTO dto, List<MultipartFile> files) {
         Documento doc = new Documento();
         doc.setTitulo(dto.getTitulo());
         doc.setDescricao(dto.getDescricao());
-        // doc.setUrlImagem(dto.getUrlImagem()); // Entidade usa imagensUrls (List)
-        doc.setStatus(StatusDocumento.AGUARDANDO_APROVACAO);
+        doc.setStatus(StatusDocumento.PENDENTE_OCR);
         doc.setDataDigitalizacao(LocalDate.now());
         
         Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         doc.setResponsavel(usuario);
+
+        if (files != null && !files.isEmpty()) {
+            List<String> urls = files.stream()
+                    .map(fileStorageService::save)
+                    .collect(Collectors.toList());
+            doc.setImagensUrls(urls);
+        }
 
         return new DocumentoDTO(repository.save(doc));
     }

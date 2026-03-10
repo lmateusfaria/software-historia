@@ -6,7 +6,8 @@ import br.com.unifef.biblioteca.services.DocumentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 import java.util.List;
 
 @RestController
@@ -26,8 +27,10 @@ public class DocumentoResource {
         return ResponseEntity.ok().body(service.findByStatus(status));
     }
 
-    @PostMapping
-    public ResponseEntity<DocumentoDTO> create(@RequestBody DocumentoDTO dto) {
-        return ResponseEntity.ok().body(service.create(dto));
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DocumentoDTO> create(
+            @RequestPart("documento") DocumentoDTO dto,
+            @RequestPart("files") List<MultipartFile> files) {
+        return ResponseEntity.ok().body(service.create(dto, files));
     }
 }

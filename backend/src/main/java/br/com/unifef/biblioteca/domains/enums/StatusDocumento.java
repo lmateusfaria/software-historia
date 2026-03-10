@@ -3,7 +3,9 @@ package br.com.unifef.biblioteca.domains.enums;
 public enum StatusDocumento {
     AGUARDANDO_APROVACAO(1, "Aguardando Aprovação"),
     APROVADO(2, "Aprovado"),
-    REJEITADO(3, "Rejeitado");
+    REJEITADO(3, "Rejeitado"),
+    PENDENTE_OCR(4, "Pendente de OCR"),
+    PROCESSANDO_OCR(5, "Processando OCR");
 
     private int cod;
     private String descricao;

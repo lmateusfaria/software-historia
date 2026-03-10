@@ -25,7 +25,7 @@ public class Documento {
     private LocalDate dataDigitalizacao = LocalDate.now();
 
     @Enumerated(EnumType.STRING)
-    private StatusDocumento status = StatusDocumento.AGUARDANDO_APROVACAO;
+    private StatusDocumento status = StatusDocumento.PENDENTE_OCR;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id")

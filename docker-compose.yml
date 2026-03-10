@@ -6,6 +6,7 @@ services:
       default:
         aliases:
           - db-central
+          - back-biblioteca-digital
       infra_network:
     environment:
       - SPRING_PROFILES_ACTIVE=prod

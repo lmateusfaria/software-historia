@@ -1,10 +1,12 @@
 services:
-  back-biblioteca-digital:
+  pdv-backend:
     image: agenciatelabranca/bibliotecadigital-backend:latest
-    container_name: back-biblioteca-digital
+    container_name: pdv-backend
     networks:
-      - default
-      - infra_network
+      default:
+        aliases:
+          - db-central
+      infra_network:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://atb-db-postgres:5432/db_biblioteca_digital_unifef
@@ -22,14 +24,16 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  biblioteca-digital-unifef:
+  pdv-frontend:
     image: agenciatelabranca/bibliotecadigital-frontend:latest
-    container_name: biblioteca-digital-unifef
+    container_name: pdv-frontend
     depends_on:
-      back-biblioteca-digital:
+      pdv-backend:
         condition: service_healthy
     networks:
-      - default
+      default:
+        aliases:
+          - frontend
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
@@ -42,9 +46,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  tunnel_biblioteca_digital_unifef:
+  pdv-tunnel:
     image: cloudflare/cloudflared:latest
-    container_name: tunnel_biblioteca_digital_unifef
+    container_name: pdv-tunnel
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
@@ -57,15 +61,16 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  atb-minio:
+  pdv-minio:
     image: minio/minio
-    container_name: atb-minio
+    container_name: pdv-minio
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
     networks:
       - infra_network
+      - default
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=password123
@@ -73,14 +78,15 @@ services:
       - minio_data:/data
     restart: always
 
-  atb-neo4j:
+  pdv-neo4j:
     image: neo4j:latest
-    container_name: atb-neo4j
+    container_name: pdv-neo4j
     ports:
       - "7474:7474"
       - "7687:7687"
     networks:
       - infra_network
+      - default
     environment:
       - NEO4J_AUTH=neo4j/password123
     volumes:
@@ -91,6 +97,7 @@ services:
 networks:
   default:
     name: biblioteca_digital_network
+    external: true
   infra_network:
     external: true
     name: infra_default

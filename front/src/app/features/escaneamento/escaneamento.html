@@ -15,18 +15,80 @@
             </div>
 
             <form (ngSubmit)="onSubmit()" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-neutral-300 mb-2">Título do Documento</label>
-                    <input type="text" [(ngModel)]="documento.titulo" name="titulo"
-                        class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
-                        placeholder="Ex: Jornal A Noite - Edição 123">
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Título -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Título do Documento</label>
+                        <input type="text" [(ngModel)]="documento.titulo" name="titulo"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                            placeholder="Ex: Jornal A Noite - Edição 123">
+                    </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-neutral-300 mb-2">Descrição / Contexto</label>
-                    <textarea [(ngModel)]="documento.descricao" name="descricao" rows="4"
-                        class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
-                        placeholder="Descreva detalhes como data original, autor ou estado de conservação..."></textarea>
+                    <!-- Tipo de Documento -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Tipo de Documento</label>
+                        <select [(ngModel)]="documento.tipo" name="tipo"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3">
+                            <option value="Jornal">Jornal</option>
+                            <option value="Revista">Revista</option>
+                            <option value="Certidão">Certidão</option>
+                            <option value="Carta">Carta</option>
+                            <option value="Fotografia">Fotografia</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <!-- Local de Origem -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Local de Origem</label>
+                        <input type="text" [(ngModel)]="documento.localOrigem" name="localOrigem"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                            placeholder="Ex: São Paulo, SP">
+                    </div>
+
+                    <!-- Data do Documento -->
+                    <div class="col-span-1 md:col-span-2 grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Dia</label>
+                            <input type="number" [(ngModel)]="documento.diaDocumento" name="dia"
+                                class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                                placeholder="DD">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Mês</label>
+                            <input type="number" [(ngModel)]="documento.mesDocumento" name="mes"
+                                class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                                placeholder="MM">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Ano</label>
+                            <input type="number" [(ngModel)]="documento.anoDocumento" name="ano"
+                                class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                                placeholder="AAAA">
+                        </div>
+                    </div>
+
+                    <!-- Edição / Marcadores -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Edição / Volume</label>
+                        <input type="text" [(ngModel)]="documento.edicao" name="edicao"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                            placeholder="Ex: Vol 2, Ed 45">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Créditos / Autoria</label>
+                        <input type="text" [(ngModel)]="documento.marcadores" name="marcadores"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                            placeholder="Ex: Foto de João Silva">
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-neutral-300 mb-2">Contexto / Descrição</label>
+                        <textarea [(ngModel)]="documento.descricao" name="descricao" rows="4"
+                            class="input-premium w-full bg-neutral-900 border-neutral-800 text-neutral-100 rounded-lg p-3"
+                            placeholder="Descreva detalhes importantes do documento..."></textarea>
+                    </div>
                 </div>
 
                 <div

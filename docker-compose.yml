@@ -1,7 +1,7 @@
 services:
-  pdv-backend:
+  atb-bd-backend:
     image: agenciatelabranca/bibliotecadigital-backend:latest
-    container_name: pdv-backend
+    container_name: atb-bd-backend
     networks:
       default:
         aliases:
@@ -12,6 +12,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://atb-db-postgres:5432/db_biblioteca_digital_unifef
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postdba
+      - MINIO_URL=http://atb-minio:9000
+      - NEO4J_URI=bolt://atb-neo4j:7687
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 8080 || exit 1" ]
       interval: 30s
@@ -24,11 +26,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  pdv-frontend:
+  atb-bd-frontend:
     image: agenciatelabranca/bibliotecadigital-frontend:latest
-    container_name: pdv-frontend
+    container_name: atb-bd-frontend
     depends_on:
-      pdv-backend:
+      atb-bd-backend:
         condition: service_healthy
     networks:
       default:
@@ -46,9 +48,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  pdv-tunnel:
+  atb-bd-tunnel:
     image: cloudflare/cloudflared:latest
-    container_name: pdv-tunnel
+    container_name: atb-bd-tunnel
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
@@ -61,39 +63,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  pdv-minio:
-    image: minio/minio
-    container_name: pdv-minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    networks:
-      - infra_network
-      - default
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password123
-    volumes:
-      - minio_data:/data
-    restart: always
-
-  pdv-neo4j:
-    image: neo4j:latest
-    container_name: pdv-neo4j
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    networks:
-      - infra_network
-      - default
-    environment:
-      - NEO4J_AUTH=neo4j/password123
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-    restart: always
-
 networks:
   default:
     name: biblioteca_digital_network
@@ -101,8 +70,3 @@ networks:
   infra_network:
     external: true
     name: infra_default
-
-volumes:
-  minio_data:
-  neo4j_data:
-  neo4j_logs:

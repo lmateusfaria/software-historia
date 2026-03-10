@@ -1,0 +1,32 @@
+services:
+  minio:
+    image: minio/minio
+    container_name: atb-minio-dev
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password123
+    volumes:
+      - minio_data_dev:/data
+    restart: always
+
+  neo4j:
+    image: neo4j:latest
+    container_name: atb-neo4j-dev
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+    volumes:
+      - neo4j_data_dev:/data
+      - neo4j_logs_dev:/logs
+    restart: always
+
+volumes:
+  minio_data_dev:
+  neo4j_data_dev:
+  neo4j_logs_dev:

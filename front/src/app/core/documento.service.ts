@@ -11,11 +11,21 @@ export class DocumentoService {
     constructor(private http: HttpClient, private auth: AuthService) {}
 
     findAll(): Observable<DocumentoDTO[]> {
-        return this.http.get<DocumentoDTO[]>(this.apiUrl);
+        const token = this.auth.getToken();
+        let headers = new HttpHeaders();
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+        return this.http.get<DocumentoDTO[]>(this.apiUrl, { headers });
     }
 
     findByStatus(status: string): Observable<DocumentoDTO[]> {
-        return this.http.get<DocumentoDTO[]>(`${this.apiUrl}/status/${status}`);
+        const token = this.auth.getToken();
+        let headers = new HttpHeaders();
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+        return this.http.get<DocumentoDTO[]>(`${this.apiUrl}/status/${status}`, { headers });
     }
 
     create(documento: DocumentoDTO, files: File[]): Observable<DocumentoDTO> {

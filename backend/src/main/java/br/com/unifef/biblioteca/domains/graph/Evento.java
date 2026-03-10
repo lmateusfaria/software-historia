@@ -23,4 +23,3 @@ public class Evento {
     public void setDataOcorrencia(String dataOcorrencia) { this.dataOcorrencia = dataOcorrencia; }
     public Set<DocumentoNode> getDocumentos() { return documentos; }
 }
-}

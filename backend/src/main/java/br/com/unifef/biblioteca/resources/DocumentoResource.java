@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/documentos")
+@RequestMapping(value = "/documentos")
 public class DocumentoResource {
 
     @Autowired

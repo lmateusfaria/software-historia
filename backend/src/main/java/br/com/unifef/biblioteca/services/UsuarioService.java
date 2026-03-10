@@ -1,3 +1,8 @@
+package br.com.unifef.biblioteca.services;
+
+import br.com.unifef.biblioteca.domains.Usuario;
+import br.com.unifef.biblioteca.domains.dtos.UsuarioDTO;
+import br.com.unifef.biblioteca.repositories.UsuarioRepository;
 import br.com.unifef.biblioteca.domains.enums.Perfil;
 import br.com.unifef.biblioteca.security.UserSS;
 import br.com.unifef.biblioteca.services.exceptions.AuthorizationException;

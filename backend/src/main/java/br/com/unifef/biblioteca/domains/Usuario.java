@@ -50,6 +50,17 @@ public class Usuario {
         this.dataCriacao = dataCriacao;
     }
 
+    public Usuario(Long id, String cpf, String nome, String email, String senha, LocalDate dataCriacao, Perfil perfil) {
+        this.id = id;
+        this.cpf = cpf;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.dataCriacao = dataCriacao;
+        this.perfil = perfil;
+        this.podeCadastrar = false;
+    }
+
     public Usuario(Long id, String cpf, String nome, String email, String senha, LocalDate dataCriacao, Perfil perfil, Boolean podeCadastrar) {
         this.id = id;
         this.cpf = cpf;

@@ -22,6 +22,9 @@ public class DocumentoService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private DocumentoRepository repository;
+
+    @Autowired
     private FileStorageService fileStorageService;
 
     public List<DocumentoDTO> findAll() {

@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../shared/toast/toast.service';
+import { DocumentoService } from '../../core/documento.service';
+import { DocumentoDTO } from '../../core/models/documento.model';
 
 @Component({
     selector: 'app-galeria',
@@ -12,12 +13,12 @@ import { ToastService } from '../../shared/toast/toast.service';
     styleUrls: ['./galeria.css']
 })
 export class GaleriaComponent implements OnInit {
-    documentos: any[] = [];
+    documentos: DocumentoDTO[] = [];
     filtro = '';
     loading = false;
 
     constructor(
-        private http: HttpClient,
+        private documentoService: DocumentoService,
         private toast: ToastService
     ) { }
 
@@ -27,7 +28,7 @@ export class GaleriaComponent implements OnInit {
 
     carregarAcervo() {
         this.loading = true;
-        this.http.get<any[]>('/api/documentos').subscribe({
+        this.documentoService.findAll().subscribe({
             next: (docs) => {
                 this.documentos = docs;
                 this.loading = false;

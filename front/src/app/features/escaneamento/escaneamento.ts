@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../shared/toast/toast.service';
 import { UserService } from '../../core/user.service';
+import { DocumentoService } from '../../core/documento.service';
+import { DocumentoDTO } from '../../core/models/documento.model';
 
 @Component({
     selector: 'app-escaneamento',
@@ -13,18 +15,18 @@ import { UserService } from '../../core/user.service';
     styleUrls: ['./escaneamento.css']
 })
 export class EscaneamentoComponent implements OnInit {
-    documento = {
+    documento: DocumentoDTO = {
         titulo: '',
         descricao: '',
-        urlImagem: '',
         usuarioId: 0
     };
 
     loading = false;
-    selectedFile: File | null = null;
+    selectedFiles: File[] = [];
+    previews: string[] = [];
 
     constructor(
-        private http: HttpClient,
+        private documentoService: DocumentoService,
         private toast: ToastService,
         private userService: UserService
     ) { }
@@ -36,12 +38,22 @@ export class EscaneamentoComponent implements OnInit {
     }
 
     onFileSelected(event: any) {
-        this.selectedFile = event.target.files[0];
-        if (this.selectedFile) {
-            // Por enquanto, simulamos o upload gerando um placeholder
-            // No futuro, aqui teremos a integração real com S3/Firebase/Local
-            this.documento.urlImagem = 'https://via.placeholder.com/800x600?text=Documento+Escaneado';
+        const files: FileList = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            this.selectedFiles.push(file);
+            
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.previews.push(e.target.result);
+            };
+            reader.readAsDataURL(file);
         }
+    }
+
+    removeFile(index: number) {
+        this.selectedFiles.splice(index, 1);
+        this.previews.splice(index, 1);
     }
 
     onSubmit() {
@@ -50,14 +62,16 @@ export class EscaneamentoComponent implements OnInit {
             return;
         }
 
+        if (this.selectedFiles.length === 0) {
+            this.toast.error('Selecione pelo menos uma imagem do documento.');
+            return;
+        }
+
         this.loading = true;
-        this.http.post('/api/documentos', this.documento).subscribe({
+        this.documentoService.create(this.documento, this.selectedFiles).subscribe({
             next: () => {
                 this.toast.success('Documento enviado para revisão com sucesso!');
-                this.documento.titulo = '';
-                this.documento.descricao = '';
-                this.documento.urlImagem = '';
-                this.selectedFile = null;
+                this.resetForm();
                 this.loading = false;
             },
             error: () => {
@@ -65,5 +79,15 @@ export class EscaneamentoComponent implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    resetForm() {
+        this.documento = {
+            titulo: '',
+            descricao: '',
+            usuarioId: this.documento.usuarioId
+        };
+        this.selectedFiles = [];
+        this.previews = [];
     }
 }

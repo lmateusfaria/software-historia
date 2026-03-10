@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://bibliotecadigital.agenciatelabranca.com.br",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

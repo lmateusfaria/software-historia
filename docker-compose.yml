@@ -36,7 +36,6 @@ services:
     networks:
       default:
         aliases:
-          - frontend
           - biblioteca-digital-unifef
     restart: always
     healthcheck:

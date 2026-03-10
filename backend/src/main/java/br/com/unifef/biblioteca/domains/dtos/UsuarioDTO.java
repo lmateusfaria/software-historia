@@ -31,7 +31,7 @@ public class UsuarioDTO {
     @Email(message = "E-mail inválido")
     private String email;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // ✅ só pode ser enviado, nunca retornado
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // só pode ser enviado, nunca retornado
     @NotNull(message = "O campo senha não pode ser nulo")
     @NotBlank(message = "O campo senha não pode ser vazio")
     private String senha;
@@ -40,6 +40,8 @@ public class UsuarioDTO {
     private LocalDate dataCriacao;
 
     private Perfil perfil;
+
+    private Boolean podeCadastrar = false;
 
     public UsuarioDTO() {}
 
@@ -51,6 +53,7 @@ public class UsuarioDTO {
         this.senha = usuario.getSenha();
         this.dataCriacao = usuario.getDataCriacao();
         this.perfil = usuario.getPerfil();
+        this.podeCadastrar = usuario.getPodeCadastrar();
     }
 
     // Getters e Setters -------------------
@@ -79,6 +82,14 @@ public class UsuarioDTO {
 
     public void setPerfil(Perfil perfil) {
         this.perfil = perfil;
+    }
+
+    public Boolean getPodeCadastrar() {
+        return podeCadastrar;
+    }
+
+    public void setPodeCadastrar(Boolean podeCadastrar) {
+        this.podeCadastrar = podeCadastrar;
     }
 }
 

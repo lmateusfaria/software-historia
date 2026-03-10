@@ -57,7 +57,45 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  atb-minio:
+    image: minio/minio
+    container_name: atb-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - infra_network
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password123
+    volumes:
+      - minio_data:/data
+    restart: always
+
+  atb-neo4j:
+    image: neo4j:latest
+    container_name: atb-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - infra_network
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    restart: always
+
 networks:
+  default:
+    name: biblioteca_digital_network
   infra_network:
     external: true
     name: infra_default
+
+volumes:
+  minio_data:
+  neo4j_data:
+  neo4j_logs:

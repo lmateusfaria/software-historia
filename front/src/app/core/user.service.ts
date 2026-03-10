@@ -11,6 +11,7 @@ export interface UsuarioDTO {
   cpf: string;
   senha?: string;
   perfil?: string;
+  podeCadastrar?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

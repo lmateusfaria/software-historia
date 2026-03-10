@@ -9,6 +9,7 @@ export interface UsuarioInfo {
   cpf: string;
   perfil: string;
   dataCriacao: string;
+  podeCadastrar: boolean;
   senha?: string; // campo opcional para edição
 }
 

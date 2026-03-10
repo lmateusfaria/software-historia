@@ -1,8 +1,8 @@
-package br.com.unifef.biblioteca.services;
-
-import br.com.unifef.biblioteca.domains.Usuario;
-import br.com.unifef.biblioteca.domains.dtos.UsuarioDTO;
-import br.com.unifef.biblioteca.repositories.UsuarioRepository;
+import br.com.unifef.biblioteca.domains.enums.Perfil;
+import br.com.unifef.biblioteca.security.UserSS;
+import br.com.unifef.biblioteca.services.exceptions.AuthorizationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import br.com.unifef.biblioteca.services.exceptions.DataIntegrityViolationException;
 import br.com.unifef.biblioteca.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +45,31 @@ public class UsuarioService {
 
     public Usuario create(UsuarioDTO dto) {
         dto.setId(null);
-        dto.setSenha(encoder.encode(dto.getSenha())); // ok ✅
+        dto.setSenha(encoder.encode(dto.getSenha()));
         validaCpfEmail(dto);
-        Usuario obj = new Usuario(dto);
 
+        Perfil perfilDesejado = dto.getPerfil();
+        boolean usuarioLogadoPodeCadastrar = false;
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
+            UserSS userSS = (UserSS) auth.getPrincipal();
+            Usuario currentUser = findByEmail(userSS.getUsername());
+            usuarioLogadoPodeCadastrar = currentUser.getPodeCadastrar();
+        }
+
+        // Regra: Público só pode cadastrar PESQUISADOR.
+        // PROFESSOR/ALUNO exige que quem está cadastrando tenha a flag podeCadastrar = true.
+        if (perfilDesejado != Perfil.PESQUISADOR && !usuarioLogadoPodeCadastrar) {
+            throw new AuthorizationException("Acesso negado. Apenas usuários autorizados podem cadastrar Professores ou Alunos.");
+        }
+
+        // Garante que o campo podeCadastrar só seja true se quem cadastrou tiver permissão para isso
+        if (!usuarioLogadoPodeCadastrar) {
+            dto.setPodeCadastrar(false);
+        }
+
+        Usuario obj = new Usuario(dto);
         return usuarioRepo.save(obj);
     }
 

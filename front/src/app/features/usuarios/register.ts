@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UserService, UsuarioDTO } from '../../core/user.service';
@@ -20,8 +20,22 @@ export class Register {
   error = '';
   loading = false;
   success = false;
+  podeCadastrarOutros = false;
 
   constructor(public router: Router, private userService: UserService, public auth: AuthService) { }
+
+  ngOnInit(): void {
+    if (this.isLoggedIn()) {
+      this.userService.getMe().subscribe({
+        next: (user) => {
+          this.podeCadastrarOutros = user.podeCadastrar;
+        },
+        error: () => {
+          this.podeCadastrarOutros = false;
+        }
+      });
+    }
+  }
 
   isLoggedIn(): boolean {
     return !!this.auth.getToken();

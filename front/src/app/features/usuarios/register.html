@@ -38,8 +38,10 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Eu sou...</label>
           <select class="input-premium appearance-none cursor-pointer" [(ngModel)]="perfil" name="perfil" required>
             <option value="PESQUISADOR">Pesquisador (Comunidade)</option>
-            <option value="ALUNO">Aluno (Digitalizador)</option>
-            <option value="PROFESSOR">Professor (Gestor)</option>
+            @if (podeCadastrarOutros) {
+              <option value="ALUNO">Aluno (Digitalizador)</option>
+              <option value="PROFESSOR">Professor (Gestor)</option>
+            }
           </select>
         </div>
 

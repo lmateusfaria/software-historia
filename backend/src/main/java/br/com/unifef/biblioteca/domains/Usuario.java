@@ -35,6 +35,9 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     private Perfil perfil;
+
+    private Boolean podeCadastrar = false;
+
     public Usuario() {
     }
 
@@ -47,7 +50,7 @@ public class Usuario {
         this.dataCriacao = dataCriacao;
     }
 
-    public Usuario(Long id, String cpf, String nome, String email, String senha, LocalDate dataCriacao, Perfil perfil) {
+    public Usuario(Long id, String cpf, String nome, String email, String senha, LocalDate dataCriacao, Perfil perfil, Boolean podeCadastrar) {
         this.id = id;
         this.cpf = cpf;
         this.nome = nome;
@@ -55,6 +58,7 @@ public class Usuario {
         this.senha = senha;
         this.dataCriacao = dataCriacao;
         this.perfil = perfil;
+        this.podeCadastrar = podeCadastrar;
     }
 
     public Usuario(UsuarioDTO usuarioDTO) {
@@ -65,6 +69,7 @@ public class Usuario {
         this.senha = usuarioDTO.getSenha();
         this.dataCriacao = usuarioDTO.getDataCriacao();
         this.perfil = usuarioDTO.getPerfil();
+        this.podeCadastrar = usuarioDTO.getPodeCadastrar();
     }
 
 
@@ -124,6 +129,14 @@ public class Usuario {
 
     public void setPerfil(Perfil perfil) {
         this.perfil = perfil;
+    }
+
+    public Boolean getPodeCadastrar() {
+        return podeCadastrar;
+    }
+
+    public void setPodeCadastrar(Boolean podeCadastrar) {
+        this.podeCadastrar = podeCadastrar;
     }
 }
 

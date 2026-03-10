@@ -18,7 +18,14 @@ export class EscaneamentoComponent implements OnInit {
     documento: DocumentoDTO = {
         titulo: '',
         descricao: '',
-        usuarioId: 0
+        usuarioId: 0,
+        tipo: 'Jornal',
+        diaDocumento: undefined,
+        mesDocumento: undefined,
+        anoDocumento: new Date().getFullYear(),
+        localOrigem: '',
+        edicao: '',
+        marcadores: ''
     };
 
     loading = false;
@@ -85,7 +92,14 @@ export class EscaneamentoComponent implements OnInit {
         this.documento = {
             titulo: '',
             descricao: '',
-            usuarioId: this.documento.usuarioId
+            usuarioId: this.documento.usuarioId,
+            tipo: 'Jornal',
+            diaDocumento: undefined,
+            mesDocumento: undefined,
+            anoDocumento: new Date().getFullYear(),
+            localOrigem: '',
+            edicao: '',
+            marcadores: ''
         };
         this.selectedFiles = [];
         this.previews = [];

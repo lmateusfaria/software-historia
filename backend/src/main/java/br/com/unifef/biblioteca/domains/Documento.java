@@ -39,6 +39,14 @@ public class Documento {
     @Column(columnDefinition = "TEXT")
     private String conteudoOcr;
 
+    private String tipo; // Ex: Jornal, Revista, Certidão
+    private Integer diaDocumento;
+    private Integer mesDocumento;
+    private Integer anoDocumento;
+    private String localOrigem;
+    private String edicao;
+    private String marcadores; 
+
     public Documento() {}
 
     public Documento(Long id, String titulo, String descricao, Usuario responsavel) {
@@ -81,5 +89,26 @@ public class Documento {
 
     public String getConteudoOcr() { return conteudoOcr; }
     public void setConteudoOcr(String conteudoOcr) { this.conteudoOcr = conteudoOcr; }
+
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
+
+    public Integer getDiaDocumento() { return diaDocumento; }
+    public void setDiaDocumento(Integer diaDocumento) { this.diaDocumento = diaDocumento; }
+
+    public Integer getMesDocumento() { return mesDocumento; }
+    public void setMesDocumento(Integer mesDocumento) { this.mesDocumento = mesDocumento; }
+
+    public Integer getAnoDocumento() { return anoDocumento; }
+    public void setAnoDocumento(Integer anoDocumento) { this.anoDocumento = anoDocumento; }
+
+    public String getLocalOrigem() { return localOrigem; }
+    public void setLocalOrigem(String localOrigem) { this.localOrigem = localOrigem; }
+
+    public String getEdicao() { return edicao; }
+    public void setEdicao(String edicao) { this.edicao = edicao; }
+
+    public String getMarcadores() { return marcadores; }
+    public void setMarcadores(String marcadores) { this.marcadores = marcadores; }
 }
 

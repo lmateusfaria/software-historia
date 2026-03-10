@@ -27,6 +27,13 @@ public class DocumentoDTO implements Serializable {
     private StatusDocumento status;
     private Long usuarioId;
     private String usuarioNome;
+    private String tipo;
+    private Integer diaDocumento;
+    private Integer mesDocumento;
+    private Integer anoDocumento;
+    private String localOrigem;
+    private String edicao;
+    private String marcadores;
 
     public DocumentoDTO(Documento obj) {
         this.id = obj.getId();
@@ -38,5 +45,12 @@ public class DocumentoDTO implements Serializable {
         this.status = obj.getStatus();
         this.usuarioId = obj.getResponsavel().getId();
         this.usuarioNome = obj.getResponsavel().getNome();
+        this.tipo = obj.getTipo();
+        this.diaDocumento = obj.getDiaDocumento();
+        this.mesDocumento = obj.getMesDocumento();
+        this.anoDocumento = obj.getAnoDocumento();
+        this.localOrigem = obj.getLocalOrigem();
+        this.edicao = obj.getEdicao();
+        this.marcadores = obj.getMarcadores();
     }
 }

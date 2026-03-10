@@ -38,6 +38,13 @@ public class DocumentoService {
         doc.setDescricao(dto.getDescricao());
         doc.setStatus(StatusDocumento.PENDENTE_OCR);
         doc.setDataDigitalizacao(LocalDate.now());
+        doc.setTipo(dto.getTipo());
+        doc.setDiaDocumento(dto.getDiaDocumento());
+        doc.setMesDocumento(dto.getMesDocumento());
+        doc.setAnoDocumento(dto.getAnoDocumento());
+        doc.setLocalOrigem(dto.getLocalOrigem());
+        doc.setEdicao(dto.getEdicao());
+        doc.setMarcadores(dto.getMarcadores());
         
         Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

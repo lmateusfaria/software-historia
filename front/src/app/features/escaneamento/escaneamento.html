@@ -48,19 +48,19 @@
                             <label class="block text-sm font-medium text-gray-600 dark:text-neutral-300 mb-2">Dia</label>
                             <input type="number" [(ngModel)]="documento.diaDocumento" name="dia"
                                 class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-lg p-3"
-                                placeholder="DD">
+                                placeholder="DD" min="1" max="31">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-600 dark:text-neutral-300 mb-2">Mês</label>
                             <input type="number" [(ngModel)]="documento.mesDocumento" name="mes"
                                 class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-lg p-3"
-                                placeholder="MM">
+                                placeholder="MM" min="1" max="12">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-600 dark:text-neutral-300 mb-2">Ano</label>
                             <input type="number" [(ngModel)]="documento.anoDocumento" name="ano"
                                 class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-lg p-3"
-                                placeholder="AAAA">
+                                placeholder="AAAA" min="1500" [max]="currentYear">
                         </div>
                     </div>
 

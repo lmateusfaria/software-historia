@@ -27,6 +27,8 @@ export class EscaneamentoComponent implements OnInit {
         marcadores: ''
     };
 
+    currentYear = new Date().getFullYear();
+
     loading = false;
     selectedFiles: File[] = [];
     previews: string[] = [];
@@ -65,6 +67,21 @@ export class EscaneamentoComponent implements OnInit {
     onSubmit() {
         if (this.selectedFiles.length === 0) {
             this.toast.error('Selecione pelo menos uma imagem do documento.');
+            return;
+        }
+
+        if (this.documento.diaDocumento && (this.documento.diaDocumento < 1 || this.documento.diaDocumento > 31)) {
+            this.toast.error('Dia inválido.');
+            return;
+        }
+
+        if (this.documento.mesDocumento && (this.documento.mesDocumento < 1 || this.documento.mesDocumento > 12)) {
+            this.toast.error('Mês inválido.');
+            return;
+        }
+
+        if (this.documento.anoDocumento && (this.documento.anoDocumento < 1500 || this.documento.anoDocumento > this.currentYear)) {
+            this.toast.error('Ano inválido.');
             return;
         }
 

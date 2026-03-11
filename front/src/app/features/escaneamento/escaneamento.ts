@@ -51,11 +51,16 @@ export class EscaneamentoComponent implements OnInit {
             const file = files[i];
             this.selectedFiles.push(file);
             
-            const reader = new FileReader();
-            reader.onload = (e: any) => {
-                this.previews.push(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            if (file.type === 'application/pdf') {
+                // Se for PDF, usar um ícone genérico ou cover genérico 
+                this.previews.push('assets/pdf-icon.png'); 
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e: any) => {
+                    this.previews.push(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     }
 

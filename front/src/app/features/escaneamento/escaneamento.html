@@ -89,7 +89,7 @@
 
                 <div
                     class="border-2 border-dashed border-neutral-800 rounded-xl p-8 text-center hover:border-amber-500/50 transition-colors focus-within:border-amber-500/50">
-                    <input type="file" (change)="onFileSelected($event)" class="hidden" #fileInput multiple accept="image/*" capture="environment">
+                    <input type="file" (change)="onFileSelected($event)" class="hidden" #fileInput multiple accept="image/*, application/pdf" capture="environment">
                     
                     <div (click)="fileInput.click()" class="cursor-pointer mb-6 active:scale-95 transition-transform touch-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 dark:text-neutral-600 mx-auto mb-4"

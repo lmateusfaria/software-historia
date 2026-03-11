@@ -11,11 +11,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.rendering.ImageType;
+import org.springframework.mock.web.MockMultipartFile;
 
 @Service
 public class DocumentoService {
@@ -58,9 +68,35 @@ public class DocumentoService {
         doc.setResponsavel(usuario);
 
         if (files != null && !files.isEmpty()) {
-            List<String> urls = files.stream()
-                    .map(fileStorageService::save)
-                    .collect(Collectors.toList());
+            List<String> urls = new ArrayList<>();
+            for (MultipartFile file : files) {
+                if (file.getContentType() != null && file.getContentType().equalsIgnoreCase("application/pdf")) {
+                    try (PDDocument pdfDocument = Loader.loadPDF(file.getBytes())) {
+                        PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+                        for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
+                            BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(bim, "jpg", baos);
+                            baos.flush();
+                            byte[] imageInByte = baos.toByteArray();
+                            baos.close();
+                            
+                            String genName = file.getOriginalFilename() != null ? 
+                                   file.getOriginalFilename().replace(".pdf", "") + "_pag_" + (page + 1) + ".jpg" : 
+                                   "pag_" + (page + 1) + ".jpg";
+
+                            MultipartFile pageFile = new MockMultipartFile(
+                                genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
+                            );
+                            urls.add(fileStorageService.save(pageFile));
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Erro ao processar as páginas do PDF", e);
+                    }
+                } else {
+                    urls.add(fileStorageService.save(file));
+                }
+            }
             doc.setImagensUrls(urls);
         }
 

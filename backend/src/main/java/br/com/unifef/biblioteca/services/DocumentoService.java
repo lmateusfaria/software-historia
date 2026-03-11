@@ -136,7 +136,20 @@ public class DocumentoService {
             doc.setImagensUrls(urls);
         }
 
-        return new DocumentoDTO(repository.save(doc));
+        Documento savedDoc = repository.save(doc);
+
+        // Sincronização com Neo4j (Grafo)
+        try {
+            log.info("Sincronizando novo documento com Neo4j. ID: {}", savedDoc.getId());
+            DocumentoNode node = new DocumentoNode(savedDoc.getId(), savedDoc.getEdicao() != null ? savedDoc.getEdicao() : savedDoc.getTipo());
+            documentoNodeRepository.save(node);
+            log.info("Documento {} sincronizado com sucesso no Neo4j.", savedDoc.getId());
+        } catch (Exception e) {
+            log.error("Falha ao sincronizar documento {} com Neo4j: {}", savedDoc.getId(), e.getMessage());
+            // O processo continua pois o Postgres é a fonte primária de verdade
+        }
+
+        return new DocumentoDTO(savedDoc);
     }
 
     public InputStream getFileStream(String filename) {

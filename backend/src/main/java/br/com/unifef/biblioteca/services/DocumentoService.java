@@ -11,8 +11,8 @@ import br.com.unifef.biblioteca.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +29,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.rendering.ImageType;
 import org.springframework.mock.web.MockMultipartFile;
 
+@Slf4j
 @Service
 public class DocumentoService {
 
@@ -56,10 +57,23 @@ public class DocumentoService {
 
     @Transactional(readOnly = true)
     public DocumentoDTO findById(Long id) {
+        log.info("Buscando documento por ID: {}", id);
         Documento doc = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
         
-        DocumentoNode node = documentoNodeRepository.findById(id).orElse(null);
+        DocumentoNode node = null;
+        try {
+            log.info("Buscando nó correspondente no Neo4j para o ID: {}", id);
+            node = documentoNodeRepository.findById(id).orElse(null);
+            if (node != null) {
+                log.info("Nó encontrado no Neo4j: {}", node.getTitulo());
+            } else {
+                log.info("Nenhum nó encontrado no Neo4j para o ID: {}", id);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao buscar dados no Neo4j para o documento {}: {}", id, e.getMessage());
+            // Não falhar o request principal se o Neo4j estiver fora
+        }
         
         return new DocumentoDTO(doc, node);
     }

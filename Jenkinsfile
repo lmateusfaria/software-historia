@@ -25,8 +25,8 @@ pipeline {
                         sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                         
                         // Build das Imagens
-                        sh "docker build --no-cache -t ${BACKEND_IMAGE}:${tag} -t ${BACKEND_IMAGE}:latest ./backend"
-                        sh "docker build --no-cache -t ${FRONTEND_IMAGE}:${tag} -t ${FRONTEND_IMAGE}:latest ./front"
+                        sh "docker build -t ${BACKEND_IMAGE}:${tag} -t ${BACKEND_IMAGE}:latest ./backend"
+                        sh "docker build -t ${FRONTEND_IMAGE}:${tag} -t ${FRONTEND_IMAGE}:latest ./front"
                         
                         // Push das Imagens
                         sh "docker push ${BACKEND_IMAGE}:${tag}"

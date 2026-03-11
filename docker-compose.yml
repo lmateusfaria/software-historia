@@ -37,6 +37,7 @@ services:
       default:
         aliases:
           - biblioteca-digital-unifef
+          - frontend
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]

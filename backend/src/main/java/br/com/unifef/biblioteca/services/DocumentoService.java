@@ -2,6 +2,8 @@ package br.com.unifef.biblioteca.services;
 
 import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.Usuario;
+import br.com.unifef.biblioteca.domains.graph.DocumentoNode;
+import br.com.unifef.biblioteca.repositories.graph.DocumentoNodeRepository;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.repositories.DocumentoRepository;
@@ -39,6 +41,9 @@ public class DocumentoService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private DocumentoNodeRepository documentoNodeRepository;
+
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
         return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
@@ -47,6 +52,16 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findByStatus(StatusDocumento status) {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public DocumentoDTO findById(Long id) {
+        Documento doc = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
+        
+        DocumentoNode node = documentoNodeRepository.findById(id).orElse(null);
+        
+        return new DocumentoDTO(doc, node);
     }
 
     @Transactional

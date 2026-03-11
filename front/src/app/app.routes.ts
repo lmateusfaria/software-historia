@@ -25,6 +25,10 @@ export const routes: Routes = [
 		component: GaleriaComponent
 	},
 	{
+		path: 'acervo/:id',
+		loadComponent: () => import('./features/galeria/documento-detalhe').then(m => m.DocumentoDetalheComponent)
+	},
+	{
 		path: 'register',
 		loadComponent: () => import('./features/usuarios/register').then(m => m.Register)
 	},

@@ -10,6 +10,14 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import br.com.unifef.biblioteca.domains.graph.DocumentoNode;
+import br.com.unifef.biblioteca.domains.graph.Pessoa;
+import br.com.unifef.biblioteca.domains.graph.Local;
+import br.com.unifef.biblioteca.domains.graph.Evento;
+import br.com.unifef.biblioteca.domains.graph.Organizacao;
 
 public class DocumentoDTO implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -30,6 +38,11 @@ public class DocumentoDTO implements Serializable {
     private String localOrigem;
     private String edicao;
     private String marcadores;
+    private List<String> imagensUrls = new ArrayList<>();
+    private List<String> pessoas = new ArrayList<>();
+    private List<String> locais = new ArrayList<>();
+    private List<String> eventos = new ArrayList<>();
+    private List<String> organizacoes = new ArrayList<>();
 
     public DocumentoDTO() {
     }
@@ -50,6 +63,30 @@ public class DocumentoDTO implements Serializable {
         this.localOrigem = obj.getLocalOrigem();
         this.edicao = obj.getEdicao();
         this.marcadores = obj.getMarcadores();
+        
+        if (obj.getImagensUrls() != null) {
+            this.imagensUrls = obj.getImagensUrls().stream()
+                .map(img -> "/api/documentos/download/" + img)
+                .collect(Collectors.toList());
+        }
+    }
+
+    public DocumentoDTO(Documento obj, DocumentoNode node) {
+        this(obj);
+        if (node != null) {
+            if (node.getPessoas() != null) {
+                this.pessoas = node.getPessoas().stream().map(Pessoa::getNome).collect(Collectors.toList());
+            }
+            if (node.getLocais() != null) {
+                this.locais = node.getLocais().stream().map(Local::getNome).collect(Collectors.toList());
+            }
+            if (node.getEventos() != null) {
+                this.eventos = node.getEventos().stream().map(Evento::getNome).collect(Collectors.toList());
+            }
+            if (node.getOrganizacoes() != null) {
+                this.organizacoes = node.getOrganizacoes().stream().map(Organizacao::getNome).collect(Collectors.toList());
+            }
+        }
     }
 
     // Getters e Setters
@@ -97,4 +134,19 @@ public class DocumentoDTO implements Serializable {
 
     public String getMarcadores() { return marcadores; }
     public void setMarcadores(String marcadores) { this.marcadores = marcadores; }
+
+    public List<String> getImagensUrls() { return imagensUrls; }
+    public void setImagensUrls(List<String> imagensUrls) { this.imagensUrls = imagensUrls; }
+
+    public List<String> getPessoas() { return pessoas; }
+    public void setPessoas(List<String> pessoas) { this.pessoas = pessoas; }
+
+    public List<String> getLocais() { return locais; }
+    public void setLocais(List<String> locais) { this.locais = locais; }
+
+    public List<String> getEventos() { return eventos; }
+    public void setEventos(List<String> eventos) { this.eventos = eventos; }
+
+    public List<String> getOrganizacoes() { return organizacoes; }
+    public void setOrganizacoes(List<String> organizacoes) { this.organizacoes = organizacoes; }
 }

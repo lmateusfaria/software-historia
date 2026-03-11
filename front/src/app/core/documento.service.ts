@@ -49,4 +49,13 @@ export class DocumentoService {
 
         return this.http.post<DocumentoDTO>(this.apiUrl, formData, { headers });
     }
+
+    findById(id: number): Observable<DocumentoDTO> {
+        const token = this.auth.getToken();
+        let headers = new HttpHeaders();
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+        return this.http.get<DocumentoDTO>(`${this.apiUrl}/${id}`, { headers });
+    }
 }

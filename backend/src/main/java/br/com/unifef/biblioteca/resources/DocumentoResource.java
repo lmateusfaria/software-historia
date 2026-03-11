@@ -31,6 +31,11 @@ public class DocumentoResource {
         return ResponseEntity.ok().body(service.findByStatus(status));
     }
 
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<DocumentoDTO> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(service.findById(id));
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentoDTO> create(
             @RequestPart("documento") DocumentoDTO dto,

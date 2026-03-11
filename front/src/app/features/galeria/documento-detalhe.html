@@ -1,0 +1,125 @@
+<div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-[#fdfaf6] dark:bg-[#0f1115] text-[#2c2c2c] dark:text-[#e0e0e0] transition-colors duration-300 font-sans relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        <!-- Breadcrumb / Back -->
+        <button (click)="voltar()" class="flex items-center text-amber-600 hover:text-amber-500 transition-colors mb-8 group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Voltar ao Acervo
+        </button>
+
+        <div *ngIf="loading" class="flex flex-col items-center justify-center py-24">
+            <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-neutral-500">Carregando memórias...</p>
+        </div>
+
+        <div *ngIf="!loading && documento" class="fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- Coluna da Esquerda: Visualizador de Imagens -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="glass rounded-3xl overflow-hidden relative aspect-[3/4] sm:aspect-video flex items-center justify-center bg-black/5 dark:bg-black/40">
+                        <img *ngIf="imagemSelecionada" [src]="imagemSelecionada" 
+                             class="max-w-full max-h-full object-contain shadow-2xl transition-all duration-500"
+                             [alt]="documento.tipo">
+                        
+                        <div *ngIf="!imagemSelecionada" class="text-neutral-500 flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p>Nenhuma imagem disponível</p>
+                        </div>
+                    </div>
+
+                    <!-- Miniaturas -->
+                    <div *ngIf="documento.imagensUrls && documento.imagensUrls.length > 1" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                        <button *ngFor="let img of documento.imagensUrls" 
+                                (click)="selecionarImagem(img)"
+                                class="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 transition-all p-0.5 bg-white dark:bg-neutral-900"
+                                [class.border-amber-600]="imagemSelecionada === img"
+                                [class.border-transparent]="imagemSelecionada !== img">
+                            <img [src]="img" class="w-full h-full object-cover rounded-lg">
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Coluna da Direita: Informações -->
+                <div class="lg:col-span-5 space-y-8">
+                    <div class="fade-in" style="animation-delay: 0.1s">
+                        <span class="px-3 py-1 bg-amber-500/10 text-amber-600 text-xs font-bold rounded-full border border-amber-500/20 mb-4 inline-block">
+                            {{ documento.tipo || 'Documento' }}
+                        </span>
+                        <h1 class="text-4xl font-bold text-gray-900 dark:text-neutral-100 mb-4">{{ documento.edicao || 'Registro Histórico' }}</h1>
+                        <p class="text-gray-600 dark:text-neutral-400 leading-relaxed text-lg">
+                            {{ documento.descricao }}
+                        </p>
+                    </div>
+
+                    <!-- Metadados -->
+                    <div class="grid grid-cols-2 gap-6 py-8 border-y border-neutral-200 dark:border-neutral-800 fade-in" style="animation-delay: 0.2s">
+                        <div>
+                            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Data do Documento</h4>
+                            <p class="text-gray-900 dark:text-neutral-200">
+                                {{ documento.diaDocumento ? (documento.diaDocumento + '/') : '' }}{{ documento.mesDocumento ? (documento.mesDocumento + '/') : '' }}{{ documento.anoDocumento || 'Desconhecida' }}
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Local de Origem</h4>
+                            <p class="text-gray-900 dark:text-neutral-200">{{ documento.localOrigem || 'Não informado' }}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Digitalizado por</h4>
+                            <p class="text-gray-900 dark:text-neutral-200">{{ documento.usuarioNome }}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Data Digitalização</h4>
+                            <p class="text-gray-900 dark:text-neutral-200">{{ documento.dataDigitalizacao | date:'dd/MM/yyyy' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Conexões Neo4j -->
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.3s" *ngIf="documento.pessoas?.length || documento.locais?.length || documento.eventos?.length || documento.organizacoes?.length">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            Conexões Históricas
+                        </h3>
+                        
+                        <div class="flex flex-wrap gap-2">
+                            <span *ngFor="let p of documento.pessoas" class="px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm rounded-lg border border-blue-500/20">
+                               👤 {{ p }}
+                            </span>
+                            <span *ngFor="let l of documento.locais" class="px-3 py-1.5 bg-green-500/10 text-green-500 text-sm rounded-lg border border-green-500/20">
+                               📍 {{ l }}
+                            </span>
+                            <span *ngFor="let e of documento.eventos" class="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-sm rounded-lg border border-purple-500/20">
+                               📅 {{ e }}
+                            </span>
+                            <span *ngFor="let o of documento.organizacoes" class="px-3 py-1.5 bg-orange-500/10 text-orange-500 text-sm rounded-lg border border-orange-500/20">
+                               🏢 {{ o }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- OCR Conteúdo -->
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.4s" *ngIf="documento.conteudoOcr">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Transcrição Digital (OCR)
+                        </h3>
+                        <div class="glass p-6 rounded-2xl max-h-96 overflow-y-auto text-sm text-gray-700 dark:text-neutral-400 bg-white/30 dark:bg-black/20 leading-loose whitespace-pre-wrap font-mono">
+                            {{ documento.conteudoOcr }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

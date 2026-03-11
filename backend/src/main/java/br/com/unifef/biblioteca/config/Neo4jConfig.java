@@ -23,4 +23,9 @@ public class Neo4jConfig {
     public Driver neo4jDriver() {
         return GraphDatabase.driver(uri, AuthTokens.basic(username, password));
     }
+
+    @Bean(name = "neo4jTransactionManager")
+    public org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager neo4jTransactionManager(Driver driver) {
+        return new org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager(driver);
+    }
 }

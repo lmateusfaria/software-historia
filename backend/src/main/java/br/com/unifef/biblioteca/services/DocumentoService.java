@@ -50,12 +50,12 @@ public class DocumentoService {
         return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public List<DocumentoDTO> findByStatus(StatusDocumento status) {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, transactionManager = "transactionManager")
     public DocumentoDTO findById(Long id) {
         log.info("Buscando documento por ID: {}", id);
         
@@ -71,7 +71,7 @@ public class DocumentoService {
         DocumentoNode node = null;
         try {
             log.info("Buscando nó correspondente no Neo4j para o ID: {}", id);
-            // Chamada ao Neo4j sem transação explícita do serviço
+            // Chamada ao Neo4j - O repositório agora sabe qual manager usar
             node = documentoNodeRepository.findById(id).orElse(null);
             if (node != null) {
                 log.info("Nó encontrado no Neo4j: {}", node.getTitulo());
@@ -86,7 +86,7 @@ public class DocumentoService {
         return new DocumentoDTO(doc, node);
     }
 
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public DocumentoDTO create(DocumentoDTO dto, List<MultipartFile> files) {
         Documento doc = new Documento();
         doc.setDescricao(dto.getDescricao());

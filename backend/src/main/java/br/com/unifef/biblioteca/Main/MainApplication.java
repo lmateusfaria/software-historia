@@ -15,8 +15,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "br.com.unifef.biblioteca.domains.enums",
     "br.com.unifef.biblioteca.domains.graph"
 })
-@EnableJpaRepositories(basePackages = "br.com.unifef.biblioteca.repositories")
-@EnableNeo4jRepositories(basePackages = "br.com.unifef.biblioteca.repositories.graph")
+@EnableJpaRepositories(
+    basePackages = "br.com.unifef.biblioteca.repositories",
+    transactionManagerRef = "transactionManager"
+)
+@EnableNeo4jRepositories(
+    basePackages = "br.com.unifef.biblioteca.repositories.graph",
+    transactionManagerRef = "neo4jTransactionManager"
+)
 @EnableScheduling
 @SpringBootApplication
 public class MainApplication {

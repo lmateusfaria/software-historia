@@ -55,15 +55,22 @@ public class DocumentoService {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public DocumentoDTO findById(Long id) {
         log.info("Buscando documento por ID: {}", id);
+        
+        // Busca o documento no PostgreSQL
         Documento doc = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
         
+        // Força o carregamento da coleção ElementCollection (Lazy) para evitar LazyInitializationException no DTO
+        if (doc.getImagensUrls() != null) {
+            doc.getImagensUrls().size(); 
+        }
+
         DocumentoNode node = null;
         try {
             log.info("Buscando nó correspondente no Neo4j para o ID: {}", id);
+            // Chamada ao Neo4j sem transação explícita do serviço
             node = documentoNodeRepository.findById(id).orElse(null);
             if (node != null) {
                 log.info("Nó encontrado no Neo4j: {}", node.getTitulo());
@@ -71,8 +78,8 @@ public class DocumentoService {
                 log.info("Nenhum nó encontrado no Neo4j para o ID: {}", id);
             }
         } catch (Exception e) {
-            log.error("Erro ao buscar dados no Neo4j para o documento {}: {}", id, e.getMessage());
-            // Não falhar o request principal se o Neo4j estiver fora
+            log.error("Houve uma falha ao acessar o Neo4j para o documento {}. Causa: {}", id, e.getMessage());
+            log.warn("O sistema seguirá servindo o documento básico do PostgreSQL.");
         }
         
         return new DocumentoDTO(doc, node);

@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import br.com.unifef.biblioteca.security.UserSS;
+import org.springframework.security.access.prepost.PreAuthorize;
 // Endpoint para retornar dados do usuário autenticado via JWT
 
 @RestController

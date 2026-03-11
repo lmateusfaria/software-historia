@@ -55,6 +55,7 @@ public class DocumentoService {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public DocumentoDTO findById(Long id) {
         log.info("Buscando documento por ID: {}", id);
         

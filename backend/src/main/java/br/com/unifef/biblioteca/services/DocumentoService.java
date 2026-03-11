@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,5 +66,9 @@ public class DocumentoService {
         }
 
         return new DocumentoDTO(repository.save(doc));
+    }
+
+    public InputStream getFileStream(String filename) {
+        return fileStorageService.fetch(filename);
     }
 }

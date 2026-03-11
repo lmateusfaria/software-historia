@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/documentos/download/**")).permitAll()
                         .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/error")).permitAll()
                         .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/auth/**")).permitAll()

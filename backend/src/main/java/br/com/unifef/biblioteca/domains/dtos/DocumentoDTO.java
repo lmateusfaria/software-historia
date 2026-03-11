@@ -39,7 +39,7 @@ public class DocumentoDTO implements Serializable {
         this.id = obj.getId();
         this.titulo = obj.getTitulo();
         this.descricao = obj.getDescricao();
-        this.urlImagem = obj.getUrlImagem();
+        this.urlImagem = obj.getUrlImagem() != null ? "/api/documentos/download/" + obj.getUrlImagem() : null;
         this.conteudoOcr = obj.getConteudoOcr();
         this.dataDigitalizacao = obj.getDataDigitalizacao();
         this.status = obj.getStatus();

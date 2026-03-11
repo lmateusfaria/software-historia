@@ -16,7 +16,6 @@ import { DocumentoDTO } from '../../core/models/documento.model';
 })
 export class EscaneamentoComponent implements OnInit {
     documento: DocumentoDTO = {
-        titulo: '',
         descricao: '',
         usuarioId: 0,
         tipo: 'Jornal',
@@ -64,11 +63,6 @@ export class EscaneamentoComponent implements OnInit {
     }
 
     onSubmit() {
-        if (!this.documento.titulo) {
-            this.toast.error('O título é obrigatório.');
-            return;
-        }
-
         if (this.selectedFiles.length === 0) {
             this.toast.error('Selecione pelo menos uma imagem do documento.');
             return;
@@ -90,7 +84,6 @@ export class EscaneamentoComponent implements OnInit {
 
     resetForm() {
         this.documento = {
-            titulo: '',
             descricao: '',
             usuarioId: this.documento.usuarioId,
             tipo: 'Jornal',

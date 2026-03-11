@@ -15,7 +15,6 @@ public class DocumentoDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private String titulo;
     private String descricao;
     private String urlImagem;
     private String conteudoOcr;
@@ -37,7 +36,6 @@ public class DocumentoDTO implements Serializable {
 
     public DocumentoDTO(Documento obj) {
         this.id = obj.getId();
-        this.titulo = obj.getTitulo();
         this.descricao = obj.getDescricao();
         this.urlImagem = obj.getUrlImagem() != null ? "/api/documentos/download/" + obj.getUrlImagem() : null;
         this.conteudoOcr = obj.getConteudoOcr();
@@ -57,9 +55,6 @@ public class DocumentoDTO implements Serializable {
     // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }

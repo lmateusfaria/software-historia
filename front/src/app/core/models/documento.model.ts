@@ -1,6 +1,5 @@
 export interface DocumentoDTO {
     id?: number;
-    titulo: string;
     descricao: string;
     urlImagem?: string;
     conteudoOcr?: string;

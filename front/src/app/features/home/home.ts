@@ -141,11 +141,11 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onGetStarted(): void {
-    this.router.navigate(['/register']);
+    this.router.navigate(['/login']);
   }
 
   onExploreFeatures(): void {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/register']);
   }
 
   scrollToSection(sectionId: string): void {

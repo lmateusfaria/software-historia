@@ -33,7 +33,7 @@ export class ThemeService {
   private getInitialTheme(): Theme {
     // Se não está no browser, retorna tema padrão
     if (!this.isBrowser()) {
-      return 'light';
+      return 'dark';
     }
 
     // Primeiro verifica se há tema salvo no localStorage
@@ -60,8 +60,8 @@ export class ThemeService {
       console.warn('Erro ao detectar preferência do sistema:', error);
     }
 
-    // Fallback para tema claro
-    return 'light';
+    // Fallback para tema escuro
+    return 'dark';
   }
 
   /**

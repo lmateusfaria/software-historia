@@ -26,12 +26,14 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CPF</label>
-          <input class="input-premium" type="text" placeholder="000.000.000-00" [(ngModel)]="cpf" name="cpf" required>
+          <input class="input-premium" type="text" placeholder="000.000.000-00" [(ngModel)]="cpf" name="cpf" 
+            (input)="onCpfInput($event)" maxlength="14" required>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha</label>
           <input class="input-premium" type="password" placeholder="••••••••" [(ngModel)]="senha" name="senha" required>
+          <p class="text-[10px] text-gray-500 mt-1">Mín. 8 caracteres, com Maiúsculas e Números</p>
         </div>
 
         <div>

@@ -37,11 +37,45 @@ export class Register {
     }
   }
 
+  onCpfInput(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.substring(0, 11);
+
+    if (value.length > 9) {
+      value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else if (value.length > 6) {
+      value = value.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+    } else if (value.length > 3) {
+      value = value.replace(/(\d{3})(\d{3})/, '$1.$2');
+    }
+
+    this.cpf = value;
+    event.target.value = value;
+  }
+
+  isSenhaForte(senha: string): boolean {
+    const minLength = senha.length >= 8;
+    const hasUpper = /[A-Z]/.test(senha);
+    const hasLower = /[a-z]/.test(senha);
+    const hasNumber = /[0-9]/.test(senha);
+    return minLength && hasUpper && hasLower && hasNumber;
+  }
+
   isLoggedIn(): boolean {
     return !!this.auth.getToken();
   }
 
   onSubmit(): void {
+    if (this.cpf.length < 14) {
+      this.error = 'CPF incompleto ou inválido.';
+      return;
+    }
+
+    if (!this.isSenhaForte(this.senha)) {
+      this.error = 'A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas e números.';
+      return;
+    }
+
     this.error = '';
     this.success = false;
     this.loading = true;
@@ -49,7 +83,7 @@ export class Register {
       nome: this.nome,
       email: this.email,
       senha: this.senha,
-      cpf: this.cpf,
+      cpf: this.cpf.replace(/\D/g, ''), // Envia apenas números para o backend
       perfil: this.perfil
     };
     this.userService.register(usuario).subscribe({

@@ -42,8 +42,8 @@ export class GaleriaComponent implements OnInit {
 
     get documentosFiltrados() {
         return this.documentos.filter(doc =>
-            doc.titulo.toLowerCase().includes(this.filtro.toLowerCase()) ||
-            doc.descricao.toLowerCase().includes(this.filtro.toLowerCase())
+            doc.descricao.toLowerCase().includes(this.filtro.toLowerCase()) ||
+            doc.tipo?.toLowerCase().includes(this.filtro.toLowerCase())
         );
     }
 }

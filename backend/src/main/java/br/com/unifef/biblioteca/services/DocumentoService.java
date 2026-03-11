@@ -42,7 +42,6 @@ public class DocumentoService {
     @Transactional
     public DocumentoDTO create(DocumentoDTO dto, List<MultipartFile> files) {
         Documento doc = new Documento();
-        doc.setTitulo(dto.getTitulo());
         doc.setDescricao(dto.getDescricao());
         doc.setStatus(StatusDocumento.PENDENTE_OCR);
         doc.setDataDigitalizacao(LocalDate.now());

@@ -40,11 +40,11 @@ public class OcrJobService {
         doc.setStatus(StatusDocumento.PROCESSANDO_OCR);
         repository.save(doc);
         
-        System.out.println("Processando OCR para: " + doc.getTitulo());
+        System.out.println("Processando OCR para: " + doc.getDescricao());
 
         // 2. Simulação de processamento (Aqui entrará a chamada para Tesseract ou IA no futuro)
         // Por enquanto, apenas simulamos um atraso ou sucesso imediato
-        String textoExtraido = "Texto extraído automaticamente via OCR simulado para o documento: " + doc.getTitulo();
+        String textoExtraido = "Texto extraído automaticamente via OCR simulado para o documento: " + doc.getDescricao();
         
         doc.setConteudoOcr(textoExtraido);
         
@@ -52,6 +52,6 @@ public class OcrJobService {
         doc.setStatus(StatusDocumento.AGUARDANDO_APROVACAO);
         repository.save(doc);
         
-        System.out.println("OCR concluído para: " + doc.getTitulo() + ". Status alterado para AGUARDANDO_APROVACAO.");
+        System.out.println("OCR concluído para: " + doc.getDescricao() + ". Status alterado para AGUARDANDO_APROVACAO.");
     }
 }

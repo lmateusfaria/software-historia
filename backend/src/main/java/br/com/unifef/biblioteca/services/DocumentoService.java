@@ -8,6 +8,7 @@ import br.com.unifef.biblioteca.repositories.DocumentoRepository;
 import br.com.unifef.biblioteca.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
@@ -27,14 +28,17 @@ public class DocumentoService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
         return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DocumentoDTO> findByStatus(StatusDocumento status) {
         return repository.findByStatus(status).stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
+    @Transactional
     public DocumentoDTO create(DocumentoDTO dto, List<MultipartFile> files) {
         Documento doc = new Documento();
         doc.setTitulo(dto.getTitulo());

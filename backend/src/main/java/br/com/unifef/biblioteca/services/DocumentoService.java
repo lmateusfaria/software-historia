@@ -155,7 +155,8 @@ public class DocumentoService {
 
     @Transactional(transactionManager = "transactionManager")
     public void delete(Long id) {
-        Documento doc = findById(id);
+        Documento doc = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
         
         // 1. Remover arquivos do MinIO
         if (doc.getImagensUrls() != null) {
@@ -163,7 +164,7 @@ public class DocumentoService {
                 try {
                     fileStorageService.delete(filename);
                 } catch (Exception e) {
-                    System.err.println("Erro ao deletar arquivo no MinIO: " + filename + ". Erro: " + e.getMessage());
+                    log.error("Erro ao deletar arquivo no MinIO: {}. Erro: {}", filename, e.getMessage());
                 }
             }
         }
@@ -172,18 +173,19 @@ public class DocumentoService {
         try {
             documentoNodeRepository.deleteById(id);
         } catch (Exception e) {
-            System.err.println("Erro ao deletar nó no Neo4j para documento " + id + ". Erro: " + e.getMessage());
+            log.error("Erro ao deletar nó no Neo4j para documento {}. Erro: {}", id, e.getMessage());
         }
 
         // 3. Remover do Postgres
-        documentoRepo.delete(doc);
+        repository.delete(doc);
     }
 
     @Transactional(transactionManager = "transactionManager")
     public DocumentoDTO approve(Long id) {
-        Documento doc = findById(id);
+        Documento doc = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
         doc.setStatus(StatusDocumento.APROVADO);
-        doc = documentoRepo.save(doc);
+        doc = repository.save(doc);
         return new DocumentoDTO(doc);
     }
 

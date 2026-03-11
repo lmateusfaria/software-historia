@@ -17,7 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import br.com.unifef.biblioteca.security.UserSS;
 // Endpoint para retornar dados do usuário autenticado via JWT
 
-
 @RestController
 @RequestMapping(value = "/usuarios")
 public class UsuarioResource {
@@ -26,11 +25,13 @@ public class UsuarioResource {
     private UsuarioService usuarioService;
 
     @GetMapping
+    @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<List<UsuarioDTO>> findAll() {
         return ResponseEntity.ok().body(usuarioService.findAll());
     }
 
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<UsuarioDTO> findById(@PathVariable Long id) {
         Usuario obj = usuarioService.findById(id);
         return ResponseEntity.ok().body(new UsuarioDTO(obj));
@@ -57,12 +58,14 @@ public class UsuarioResource {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<UsuarioDTO> update(@PathVariable Long id, @Valid @RequestBody UsuarioDTO objDto) {
         Usuario obj = usuarioService.update(id, objDto);
         return ResponseEntity.ok().body(new UsuarioDTO(obj));
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
         usuarioService.delete(id);

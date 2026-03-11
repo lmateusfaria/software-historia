@@ -11,51 +11,29 @@ export class DocumentoService {
     constructor(private http: HttpClient, private auth: AuthService) {}
 
     findAll(): Observable<DocumentoDTO[]> {
-        const token = this.auth.getToken();
-        let headers = new HttpHeaders();
-        if (token) {
-            headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-        return this.http.get<DocumentoDTO[]>(this.apiUrl, { headers });
+        return this.http.get<DocumentoDTO[]>(this.apiUrl);
     }
 
     findByStatus(status: string): Observable<DocumentoDTO[]> {
-        const token = this.auth.getToken();
-        let headers = new HttpHeaders();
-        if (token) {
-            headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-        return this.http.get<DocumentoDTO[]>(`${this.apiUrl}/status/${status}`, { headers });
+        return this.http.get<DocumentoDTO[]>(`${this.apiUrl}/status/${status}`);
     }
 
     create(documento: DocumentoDTO, files: File[]): Observable<DocumentoDTO> {
         const formData = new FormData();
-        
-        // Adiciona o DTO como um Blob JSON para o @RequestPart("documento")
-        formData.append('documento', new Blob([JSON.stringify(documento)], {
-            type: 'application/json'
-        }));
-
-        // Adiciona os arquivos para o @RequestPart("files")
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        const token = this.auth.getToken();
-        let headers = new HttpHeaders();
-        if (token) {
-            headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-
-        return this.http.post<DocumentoDTO>(this.apiUrl, formData, { headers });
+        formData.append('documento', new Blob([JSON.stringify(documento)], { type: 'application/json' }));
+        files.forEach(file => formData.append('files', file));
+        return this.http.post<DocumentoDTO>(this.apiUrl, formData);
     }
 
     findById(id: number): Observable<DocumentoDTO> {
-        const token = this.auth.getToken();
-        let headers = new HttpHeaders();
-        if (token) {
-            headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-        return this.http.get<DocumentoDTO>(`${this.apiUrl}/${id}`, { headers });
+        return this.http.get<DocumentoDTO>(`${this.apiUrl}/${id}`);
+    }
+
+    delete(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
+
+    approve(id: number): Observable<DocumentoDTO> {
+        return this.http.put<DocumentoDTO>(`${this.apiUrl}/${id}/aprovar`, {});
     }
 }

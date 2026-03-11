@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DocumentoNodeRepository extends Neo4jRepository<DocumentoNode, Long> {
+    void deleteById(Long id);
 }

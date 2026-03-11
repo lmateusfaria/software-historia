@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentoService } from '../../core/documento.service';
+import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 
@@ -14,6 +15,7 @@ import { ToastService } from '../../shared/toast/toast.service';
 })
 export class DocumentoDetalheComponent implements OnInit {
     documento?: DocumentoDTO;
+    usuario?: UsuarioInfo;
     loading = true;
     imagemSelecionada?: string;
 
@@ -21,15 +23,56 @@ export class DocumentoDetalheComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private documentoService: DocumentoService,
+        private userInfoService: UserInfoService,
         private toast: ToastService
     ) { }
 
     ngOnInit() {
+        this.carregarUsuario();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.carregarDocumento(+id);
         } else {
             this.router.navigate(['/acervo']);
+        }
+    }
+
+    carregarUsuario() {
+        this.userInfoService.getMe().subscribe({
+            next: (user) => this.usuario = user,
+            error: () => console.error('Erro ao carregar info do usuário')
+        });
+    }
+
+    get isProfessor(): boolean {
+        return this.usuario?.perfil === 'ROLE_PROFESSOR' || this.usuario?.perfil === 'PROFESSOR';
+    }
+
+    get aguardandoAprovacao(): boolean {
+        return this.documento?.status === 'AGUARDANDO_APROVACAO';
+    }
+
+    aprovar() {
+        if (this.documento?.id) {
+            this.documentoService.approve(this.documento.id).subscribe({
+                next: () => {
+                    this.toast.success('Documento aprovado com sucesso!');
+                    this.carregarDocumento(this.documento!.id!);
+                },
+                error: () => this.toast.error('Erro ao aprovar documento.')
+            });
+        }
+    }
+
+    excluir() {
+        if (this.documento?.id && confirm('Tem certeza que deseja excluir este documento? Esta ação é irreversível.')) {
+            this.documentoService.delete(this.documento.id).subscribe({
+                next: () => {
+                    this.toast.success('Documento excluído com sucesso!');
+                    this.router.navigate(['/acervo']);
+                },
+                error: () => this.toast.error('Erro ao excluir documento.')
+            });
         }
     }
 

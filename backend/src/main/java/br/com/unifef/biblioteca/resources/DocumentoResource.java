@@ -4,6 +4,7 @@ import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,5 +52,18 @@ public class DocumentoResource {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(resource);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{id}/aprovar")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<DocumentoDTO> approve(@PathVariable Long id) {
+        return ResponseEntity.ok().body(service.approve(id));
     }
 }

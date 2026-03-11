@@ -85,6 +85,8 @@ public class UsuarioService {
         oldObj.setNome(dto.getNome());
         oldObj.setCpf(dto.getCpf());
         oldObj.setEmail(dto.getEmail());
+        oldObj.setPerfil(dto.getPerfil());
+        oldObj.setPodeCadastrar(dto.getPodeCadastrar());
 
         if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
             oldObj.setSenha(encoder.encode(dto.getSenha()));

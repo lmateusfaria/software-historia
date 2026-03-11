@@ -16,61 +16,39 @@ export interface UsuarioDTO {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = '/api/usuarios'; // ajustado para proxy Nginx
+    private apiUrl = '/api/usuarios';
 
-  constructor(private http: HttpClient, private auth: AuthService) { }
+    constructor(private http: HttpClient) { }
 
-  register(usuario: UsuarioDTO): Observable<any> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    findAll(): Observable<UsuarioDTO[]> {
+        return this.http.get<UsuarioDTO[]>(this.apiUrl);
     }
-    return this.http.post(this.apiUrl, usuario, { headers, observe: 'response' });
-  }
 
-  update(id: number, usuario: UsuarioDTO): Observable<any> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    findById(id: number): Observable<UsuarioDTO> {
+        return this.http.get<UsuarioDTO>(`${this.apiUrl}/${id}`);
     }
-    return this.http.put(`${this.apiUrl}/${id}`, usuario, { headers });
-  }
 
-  delete(id: number): Observable<any> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    register(usuario: UsuarioDTO): Observable<any> {
+        return this.http.post(this.apiUrl, usuario, { observe: 'response' });
     }
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers });
-  }
 
-  getMe(): Observable<UsuarioInfo> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    update(id: number, usuario: UsuarioDTO): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${id}`, usuario);
     }
-    return this.http.get<UsuarioInfo>(`${this.apiUrl}/me`, { headers });
-  }
 
-  deleteAccount(): Observable<void> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    delete(id: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/${id}`);
     }
-    return this.http.delete<void>(`${this.apiUrl}/delete-account`, { headers });
-  }
 
-  validatePassword(password: string): Observable<boolean> {
-    const token = this.auth.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    getMe(): Observable<UsuarioInfo> {
+        return this.http.get<UsuarioInfo>(`${this.apiUrl}/me`);
     }
-    return this.http.post<boolean>('/api/auth/validate-password', { password }, { headers });
-  }
-}
+
+    deleteAccount(): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/delete-account`);
+    }
+
+    validatePassword(password: string): Observable<boolean> {
+        return this.http.post<boolean>('/api/auth/validate-password', { password });
+    }
+}

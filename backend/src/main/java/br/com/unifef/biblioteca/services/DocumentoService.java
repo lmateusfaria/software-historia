@@ -153,6 +153,40 @@ public class DocumentoService {
         return new DocumentoDTO(savedDoc);
     }
 
+    @Transactional(transactionManager = "transactionManager")
+    public void delete(Long id) {
+        Documento doc = findById(id);
+        
+        // 1. Remover arquivos do MinIO
+        if (doc.getImagensUrls() != null) {
+            for (String filename : doc.getImagensUrls()) {
+                try {
+                    fileStorageService.delete(filename);
+                } catch (Exception e) {
+                    System.err.println("Erro ao deletar arquivo no MinIO: " + filename + ". Erro: " + e.getMessage());
+                }
+            }
+        }
+
+        // 2. Remover do Neo4j (resiliente)
+        try {
+            documentoNodeRepository.deleteById(id);
+        } catch (Exception e) {
+            System.err.println("Erro ao deletar nó no Neo4j para documento " + id + ". Erro: " + e.getMessage());
+        }
+
+        // 3. Remover do Postgres
+        documentoRepo.delete(doc);
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public DocumentoDTO approve(Long id) {
+        Documento doc = findById(id);
+        doc.setStatus(StatusDocumento.APROVADO);
+        doc = documentoRepo.save(doc);
+        return new DocumentoDTO(doc);
+    }
+
     public InputStream getFileStream(String filename) {
         return fileStorageService.fetch(filename);
     }

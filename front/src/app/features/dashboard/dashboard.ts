@@ -84,6 +84,14 @@ export class Dashboard implements OnInit, OnDestroy {
     this.router.navigate(['/acervo']);
   }
 
+  onManageUsers() {
+    this.router.navigate(['/admin/usuarios']);
+  }
+
+  get isProfessor(): boolean {
+    return this.usuario?.perfil === 'PROFESSOR';
+  }
+
   onEditUser() {
     console.log('[DASHBOARD] onEditUser chamado');
     if (this.usuario) {

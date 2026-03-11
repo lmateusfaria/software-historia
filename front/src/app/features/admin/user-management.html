@@ -1,0 +1,141 @@
+<div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-[#fdfaf6] dark:bg-[#0f1115] text-[#2c2c2c] dark:text-[#e0e0e0] transition-colors duration-300 font-sans relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <button (click)="voltar()" class="flex items-center text-amber-600 hover:text-amber-500 transition-colors mb-4 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar ao Painel
+                </button>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-neutral-100 mb-2">Gestão de Usuários</h1>
+                <p class="text-neutral-500">Administre o acesso e as permissões de alunos, professores e pesquisadores.</p>
+            </div>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div class="glass rounded-3xl overflow-hidden border border-white/20 dark:border-white/5 shadow-2xl bg-white/40 dark:bg-black/20 backdrop-blur-xl">
+            <div *ngIf="loading" class="p-24 flex flex-col items-center justify-center">
+                <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-neutral-500 font-mono text-sm tracking-widest uppercase">Consultando registros...</p>
+            </div>
+
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-black/5 dark:bg-white/5 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                            <th class="px-8 py-5">Usuário</th>
+                            <th class="px-8 py-5">E-mail / CPF</th>
+                            <th class="px-8 py-5">Perfil</th>
+                            <th class="px-8 py-5">Permissões</th>
+                            <th class="px-8 py-5 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-black/5 dark:divide-white/5">
+                        <tr *ngFor="let user of usuarios" class="hover:bg-white/40 dark:hover:bg-white/5 transition-colors group">
+                            <td class="px-8 py-6">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-amber-600/10 flex items-center justify-center mr-4 text-amber-600 font-bold border border-amber-600/20">
+                                        {{ user.nome.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <span class="font-bold text-gray-900 dark:text-neutral-100">{{ user.nome }}</span>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="text-sm text-gray-600 dark:text-neutral-400 font-mono">{{ user.email }}</div>
+                                <div class="text-xs text-neutral-500 mt-1 font-mono italic">{{ user.cpf }}</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <span class="px-3 py-1 text-xs font-bold rounded-full border"
+                                    [ngClass]="{
+                                        'bg-purple-500/10 text-purple-600 border-purple-500/20': user.perfil === 'PROFESSOR',
+                                        'bg-blue-500/10 text-blue-600 border-blue-500/20': user.perfil === 'ALUNO',
+                                        'bg-emerald-500/10 text-emerald-600 border-emerald-500/20': user.perfil === 'PESQUISADOR'
+                                    }">
+                                    {{ user.perfil }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-6">
+                                <span *ngIf="user.podeCadastrar" class="flex items-center text-xs text-emerald-600 font-bold">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Pode Digitalizar
+                                </span>
+                                <span *ngIf="!user.podeCadastrar" class="text-xs text-neutral-400 italic">Somente Leitura</span>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button (click)="abrirEdicao(user)" class="p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all" title="Editar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button (click)="excluir(user.id!)" class="p-2 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-all" title="Excluir">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div *ngIf="editando" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="fecharEdicao()"></div>
+        
+        <div class="relative w-full max-w-lg glass rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c22] p-8 fade-in-up">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-6">Editar Usuário</h2>
+            
+            <form *ngIf="usuarioSelecionado" (submit)="salvar()" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-neutral-500 uppercase">Nome Completo</label>
+                    <input type="text" [(ngModel)]="usuarioSelecionado.nome" name="nome"
+                           class="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-600 transition-colors">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase">Perfil</label>
+                        <select [(ngModel)]="usuarioSelecionado.perfil" name="perfil"
+                                class="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-600 transition-colors">
+                            <option *ngFor="let p of perfis" [value]="p.value">{{ p.label }}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center pt-8">
+                        <label class="flex items-center cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" [(ngModel)]="usuarioSelecionado.podeCadastrar" name="podeCadastrar" class="sr-only">
+                                <div class="w-10 h-6 bg-gray-300 dark:bg-neutral-700 rounded-full shadow-inner transition-colors" [class.bg-emerald-600]="usuarioSelecionado.podeCadastrar"></div>
+                                <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform" [style.transform]="usuarioSelecionado.podeCadastrar ? 'translateX(100%)' : 'none'"></div>
+                            </div>
+                            <span class="ml-3 text-sm font-bold text-gray-700 dark:text-neutral-300">Pode Digitalizar</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button type="button" (click)="fecharEdicao()" 
+                            class="flex-1 py-3 border border-black/10 dark:border-white/10 text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-bold transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-amber-600/20">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

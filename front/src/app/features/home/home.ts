@@ -34,12 +34,13 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.to('#hero-badge', { opacity: 1, y: 0, duration: 0.6, delay: 0.2 })
       .to('#hero-title', { opacity: 1, y: 0, duration: 0.7 }, '-=0.3')
+      .to('#hero-logo', { opacity: 1, y: 0, duration: 0.7, scale: 1 }, '-=0.5')
       .to('#hero-sub', { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
       .to('#hero-ctas', { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
       .to('#hero-scroll', { opacity: 1, duration: 0.5 }, '-=0.2');
 
     // Configurar posição inicial para animação GSAP
-    gsap.set(['#hero-badge', '#hero-title', '#hero-sub', '#hero-ctas'], { y: 30 });
+    gsap.set(['#hero-badge', '#hero-title', '#hero-logo', '#hero-sub', '#hero-ctas'], { y: 30 });
 
     // Partículas flutuantes no canvas
     this.drawParticles();

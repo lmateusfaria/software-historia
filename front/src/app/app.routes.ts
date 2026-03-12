@@ -1,28 +1,23 @@
 import { Routes } from '@angular/router';
 
-import { Dashboard } from './features/dashboard/dashboard';
-import { Home } from './features/home/home';
-import { EscaneamentoComponent } from './features/escaneamento/escaneamento';
-import { GaleriaComponent } from './features/galeria/galeria';
-
 export const routes: Routes = [
 	{
 		path: '',
-		component: Home
+		loadComponent: () => import('./features/home/home').then(m => m.Home)
 	},
 	{
 		path: 'dashboard',
-		component: Dashboard,
+		loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
 		canActivate: [() => import('./core/auth.guard').then(m => m.authGuard)]
 	},
 	{
 		path: 'escaneamento',
-		component: EscaneamentoComponent,
+		loadComponent: () => import('./features/escaneamento/escaneamento').then(m => m.EscaneamentoComponent),
 		canActivate: [() => import('./core/auth.guard').then(m => m.authGuard)]
 	},
 	{
 		path: 'acervo',
-		component: GaleriaComponent
+		loadComponent: () => import('./features/galeria/galeria').then(m => m.GaleriaComponent)
 	},
 	{
 		path: 'acervo/:id',

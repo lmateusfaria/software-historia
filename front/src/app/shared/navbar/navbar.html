@@ -24,6 +24,11 @@
     <a routerLink="/escaneamento" routerLinkActive="active" (click)="goTo('escaneamento')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Escaneamento</a>
     }
+
+    @if (perfil === 'PROFESSOR') {
+    <a routerLink="/admin/usuarios" routerLinkActive="active" (click)="goTo('admin/usuarios')"
+      class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Usuários</a>
+    }
     }
 
     <!-- Botão de alternância de tema -->
@@ -62,6 +67,11 @@
     @if (perfil !== 'PESQUISADOR') {
     <a routerLink="/escaneamento" (click)="isMenuOpen = false"
       class="px-4 py-3 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition text-text-light dark:text-text-dark">Escaneamento</a>
+    }
+
+    @if (perfil === 'PROFESSOR') {
+    <a routerLink="/admin/usuarios" (click)="isMenuOpen = false"
+      class="px-4 py-3 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition text-text-light dark:text-text-dark">Usuários</a>
     }
     <button (click)="logout(); isMenuOpen = false"
       class="px-4 py-3 rounded bg-red-500 hover:bg-red-600 text-white font-medium transition text-left">Sair</button>

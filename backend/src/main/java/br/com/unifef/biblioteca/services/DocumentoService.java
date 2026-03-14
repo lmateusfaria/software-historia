@@ -14,12 +14,20 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -44,6 +52,8 @@ public class DocumentoService {
 
     @Autowired
     private DocumentoNodeRepository documentoNodeRepository;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
@@ -105,36 +115,24 @@ public class DocumentoService {
         doc.setResponsavel(usuario);
 
         if (files != null && !files.isEmpty()) {
-            List<String> urls = new ArrayList<>();
-            for (MultipartFile file : files) {
-                if (file.getContentType() != null && file.getContentType().equalsIgnoreCase("application/pdf")) {
-                    try (PDDocument pdfDocument = Loader.loadPDF(file.getBytes())) {
-                        PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-                        for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
-                            BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            ImageIO.write(bim, "jpg", baos);
-                            baos.flush();
-                            byte[] imageInByte = baos.toByteArray();
-                            baos.close();
-                            
-                            String genName = file.getOriginalFilename() != null ? 
-                                   file.getOriginalFilename().replace(".pdf", "") + "_pag_" + (page + 1) + ".jpg" : 
-                                   "pag_" + (page + 1) + ".jpg";
+            List<String> urls = Collections.synchronizedList(new ArrayList<>());
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-                            MultipartFile pageFile = new MockMultipartFile(
-                                genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
-                            );
-                            urls.add(fileStorageService.save(pageFile));
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException("Erro ao processar as páginas do PDF", e);
-                    }
+            for (MultipartFile file : files) {
+                String originalFilename = file.getOriginalFilename();
+                String contentType = file.getContentType();
+
+                if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
+                    futures.add(processPdf(file, urls));
+                } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
+                    urls.add(processHeic(file));
                 } else {
                     urls.add(fileStorageService.save(file));
                 }
             }
-            doc.setImagensUrls(urls);
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            doc.setImagensUrls(new ArrayList<>(urls));
         }
 
         Documento savedDoc = repository.save(doc);
@@ -152,6 +150,92 @@ public class DocumentoService {
 
         return new DocumentoDTO(savedDoc);
     }
+
+    private CompletableFuture<Void> processPdf(MultipartFile file, List<String> urls) {
+        return CompletableFuture.runAsync(() -> {
+            try (InputStream is = file.getInputStream();
+                 PDDocument pdfDocument = Loader.loadPDF(is)) {
+                
+                PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+                List<CompletableFuture<String>> pageFutures = new ArrayList<>();
+
+                for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
+                    final int pageNum = page;
+                    pageFutures.add(CompletableFuture.supplyAsync(() -> {
+                        try {
+                            // Usando 200 DPI para equilíbrio entre qualidade e memória/velocidade
+                            BufferedImage bim = pdfRenderer.renderImageWithDPI(pageNum, 200, ImageType.RGB);
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(bim, "jpg", baos);
+                            baos.flush();
+                            byte[] imageInByte = baos.toByteArray();
+                            
+                            String genName = (file.getOriginalFilename() != null ? 
+                                   file.getOriginalFilename().replaceAll("(?i)\\.pdf$", "") : "doc") + 
+                                   "_pag_" + (pageNum + 1) + ".jpg";
+
+                            MultipartFile pageFile = new MockMultipartFile(
+                                genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
+                            );
+                            return fileStorageService.save(pageFile);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
+                        }
+                    }, executor));
+                }
+
+                List<String> pageUrls = pageFutures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList());
+                urls.addAll(pageUrls);
+
+            } catch (Exception e) {
+                log.error("Erro ao carregar ou processar PDF", e);
+                throw new RuntimeException("Erro ao processar PDF", e);
+            }
+        }, executor);
+    }
+
+    private String processHeic(MultipartFile file) {
+        Path tempHeic = null;
+        Path tempJpg = null;
+        try {
+            tempHeic = Files.createTempFile("upload-", ".heic");
+            file.transferTo(tempHeic.toFile());
+
+            tempJpg = tempHeic.resolveSibling(tempHeic.getFileName().toString().replace(".heic", ".jpg"));
+
+            ProcessBuilder pb = new ProcessBuilder("heif-convert", tempHeic.toString(), tempJpg.toString());
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                throw new RuntimeException("Falha na conversão HEIC. Código de saída: " + exitCode);
+            }
+
+            String genName = (file.getOriginalFilename() != null ? 
+                    file.getOriginalFilename().replaceAll("(?i)\\.heic$", "") : "image") + ".jpg";
+            
+            byte[] jpgBytes = Files.readAllBytes(tempJpg);
+            MultipartFile convertedFile = new MockMultipartFile(
+                genName, genName, "image/jpeg", new ByteArrayInputStream(jpgBytes)
+            );
+
+            return fileStorageService.save(convertedFile);
+
+        } catch (Exception e) {
+            log.error("Erro ao converter HEIC para JPG", e);
+            throw new RuntimeException("Erro ao processar imagem HEIC", e);
+        } finally {
+            try {
+                if (tempHeic != null) Files.deleteIfExists(tempHeic);
+                if (tempJpg != null) Files.deleteIfExists(tempJpg);
+            } catch (Exception ex) {
+                log.warn("Erro ao limpar arquivos temporários de conversão HEIC", ex);
+            }
+        }
+    }
+
 
     @Transactional(transactionManager = "transactionManager")
     public void delete(Long id) {

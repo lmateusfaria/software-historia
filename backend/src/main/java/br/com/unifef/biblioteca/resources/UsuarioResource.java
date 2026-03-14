@@ -3,6 +3,7 @@ package br.com.unifef.biblioteca.resources;
 
 import br.com.unifef.biblioteca.domains.Usuario;
 import br.com.unifef.biblioteca.domains.dtos.UsuarioDTO;
+import br.com.unifef.biblioteca.domains.dtos.UsuarioUpdateDTO;
 import br.com.unifef.biblioteca.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ public class UsuarioResource {
 
     @PutMapping(value = "/{id}")
     @PreAuthorize("hasRole('PROFESSOR')")
-    public ResponseEntity<UsuarioDTO> update(@PathVariable Long id, @Valid @RequestBody UsuarioDTO objDto) {
+    public ResponseEntity<UsuarioDTO> update(@PathVariable Long id, @Valid @RequestBody UsuarioUpdateDTO objDto) {
         Usuario obj = usuarioService.update(id, objDto);
         return ResponseEntity.ok().body(new UsuarioDTO(obj));
     }

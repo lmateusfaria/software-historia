@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.unifef.biblioteca.domains.dtos.UsuarioUpdateDTO;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,7 +52,7 @@ public class UsuarioService {
     public Usuario create(UsuarioDTO dto) {
         dto.setId(null);
         dto.setSenha(encoder.encode(dto.getSenha()));
-        validaCpfEmail(dto);
+        validaCpfEmail(dto.getId(), dto.getCpf(), dto.getEmail());
 
         Perfil perfilDesejado = dto.getPerfil();
         boolean usuarioLogadoPodeCadastrar = false;
@@ -78,9 +79,9 @@ public class UsuarioService {
         return usuarioRepo.save(obj);
     }
 
-    public Usuario update(Long usuarioId, UsuarioDTO dto) {
+    public Usuario update(Long usuarioId, UsuarioUpdateDTO dto) {
         Usuario oldObj = findById(usuarioId);
-        validaCpfEmail(dto);
+        validaCpfEmail(usuarioId, dto.getCpf(), dto.getEmail());
 
         oldObj.setNome(dto.getNome());
         oldObj.setCpf(dto.getCpf());
@@ -100,14 +101,14 @@ public class UsuarioService {
         usuarioRepo.delete(obj);
     }
 
-    private void validaCpfEmail(UsuarioDTO dto) {
-        Optional<Usuario> obj = usuarioRepo.findByCpf(dto.getCpf());
-        if (obj.isPresent() && !obj.get().getId().equals(dto.getId())) {
+    private void validaCpfEmail(Long id, String cpf, String email) {
+        Optional<Usuario> obj = usuarioRepo.findByCpf(cpf);
+        if (obj.isPresent() && !obj.get().getId().equals(id)) {
             throw new DataIntegrityViolationException("CPF já cadastrado no sistema");
         }
 
-        obj = usuarioRepo.findByEmail(dto.getEmail());
-        if (obj.isPresent() && !obj.get().getId().equals(dto.getId())) {
+        obj = usuarioRepo.findByEmail(email);
+        if (obj.isPresent() && !obj.get().getId().equals(id)) {
             throw new DataIntegrityViolationException("Email já cadastrado no sistema");
         }
     }

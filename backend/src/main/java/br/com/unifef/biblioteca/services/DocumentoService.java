@@ -153,8 +153,7 @@ public class DocumentoService {
 
     private CompletableFuture<Void> processPdf(MultipartFile file, List<String> urls) {
         return CompletableFuture.runAsync(() -> {
-            try (InputStream is = file.getInputStream();
-                 PDDocument pdfDocument = Loader.loadPDF(is)) {
+            try (PDDocument pdfDocument = Loader.loadPDF(file.getBytes())) {
                 
                 PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
                 List<CompletableFuture<String>> pageFutures = new ArrayList<>();

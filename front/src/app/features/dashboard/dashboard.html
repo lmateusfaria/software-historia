@@ -18,10 +18,16 @@
       <h1 class="text-5xl font-bold tracking-tight mb-2">
         Olá, <span class="text-primary">{{ usuario?.nome?.split(' ')[0] }}</span>
       </h1>
-      <p class="text-gray-500 dark:text-gray-400 text-lg max-w-xl">
+      <p class="text-gray-500 dark:text-gray-400 text-lg max-w-xl mb-4">
         Bem-vindo de volta ao acervo histórico. Aqui você pode gerenciar digitalizações e explorar documentos
         preservados.
       </p>
+      <div class="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-xl text-sm font-bold mt-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2-2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        Sua contribuição: {{ minhaContribuicao }} docs digitalizados
+      </div>
     </div>
 
     <div class="flex items-center gap-4">
@@ -59,11 +65,29 @@
             </svg>
           </div>
         </div>
-        <div class="mt-4 flex items-center text-xs text-green-500 font-bold">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg>
-          <span>12% este mês</span>
+        <div class="mt-4 flex items-center text-xs font-bold font-mono">
+          @if (statusCrescimento === 'positivo') {
+          <span class="text-green-500 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            {{ crescimentoVariavel }}% este mês
+          </span>
+          } @else if (statusCrescimento === 'negativo') {
+          <span class="text-red-500 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            {{ crescimentoVariavel }}% este mês
+          </span>
+          } @else {
+          <span class="text-gray-400 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+            0% este mês
+          </span>
+          }
         </div>
       </div>
 
@@ -80,41 +104,65 @@
             </svg>
           </div>
         </div>
-        <div class="mt-4 flex items-center text-xs text-gray-400">
-          <span>Última revisão há 2 horas</span>
+        <div class="mt-4 flex flex-col gap-1">
+          <div class="flex items-center text-xs font-bold font-mono">
+            @if (statusRevisao === 'positivo') {
+            <span class="text-red-500 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              {{ crescimentoRevisao }}% este mês
+            </span>
+            } @else if (statusRevisao === 'negativo') {
+            <span class="text-green-500 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              {{ crescimentoRevisao }}% este mês
+            </span>
+            } @else {
+            <span class="text-gray-400 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+              </svg>
+              0% este mês
+            </span>
+            }
+          </div>
+          <span class="text-xs text-gray-400">{{ tempoUltimaRevisao }}</span>
         </div>
       </div>
 
       <div class="card-premium border-primary bg-primary text-white">
         <h4 class="text-xl font-bold mb-4">Ação Rápida</h4>
-        <div class="flex flex-col sm:flex-row gap-4 mb-12 fade-in anim-delay-200">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 mb-12 fade-in anim-delay-200">
           <button (click)="onShowNewTransaction()"
-            class="btn-premium flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-neutral-900 font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-amber-900/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+            class="flex-1 min-w-[130px] btn-premium flex flex-col items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-neutral-900 text-sm font-bold py-3 px-2 rounded-lg transition-all shadow-lg shadow-amber-900/20 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Nova Digitalização
+            <span class="whitespace-normal text-center leading-tight">Nova Digitalização</span>
           </button>
           <button (click)="onExplorarAcervo()"
-            class="btn-premium flex items-center justify-center gap-2 bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-100 font-bold py-3 px-8 rounded-lg transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+            class="flex-1 min-w-[130px] btn-premium flex flex-col items-center justify-center gap-2 bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-100 text-sm font-bold py-3 px-2 rounded-lg transition-all h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Explorar Acervo
+            <span class="whitespace-normal text-center leading-tight">Explorar Acervo</span>
           </button>
 
           @if (isProfessor) {
           <button (click)="onManageUsers()"
-            class="btn-premium flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-purple-900/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+            class="flex-1 min-w-[130px] btn-premium flex flex-col items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold py-3 px-2 rounded-lg transition-all shadow-lg shadow-purple-900/20 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            Gestão de Usuários
+            <span class="whitespace-normal text-center leading-tight">Gestão de Usuários</span>
           </button>
           }
         </div>
@@ -125,15 +173,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
       <!-- Recent Documents Section -->
-      <section class="lg:col-span-2 space-y-6">
+      <section class="lg:col-span-2 space-y-6 card-premium !p-6">
         <div class="flex items-center justify-between">
           <h2 class="text-2xl font-bold">Digitalizações Recentes</h2>
-          <button class="text-primary font-bold text-sm hover:underline">Ver tudo</button>
+          <button (click)="onExplorarAcervo()" class="text-primary font-bold text-sm hover:underline flex items-center gap-1">
+            Ver tudo 
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           @if (documentos.length > 0) {
-          @for (l of documentos; track l.descricao) {
+          @for (l of documentos.slice(0, 4); track l.descricao) {
           <div class="card-premium !p-5 flex gap-4 group">
             <div
               class="w-16 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700">
@@ -158,7 +209,7 @@
           </div>
           }
           } @else {
-          <div class="col-span-2 text-center py-12 glass rounded-2xl">
+          <div class="col-span-2 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
             <p class="text-gray-400 italic">Nenhum documento digitalizado ainda.</p>
           </div>
           }
@@ -170,29 +221,45 @@
         <h2 class="text-2xl font-bold">Atividade</h2>
         <div class="card-premium !bg-transparent border-dashed">
           <ul class="space-y-6">
-            <li class="flex gap-4">
-              <div
-                class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
-                P
-              </div>
-              <div>
-                <p class="text-sm font-bold">Professor Carlos</p>
-                <p class="text-xs text-gray-500">Aprovou 3 novos documentos hoje.</p>
-                <span class="text-[10px] text-gray-400">14 min atrás</span>
-              </div>
-            </li>
-            <li class="flex gap-4">
-              <div
-                class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold shrink-0">
-                A
-              </div>
-              <div>
-                <p class="text-sm font-bold">Aluno Ricardo</p>
-                <p class="text-xs text-gray-500">Iniciou o processo de OCR no lote #44.</p>
-                <span class="text-[10px] text-gray-400">1 hora atrás</span>
-              </div>
-            </li>
+            @if (atividades.length > 0) {
+              @for (a of atividades; track a) {
+              <li class="flex gap-4">
+                <div
+                  class="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 {{ a.cor }}">
+                  {{ a.inicial }}
+                </div>
+                <div>
+                  <p class="text-sm font-bold">{{ a.nome }}</p>
+                  <p class="text-xs text-gray-500">{{ a.acao }}</p>
+                  <span class="text-[10px] text-gray-400">{{ a.tempo }}</span>
+                </div>
+              </li>
+              }
+            } @else {
+              <li class="text-gray-400 italic text-sm">Nenhuma atividade recente encontrada.</li>
+            }
           </ul>
+        </div>
+
+        <h2 class="text-2xl font-bold mt-10">Distribuição do Acervo</h2>
+        <div class="card-premium h-auto flex flex-col justify-center">
+          @if (distribuicaoTipos.length > 0) {
+            <div class="space-y-4">
+              @for (tipo of distribuicaoTipos; track tipo.tipo) {
+              <div>
+                <div class="flex justify-between items-end mb-1">
+                  <span class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ tipo.tipo }}</span>
+                  <span class="text-xs font-mono text-gray-500">{{ tipo.percentual }}% ({{ tipo.quantidade }})</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5">
+                  <div class="{{ tipo.cor }} h-2.5 rounded-full" [style.width]="tipo.percentual + '%'"></div>
+                </div>
+              </div>
+              }
+            </div>
+          } @else {
+            <p class="text-gray-400 italic text-sm text-center py-6">Nenhuma classificação disponível.</p>
+          }
         </div>
       </section>
 
@@ -227,12 +294,19 @@
             <input class="input-premium" [(ngModel)]="editUsuario!.cpf" name="cpf" [disabled]="!editMode">
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Perfil</label>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Perfil de Acesso</label>
             <div
               class="px-4 py-3 rounded-xl bg-primary/5 border border-primary/20 text-primary font-bold uppercase text-xs tracking-tighter">
               {{ usuario?.perfil }}
             </div>
           </div>
+          @if (editMode) {
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Nova Senha (Opcional)</label>
+            <input type="password" class="input-premium" [(ngModel)]="editUsuario!.senha" name="senha" placeholder="Deixe em branco para manter a atual">
+            <p class="text-xs text-gray-400 mt-1">Preencha apenas se desejar trocar sua senha de acesso.</p>
+          </div>
+          }
         </div>
 
         <div class="pt-6 flex gap-3">

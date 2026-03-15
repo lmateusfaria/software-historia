@@ -66,8 +66,7 @@
             [disabled]="loading">
             {{ loading ? 'ENTRANDO...' : 'ENTRAR' }}
           </button>
-          
-          <a href="#" class="flex-1 text-center text-sm font-medium hover:text-white text-white/80 hover:underline transition-all cursor-pointer" (click)="$event.preventDefault()">Esqueceu a senha?</a>
+          <a (click)="router.navigate(['/forgot-password']); $event.preventDefault()" href="#" class="flex-1 text-center text-sm font-medium hover:text-white text-white/80 hover:underline transition-all cursor-pointer">Esqueceu a senha?</a>
         </div>
 
         <!-- Botão para tela de registro -->

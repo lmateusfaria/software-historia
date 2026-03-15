@@ -25,6 +25,9 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepo;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private PasswordEncoder encoder;
 
     public List<UsuarioDTO> findAll() {
@@ -110,5 +113,39 @@ public class UsuarioService {
         if (obj.isPresent() && !obj.get().getId().equals(dto.getId())) {
             throw new DataIntegrityViolationException("Email já cadastrado no sistema");
         }
+    }
+
+    public void generatePasswordResetToken(String email, String originUrl) {
+        Usuario usuario = findByEmail(email);
+        String token = java.util.UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiry(java.time.LocalDateTime.now().plusHours(1));
+        usuarioRepo.save(usuario);
+
+        String resetLink = originUrl + "/reset-password?token=" + token;
+        System.out.println("==== RECUPERAÇÃO DE SENHA ====");
+        System.out.println("Enviando e-mail de recuperação para: " + email);
+        System.out.println("Link de recuperação: " + resetLink);
+        System.out.println("==============================");
+        
+        try {
+            emailService.sendPasswordResetEmail(usuario.getEmail(), resetLink);
+        } catch(Exception e) {
+            System.err.println("Aviso: Falha ao enviar e-mail. Usar o link acima no terminal gerado para testar localmente.");
+        }
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        Usuario usuario = usuarioRepo.findByResetToken(token)
+                .orElseThrow(() -> new ObjectNotFoundException("Token inválido ou não encontrado."));
+        
+        if (usuario.getResetTokenExpiry() == null || usuario.getResetTokenExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new AuthorizationException("O token expirou. Solicite a recuperação de senha novamente.");
+        }
+
+        usuario.setSenha(encoder.encode(newPassword));
+        usuario.setResetToken(null);
+        usuario.setResetTokenExpiry(null);
+        usuarioRepo.save(usuario);
     }
 }

@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
+import br.com.unifef.biblioteca.domains.dtos.EmailDTO;
+import br.com.unifef.biblioteca.domains.dtos.ResetPasswordDTO;
+import br.com.unifef.biblioteca.services.UsuarioService;
 
 @RestController
 @RequestMapping("/auth")
@@ -20,10 +24,12 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtils jwtUtils;
+    private final UsuarioService usuarioService;
 
-    public AuthController(AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
+    public AuthController(AuthenticationManager authenticationManager, JWTUtils jwtUtils, UsuarioService usuarioService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.usuarioService = usuarioService;
     }
 
     @PostMapping("/login")
@@ -71,5 +77,22 @@ public class AuthController {
             // Se a autenticação falhar, retorna false
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(false);
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody EmailDTO objDto, HttpServletRequest request) {
+        String originUrl = request.getHeader("Origin");
+        if (originUrl == null || originUrl.isBlank()) {
+            originUrl = "http://localhost:4200"; // fallback para desenvolvimento
+        }
+        
+        usuarioService.generatePasswordResetToken(objDto.getEmail(), originUrl);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordDTO objDto) {
+        usuarioService.resetPassword(objDto.getToken(), objDto.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 }

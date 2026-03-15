@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { UserService, UsuarioDTO } from '../../core/user.service';
 import { AuthService } from '../../core/auth.service';
+import { DocumentoService } from '../../core/documento.service';
+import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DecimalPipe, DatePipe } from '@angular/common';
 
@@ -16,7 +18,9 @@ import { DecimalPipe, DatePipe } from '@angular/common';
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy {
-  documentos: Array<{ descricao?: string; data?: string; dataObj?: Date }> = [];
+  documentos: DocumentoDTO[] = [];
+  totalAcervos: number = 0;
+  totalAguardandoRevisao: number = 0;
   /*
 # Projeto Biblioteca Digital: Refatoração e Integração
 
@@ -60,6 +64,7 @@ export class Dashboard implements OnInit, OnDestroy {
     private userInfo: UserInfoService,
     private userService: UserService,
     private auth: AuthService,
+    private documentoService: DocumentoService,
     private toast: ToastService,
     private router: Router
   ) { }
@@ -163,11 +168,13 @@ export class Dashboard implements OnInit, OnDestroy {
   ngOnInit() {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       this.loadUser();
+      this.loadDocumentos();
     }
     this.routerSub = this.router.events.subscribe((event: any) => {
       if (event instanceof NavigationEnd && this.router.url.startsWith('/dashboard')) {
         if (typeof window !== 'undefined' && typeof document !== 'undefined') {
           this.loadUser();
+          this.loadDocumentos();
         }
       }
     });
@@ -198,5 +205,18 @@ export class Dashboard implements OnInit, OnDestroy {
 
   onCloseUser() {
     this.showUser = false;
+  }
+
+  loadDocumentos(): void {
+    this.documentoService.findAll().subscribe({
+      next: (docs) => {
+        this.documentos = docs;
+        this.totalAcervos = docs.length;
+        this.totalAguardandoRevisao = docs.filter(d => d.status === 'PENDENTE' || d.status === 'AGUARDANDO_REVISAO' || !d.status).length;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar documentos', err);
+      }
+    });
   }
 }

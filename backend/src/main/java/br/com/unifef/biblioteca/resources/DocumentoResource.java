@@ -1,6 +1,6 @@
 package br.com.unifef.biblioteca.resources;
 
-import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
+import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +23,23 @@ public class DocumentoResource {
     private DocumentoService service;
 
     @GetMapping
-    public ResponseEntity<List<DocumentoDTO>> findAll() {
+    public ResponseEntity<List<Documento>> findAll() {
         return ResponseEntity.ok().body(service.findAll());
     }
 
     @GetMapping(value = "/status/{status}")
-    public ResponseEntity<List<DocumentoDTO>> findByStatus(@PathVariable StatusDocumento status) {
+    public ResponseEntity<List<Documento>> findByStatus(@PathVariable StatusDocumento status) {
         return ResponseEntity.ok().body(service.findByStatus(status));
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<DocumentoDTO> findById(@PathVariable Long id) {
+    public ResponseEntity<Documento> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.findById(id));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentoDTO> create(
-            @RequestPart("documento") DocumentoDTO dto,
+    public ResponseEntity<Documento> create(
+            @RequestPart("documento") Documento dto,
             @RequestPart("files") List<MultipartFile> files) {
         return ResponseEntity.ok().body(service.create(dto, files));
     }
@@ -63,7 +63,7 @@ public class DocumentoResource {
 
     @PutMapping(value = "/{id}/aprovar")
     @PreAuthorize("hasRole('PROFESSOR')")
-    public ResponseEntity<DocumentoDTO> approve(@PathVariable Long id) {
+    public ResponseEntity<Documento> approve(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.approve(id));
     }
 }

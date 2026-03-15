@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +37,12 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.rendering.ImageType;
 import org.springframework.mock.web.MockMultipartFile;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.StandardOpenOption;
+import java.util.UUID;
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -132,6 +139,41 @@ public class DocumentoService {
             }
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            doc.setImagensUrls(new ArrayList<>(urls));
+        }
+
+        // Suporte para arquivos pré-upados via chunked upload
+        if (dto.getPreUploadedFiles() != null && !dto.getPreUploadedFiles().isEmpty()) {
+            List<String> urls = doc.getImagensUrls() != null ? doc.getImagensUrls() : new ArrayList<>();
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+            for (String filePath : dto.getPreUploadedFiles()) {
+                File file = new File(filePath);
+                if (file.exists()) {
+                    String originalFilename = file.getName();
+                    // Mockando MultipartFile a partir do arquivo já mesclado no disco
+                    try {
+                        byte[] content = Files.readAllBytes(file.toPath());
+                        String contentType = Files.probeContentType(file.toPath());
+                        MultipartFile multipartFile = new MockMultipartFile(
+                            originalFilename, originalFilename, contentType, new ByteArrayInputStream(content)
+                        );
+
+                        if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
+                            futures.add(processPdf(multipartFile, urls));
+                        } else {
+                            urls.add(fileStorageService.save(multipartFile));
+                        }
+                        // Limpar arquivo temporário mesclado após processar
+                        Files.deleteIfExists(file.toPath());
+                    } catch (Exception e) {
+                        log.error("Erro ao processar arquivo pré-upado: {}", filePath, e);
+                    }
+                }
+            }
+            if (!futures.isEmpty()) {
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            }
             doc.setImagensUrls(new ArrayList<>(urls));
         }
 
@@ -246,6 +288,54 @@ public class DocumentoService {
             } catch (Exception ex) {
                 log.warn("Erro ao limpar arquivos temporários de conversão HEIC", ex);
             }
+        }
+    }
+
+    public String handleChunk(MultipartFile chunk, String uploadId, int chunkIndex, int totalChunks, String filename) {
+        try {
+            Path uploadDir = Paths.get("uploads", "tmp", uploadId);
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            Path chunkPath = uploadDir.resolve(String.format("%05d", chunkIndex));
+            Files.copy(chunk.getInputStream(), chunkPath);
+
+            if (chunkIndex == totalChunks - 1) {
+                return mergeChunks(uploadId, totalChunks, filename);
+            }
+
+            return null; // Ainda aguardando mais chunks
+        } catch (Exception e) {
+            log.error("Erro ao processar chunk {} de {}: {}", chunkIndex, uploadId, e.getMessage());
+            throw new RuntimeException("Erro ao processar chunk de upload", e);
+        }
+    }
+
+    private String mergeChunks(String uploadId, int totalChunks, String filename) {
+        try {
+            Path uploadDir = Paths.get("uploads", "tmp", uploadId);
+            Path mergedFilePath = uploadDir.resolve(filename);
+
+            try (OutputStream os = new FileOutputStream(mergedFilePath.toFile())) {
+                File[] chunks = uploadDir.toFile().listFiles((dir, name) -> name.matches("\\d{5}"));
+                if (chunks == null || chunks.length != totalChunks) {
+                    throw new RuntimeException("Fragmentos de arquivo incompletos ou ausentes");
+                }
+
+                Arrays.sort(chunks, Comparator.comparing(File::getName));
+
+                for (File chunk : chunks) {
+                    Files.copy(chunk.toPath(), os);
+                    Files.delete(chunk.toPath());
+                }
+            }
+
+            log.info("Arquivo {} mesclado com sucesso em {}", filename, mergedFilePath);
+            return mergedFilePath.toAbsolutePath().toString();
+        } catch (Exception e) {
+            log.error("Erro ao mesclar chunks para upload {}: {}", uploadId, e.getMessage());
+            throw new RuntimeException("Erro ao mesclar fragmentos de arquivo", e);
         }
     }
 

@@ -15,6 +15,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import java.util.List;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping(value = "/documentos")
@@ -41,8 +43,29 @@ public class DocumentoResource {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentoDTO> create(
             @RequestPart("documento") DocumentoDTO dto,
-            @RequestPart("files") List<MultipartFile> files) {
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         return ResponseEntity.ok().body(service.create(dto, files));
+    }
+
+    @PostMapping(value = "/upload-chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadChunk(
+            @RequestPart("chunk") MultipartFile chunk,
+            @RequestParam("uploadId") String uploadId,
+            @RequestParam("chunkIndex") int chunkIndex,
+            @RequestParam("totalChunks") int totalChunks,
+            @RequestParam("filename") String filename) {
+        
+        String mergedFilePath = service.handleChunk(chunk, uploadId, chunkIndex, totalChunks, filename);
+        
+        Map<String, String> response = new HashMap<>();
+        if (mergedFilePath != null) {
+            response.put("filePath", mergedFilePath);
+            response.put("status", "COMPLETED");
+        } else {
+            response.put("status", "PROCESSING");
+        }
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(value = "/download/{filename}", produces = MediaType.IMAGE_JPEG_VALUE)

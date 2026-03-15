@@ -25,6 +25,19 @@ export class DocumentoService {
         return this.http.post<DocumentoDTO>(this.apiUrl, formData);
     }
 
+    uploadChunk(chunk: Blob, uploadId: string, chunkIndex: number, totalChunks: number, filename: string): Observable<any> {
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        return this.http.post(`${this.apiUrl}/upload-chunk`, formData, {
+            params: {
+                uploadId,
+                chunkIndex: chunkIndex.toString(),
+                totalChunks: totalChunks.toString(),
+                filename
+            }
+        });
+    }
+
     findById(id: number): Observable<DocumentoDTO> {
         return this.http.get<DocumentoDTO>(`${this.apiUrl}/${id}`);
     }

@@ -43,6 +43,7 @@ public class DocumentoDTO implements Serializable {
     private List<String> locais = new ArrayList<>();
     private List<String> eventos = new ArrayList<>();
     private List<String> organizacoes = new ArrayList<>();
+    private List<String> preUploadedFiles = new ArrayList<>();
 
     public DocumentoDTO() {
     }
@@ -149,4 +150,7 @@ public class DocumentoDTO implements Serializable {
 
     public List<String> getOrganizacoes() { return organizacoes; }
     public void setOrganizacoes(List<String> organizacoes) { this.organizacoes = organizacoes; }
+
+    public List<String> getPreUploadedFiles() { return preUploadedFiles; }
+    public void setPreUploadedFiles(List<String> preUploadedFiles) { this.preUploadedFiles = preUploadedFiles; }
 }

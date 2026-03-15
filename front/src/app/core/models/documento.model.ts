@@ -19,4 +19,5 @@ export interface DocumentoDTO {
     locais?: string[];
     eventos?: string[];
     organizacoes?: string[];
+    preUploadedFiles?: string[];
 }

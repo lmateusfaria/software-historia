@@ -6,6 +6,7 @@ import { ToastService } from '../../shared/toast/toast.service';
 import { UserService } from '../../core/user.service';
 import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-escaneamento',
@@ -69,7 +70,7 @@ export class EscaneamentoComponent implements OnInit {
         this.previews.splice(index, 1);
     }
 
-    onSubmit() {
+    async onSubmit() {
         if (this.selectedFiles.length === 0) {
             this.toast.error('Selecione pelo menos uma imagem do documento.');
             return;
@@ -91,17 +92,43 @@ export class EscaneamentoComponent implements OnInit {
         }
 
         this.loading = true;
-        this.documentoService.create(this.documento, this.selectedFiles).subscribe({
-            next: () => {
-                this.toast.success('Documento enviado para revisão com sucesso!');
-                this.resetForm();
-                this.loading = false;
-            },
-            error: () => {
-                this.toast.error('Erro ao enviar documento.');
-                this.loading = false;
+        const uploadId = Math.random().toString(36).substring(7);
+        const preUploadedFiles: string[] = [];
+
+        try {
+            for (const file of this.selectedFiles) {
+                const chunkSize = 5 * 1024 * 1024; // 5MB
+                const totalChunks = Math.ceil(file.size / chunkSize);
+                let lastResponse: any;
+
+                console.log(`Iniciando upload chunked para: ${file.name} (${totalChunks} partes)`);
+
+                for (let i = 0; i < totalChunks; i++) {
+                    const start = i * chunkSize;
+                    const end = Math.min(start + chunkSize, file.size);
+                    const chunk = file.slice(start, end);
+                    
+                    lastResponse = await lastValueFrom(this.documentoService.uploadChunk(chunk, uploadId, i, totalChunks, file.name));
+                }
+
+                if (lastResponse && lastResponse.filePath) {
+                    preUploadedFiles.push(lastResponse.filePath);
+                }
             }
-        });
+
+            this.documento.preUploadedFiles = preUploadedFiles;
+            
+            // Envia o DTO final sem enviar os arquivos novamente (já estão no servidor)
+            await lastValueFrom(this.documentoService.create(this.documento, []));
+
+            this.toast.success('Documento enviado para revisão com sucesso!');
+            this.resetForm();
+        } catch (error) {
+            console.error('Erro no upload chunked:', error);
+            this.toast.error('Erro ao enviar documento em partes. Verifique sua conexão.');
+        } finally {
+            this.loading = false;
+        }
     }
 
     resetForm() {

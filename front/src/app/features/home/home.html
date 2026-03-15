@@ -5,16 +5,8 @@
   ════════════════════════════════════════════════ -->
   <section id="hero" class="relative min-h-screen flex items-center justify-center px-4 pt-20 pb-12 overflow-hidden">
 
-    <!-- Canvas de partículas GSAP -->
-    <canvas id="hero-particles" class="absolute inset-0 pointer-events-none z-0"></canvas>
-
-    <!-- Glow de fundo -->
-    <div
-      class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-unifef-teal/10 rounded-full blur-[120px] pointer-events-none">
-    </div>
-    <div
-      class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-unifef-orange/10 rounded-full blur-[100px] pointer-events-none">
-    </div>
+    <!-- Canvas de partículas e Fluid Simulation -->
+    <canvas id="hero-particles" class="absolute inset-0 z-0"></canvas>
 
     <div class="relative z-10 max-w-5xl mx-auto text-center">
 
@@ -81,8 +73,17 @@
   <!-- ═══════════════════════════════════════════════
        FEATURES SECTION
   ════════════════════════════════════════════════ -->
-  <section id="features" class="py-24 px-4 bg-surface-light dark:bg-surface-dark">
-    <div class="max-w-6xl mx-auto">
+  <section id="features" class="relative py-24 px-4 bg-surface-light dark:bg-surface-dark overflow-hidden">
+    
+    <!-- Filtro de Dim Global -->
+    <div 
+      class="absolute inset-0 z-20 pointer-events-none transition-all duration-700"
+      [class.bg-black]="focusedCard() !== null"
+      [style.opacity]="focusedCard() !== null ? '0.05' : '0'">
+    </div>
+
+
+    <div class="relative z-30 max-w-6xl mx-auto">
 
       <div class="text-center mb-16 feat-animate opacity-0">
         <span
@@ -99,7 +100,11 @@
 
         <!-- Card 1 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(1)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 1" [class.scale-110]="focusedCard() === 1" [class.-translate-y-2]="focusedCard() === 1"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 1" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 1" [class.scale-95]="focusedCard() !== null && focusedCard() !== 1"
+          [ngStyle]="getCardStyles(1, 'teal')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
             <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +119,11 @@
 
         <!-- Card 2 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(2)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 2" [class.scale-110]="focusedCard() === 2" [class.-translate-y-2]="focusedCard() === 2"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 2" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 2" [class.scale-95]="focusedCard() !== null && focusedCard() !== 2"
+          [ngStyle]="getCardStyles(2, 'orange')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
             <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +138,11 @@
 
         <!-- Card 3 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(3)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 3" [class.scale-110]="focusedCard() === 3" [class.-translate-y-2]="focusedCard() === 3"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 3" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 3" [class.scale-95]="focusedCard() !== null && focusedCard() !== 3"
+          [ngStyle]="getCardStyles(3, 'teal')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
             <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +157,11 @@
 
         <!-- Card 4 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(4)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 4" [class.scale-110]="focusedCard() === 4" [class.-translate-y-2]="focusedCard() === 4"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 4" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 4" [class.scale-95]="focusedCard() !== null && focusedCard() !== 4"
+          [ngStyle]="getCardStyles(4, 'orange')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
             <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +176,11 @@
 
         <!-- Card 5 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-teal/40 hover:shadow-xl hover:shadow-unifef-teal/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(5)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 5" [class.scale-110]="focusedCard() === 5" [class.-translate-y-2]="focusedCard() === 5"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 5" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 5" [class.scale-95]="focusedCard() !== null && focusedCard() !== 5"
+          [ngStyle]="getCardStyles(5, 'teal')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
             <svg class="w-6 h-6 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +195,11 @@
 
         <!-- Card 6 -->
         <div
-          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hover:border-unifef-orange/40 hover:shadow-xl hover:shadow-unifef-orange/10 transition-all duration-300 hover:-translate-y-1 cursor-default">
+          (mouseenter)="setFocusedCard(6)" (mouseleave)="setFocusedCard(null)"
+          [class.z-40]="focusedCard() === 6" [class.scale-110]="focusedCard() === 6" [class.-translate-y-2]="focusedCard() === 6"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 6" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 6" [class.scale-95]="focusedCard() !== null && focusedCard() !== 6"
+          [ngStyle]="getCardStyles(6, 'orange')"
+          class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
             <svg class="w-6 h-6 text-unifef-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -38,6 +38,10 @@ public class Usuario {
 
     private Boolean podeCadastrar = false;
 
+    private String resetToken;
+
+    private java.time.LocalDateTime resetTokenExpiry;
+
     public Usuario() {
     }
 
@@ -148,6 +152,22 @@ public class Usuario {
 
     public void setPodeCadastrar(Boolean podeCadastrar) {
         this.podeCadastrar = podeCadastrar;
+    }
+
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public java.time.LocalDateTime getResetTokenExpiry() {
+        return resetTokenExpiry;
+    }
+
+    public void setResetTokenExpiry(java.time.LocalDateTime resetTokenExpiry) {
+        this.resetTokenExpiry = resetTokenExpiry;
     }
 }
 

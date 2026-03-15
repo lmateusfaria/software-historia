@@ -153,44 +153,58 @@ public class DocumentoService {
 
     private CompletableFuture<Void> processPdf(MultipartFile file, List<String> urls) {
         return CompletableFuture.runAsync(() -> {
-            try (PDDocument pdfDocument = Loader.loadPDF(file.getBytes())) {
-                
-                PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-                List<CompletableFuture<String>> pageFutures = new ArrayList<>();
+            Path tempFile = null;
+            try {
+                // Criar arquivo temporário para evitar OOM com arquivos de 600MB+
+                tempFile = Files.createTempFile("pdf-upload-", ".pdf");
+                file.transferTo(tempFile.toFile());
 
-                for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
-                    final int pageNum = page;
-                    pageFutures.add(CompletableFuture.supplyAsync(() -> {
-                        try {
-                            // Usando 200 DPI para equilíbrio entre qualidade e memória/velocidade
-                            BufferedImage bim = pdfRenderer.renderImageWithDPI(pageNum, 200, ImageType.RGB);
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            ImageIO.write(bim, "jpg", baos);
-                            baos.flush();
-                            byte[] imageInByte = baos.toByteArray();
-                            
-                            String genName = (file.getOriginalFilename() != null ? 
-                                   file.getOriginalFilename().replaceAll("(?i)\\.pdf$", "") : "doc") + 
-                                   "_pag_" + (pageNum + 1) + ".jpg";
+                try (PDDocument pdfDocument = Loader.loadPDF(new org.apache.pdfbox.io.RandomAccessReadBufferedFile(tempFile.toFile()))) {
+                    PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+                    List<CompletableFuture<String>> pageFutures = new ArrayList<>();
 
-                            MultipartFile pageFile = new MockMultipartFile(
-                                genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
-                            );
-                            return fileStorageService.save(pageFile);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
-                        }
-                    }, executor));
+                    for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
+                        final int pageNum = page;
+                        pageFutures.add(CompletableFuture.supplyAsync(() -> {
+                            try {
+                                // Usando 200 DPI para equilíbrio entre qualidade e memória/velocidade
+                                BufferedImage bim = pdfRenderer.renderImageWithDPI(pageNum, 200, ImageType.RGB);
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                ImageIO.write(bim, "jpg", baos);
+                                baos.flush();
+                                byte[] imageInByte = baos.toByteArray();
+                                
+                                String genName = (file.getOriginalFilename() != null ? 
+                                       file.getOriginalFilename().replaceAll("(?i)\\.pdf$", "") : "doc") + 
+                                       "_pag_" + (pageNum + 1) + ".jpg";
+
+                                MultipartFile pageFile = new MockMultipartFile(
+                                    genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
+                                );
+                                return fileStorageService.save(pageFile);
+                            } catch (Exception e) {
+                                throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
+                            }
+                        }, executor));
+                    }
+
+                    List<String> pageUrls = pageFutures.stream()
+                            .map(CompletableFuture::join)
+                            .collect(Collectors.toList());
+                    urls.addAll(pageUrls);
                 }
-
-                List<String> pageUrls = pageFutures.stream()
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList());
-                urls.addAll(pageUrls);
 
             } catch (Exception e) {
                 log.error("Erro ao carregar ou processar PDF", e);
                 throw new RuntimeException("Erro ao processar PDF", e);
+            } finally {
+                if (tempFile != null) {
+                    try {
+                        Files.deleteIfExists(tempFile);
+                    } catch (Exception ex) {
+                        log.warn("Erro ao deletar PDF temporário", ex);
+                    }
+                }
             }
         }, executor);
     }

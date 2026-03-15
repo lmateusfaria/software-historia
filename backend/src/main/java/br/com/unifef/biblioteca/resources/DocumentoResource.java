@@ -1,5 +1,6 @@
 package br.com.unifef.biblioteca.resources;
 
+import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;

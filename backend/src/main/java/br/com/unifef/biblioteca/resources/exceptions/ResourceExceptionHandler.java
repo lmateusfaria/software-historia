@@ -19,7 +19,7 @@ public class ResourceExceptionHandler {
     {
 
         StandardError error = new StandardError(System.currentTimeMillis(), HttpStatus.NOT_FOUND.value(),
-                "Object not found", ex.getMessage(),request.getRequestURI());
+                "Objeto não encontrado", ex.getMessage(),request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -30,7 +30,7 @@ public class ResourceExceptionHandler {
     {
 
         StandardError error = new StandardError(System.currentTimeMillis(), HttpStatus.BAD_REQUEST.value(),
-                "Bad Request", ex.getMessage(),request.getRequestURI());
+                "Requisição Inválida", ex.getMessage(),request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -38,7 +38,7 @@ public class ResourceExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<StandardError> dataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request){
 
-        StandardError error = new StandardError(System.currentTimeMillis(),HttpStatus.BAD_REQUEST.value(),"Data Integrity Violation",
+        StandardError error = new StandardError(System.currentTimeMillis(),HttpStatus.BAD_REQUEST.value(),"Violação de Integridade de Dados",
                 ex.getMessage(),request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -47,8 +47,8 @@ public class ResourceExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<StandardError> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request){
 
-        ValidationError errors = new ValidationError(System.currentTimeMillis(),HttpStatus.BAD_REQUEST.value(),"Data Validation Error",
-                "Field Validation Error",request.getRequestURI());
+        ValidationError errors = new ValidationError(System.currentTimeMillis(),HttpStatus.BAD_REQUEST.value(),"Erro de Validação de Dados",
+                "Erro na Validação dos Campos",request.getRequestURI());
 
         for(FieldError x : ex.getBindingResult().getFieldErrors()){
             errors.addErrors(x.getField(), x.getDefaultMessage());

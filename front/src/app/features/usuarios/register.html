@@ -1,78 +1,142 @@
-<div
-  class="min-h-screen flex items-center justify-center bg-[#fdfaf6] dark:bg-[#0f1115] relative overflow-hidden p-6 font-sans">
-  <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-    <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
-    <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden font-sans"
+  style="background: linear-gradient(135deg, #4c294b 0%, #2b2238 40%, #0d5462 100%);">
+  
+  <!-- Fundo custom de Aurora/Gradient Blur -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#bd5d8f] rounded-full blur-[150px] opacity-20"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#088395] rounded-full blur-[180px] opacity-30"></div>
   </div>
 
-  <div class="w-full max-w-2xl relative z-10 fade-in">
-    <div class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Junte-se a nós</h1>
-      <p class="text-gray-500 dark:text-gray-400">Faça parte da preservação da nossa história</p>
-    </div>
-
-    <div class="card-premium">
-      <form (ngSubmit)="onSubmit()" autocomplete="off" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nome Completo</label>
-          <input class="input-premium" type="text" placeholder="Seu nome" [(ngModel)]="nome" name="nome" required>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">E-mail</label>
-          <input class="input-premium" type="email" placeholder="nome@exemplo.com" [(ngModel)]="email" name="email"
+  <div class="w-full max-w-2xl relative z-10 fade-in px-4">
+    <!-- Formulário Glassmorphism -->
+    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+      <form (ngSubmit)="onSubmit()" autocomplete="off" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Input Nome -->
+        <div class="md:col-span-2 relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <!-- User Icon -->
+            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input 
+            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 py-4 pl-12 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
+            type="text" 
+            placeholder="Nome Completo" 
+            [(ngModel)]="nome" 
+            name="nome" 
             required>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CPF</label>
-          <input class="input-premium" type="text" placeholder="000.000.000-00" [(ngModel)]="cpf" name="cpf" 
-            (input)="onCpfInput($event)" maxlength="14" required>
+        <!-- Input E-mail -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <!-- Mail Icon -->
+            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+          </div>
+          <input 
+            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 py-4 pl-12 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
+            type="email" 
+            placeholder="E-mail" 
+            [(ngModel)]="email" 
+            name="email" 
+            required>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha</label>
-          <input class="input-premium" type="password" placeholder="••••••••" [(ngModel)]="senha" name="senha" required>
-          <p class="text-[10px] text-gray-500 mt-1">Mín. 8 caracteres, com Maiúsculas e Números</p>
+        <!-- Input CPF -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <!-- Id Icon -->
+            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input 
+            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 py-4 pl-12 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
+            type="text" 
+            placeholder="CPF" 
+            [(ngModel)]="cpf" 
+            name="cpf" 
+            (input)="onCpfInput($event)" 
+            maxlength="14" 
+            required>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Eu sou...</label>
-          <select class="input-premium appearance-none cursor-pointer" [(ngModel)]="perfil" name="perfil" required>
-            <option value="PESQUISADOR">Pesquisador (Comunidade)</option>
+        <!-- Input Senha -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <!-- Lock Icon -->
+            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input 
+            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 py-4 pl-12 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
+            type="password" 
+            placeholder="Senha" 
+            [(ngModel)]="senha" 
+            name="senha" 
+            required>
+        </div>
+
+        <!-- Perfil -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <!-- Role Icon -->
+            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+            </svg>
+          </div>
+          <select 
+            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 py-4 pl-12 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium appearance-none cursor-pointer" 
+            [(ngModel)]="perfil" 
+            name="perfil" 
+            required>
+            <option value="PESQUISADOR" class="text-gray-900 bg-white">Pesquisador (Comunidade)</option>
             @if (podeCadastrarOutros) {
-              <option value="ALUNO">Aluno (Digitalizador)</option>
-              <option value="PROFESSOR">Professor (Gestor)</option>
+              <option value="ALUNO" class="text-gray-900 bg-white">Aluno (Digitalizador)</option>
+              <option value="PROFESSOR" class="text-gray-900 bg-white">Professor (Gestor)</option>
             }
           </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
         </div>
 
-        <div class="md:col-span-2">
+        <div class="md:col-span-2 pt-2">
           @if (error) {
-          <div
-            class="p-4 mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm text-center">
-            {{ error }}
-          </div>
+            <div class="p-3 mb-4 bg-red-900/50 border border-red-500/30 rounded-md text-red-200 text-sm text-center backdrop-blur-sm">
+              {{ error }}
+            </div>
           }
           @if (success) {
-          <div
-            class="p-4 mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-600 dark:text-green-400 text-sm text-center">
-            Conta criada com sucesso! Redirecionando...
-          </div>
+            <div class="p-3 mb-4 bg-green-900/50 border border-green-500/30 rounded-md text-green-200 text-sm text-center backdrop-blur-sm">
+              Conta criada com sucesso! Redirecionando...
+            </div>
           }
 
-          <button class="btn-premium bg-primary text-white hover:bg-gray-900" type="submit" [disabled]="loading">
-            {{ loading ? 'Processando...' : 'Criar Conta' }}
+          <button 
+            class="w-full bg-[#1b3d4d] hover:bg-[#15313f] text-white py-4 rounded-md font-medium text-lg transition-colors shadow-lg shadow-black/20" 
+            type="submit" 
+            [disabled]="loading">
+            {{ loading ? 'Processando...' : 'Cadastrar' }}
           </button>
         </div>
 
-        <div class="md:col-span-2 text-center">
-          <button
-            class="text-gray-600 dark:text-gray-400 font-medium hover:text-primary dark:hover:text-white transition-colors"
-            type="button" (click)="router.navigate(['/login'])">
+        <!-- Botão para tela de login -->
+        <div class="md:col-span-2 mt-4 text-center">
+          <button 
+            class="text-white/60 text-sm hover:text-white transition-colors" 
+            type="button" 
+            (click)="router.navigate(['/login'])">
             Já possui uma conta? Entrar
           </button>
         </div>
+
       </form>
     </div>
   </div>

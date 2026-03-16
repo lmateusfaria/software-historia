@@ -161,6 +161,8 @@ public class DocumentoService {
 
                         if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
                             futures.add(processPdf(multipartFile, urls));
+                        } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
+                            urls.add(processHeic(multipartFile));
                         } else {
                             urls.add(fileStorageService.save(multipartFile));
                         }
@@ -260,9 +262,11 @@ public class DocumentoService {
 
             tempJpg = tempHeic.resolveSibling(tempHeic.getFileName().toString().replace(".heic", ".jpg"));
 
+            log.info("Iniciando conversão HEIC para JPG: {}", tempHeic);
             ProcessBuilder pb = new ProcessBuilder("heif-convert", tempHeic.toString(), tempJpg.toString());
             Process process = pb.start();
             int exitCode = process.waitFor();
+            log.info("Conversão HEIC finalizada. Exit code: {}", exitCode);
 
             if (exitCode != 0) {
                 throw new RuntimeException("Falha na conversão HEIC. Código de saída: " + exitCode);

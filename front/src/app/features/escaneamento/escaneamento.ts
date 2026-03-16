@@ -97,7 +97,7 @@ export class EscaneamentoComponent implements OnInit {
 
         try {
             for (const file of this.selectedFiles) {
-                const chunkSize = 5 * 1024 * 1024; // 5MB
+                const chunkSize = 50 * 1024 * 1024; // 50MB
                 const totalChunks = Math.ceil(file.size / chunkSize);
                 let lastResponse: any;
 

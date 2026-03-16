@@ -8,6 +8,16 @@ import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.repositories.DocumentoRepository;
 import br.com.unifef.biblioteca.repositories.UsuarioRepository;
+import br.com.unifef.biblioteca.domains.ImagemOcrResultado;
+import br.com.unifef.biblioteca.repositories.ImagemOcrRepository;
+import br.com.unifef.biblioteca.domains.graph.ImagemNode;
+import br.com.unifef.biblioteca.repositories.graph.ImagemNodeRepository;
+import br.com.unifef.biblioteca.repositories.graph.PessoaRepository;
+import br.com.unifef.biblioteca.repositories.graph.LocalRepository;
+import br.com.unifef.biblioteca.repositories.graph.EventoRepository;
+import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
+import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
+import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +69,30 @@ public class DocumentoService {
 
     @Autowired
     private DocumentoNodeRepository documentoNodeRepository;
+
+    @Autowired
+    private GptOcrService gptOcrService;
+
+    @Autowired
+    private ImagemOcrRepository imagemOcrRepository;
+
+    @Autowired
+    private ImagemNodeRepository imagemNodeRepository;
+
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    @Autowired
+    private LocalRepository localRepository;
+
+    @Autowired
+    private EventoRepository eventoRepository;
+
+    @Autowired
+    private OrganizacaoRepository organizacaoRepository;
+
+    @Autowired
+    private AssuntoRepository assuntoRepository;
 
     // Executor para processamento geral (OCR, sincronização, etc)
     private final ExecutorService generalExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -440,5 +474,121 @@ public class DocumentoService {
 
     public InputStream getFileStream(String filename) {
         return fileStorageService.fetch(filename);
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public OcrResultadoDTO processarOcrImagem(Long documentoId, String imagemUrl) {
+        Documento doc = repository.findById(documentoId)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
+
+        Integer indice = null;
+        if (doc.getImagensUrls() != null) {
+            for (int i = 0; i < doc.getImagensUrls().size(); i++) {
+                if (doc.getImagensUrls().get(i).equals(imagemUrl)) {
+                    indice = i;
+                    break;
+                }
+            }
+        }
+        
+        if (indice == null) {
+            throw new RuntimeException("Imagem não pertence a este documento");
+        }
+
+        try {
+            // 1. Obter imagem do MinIO
+            byte[] imageBytes;
+            try (InputStream is = fileStorageService.fetch(imagemUrl)) {
+                imageBytes = is.readAllBytes();
+            }
+            
+            String mimeType = "image/jpeg";
+            if (imagemUrl.toLowerCase().endsWith(".png")) mimeType = "image/png";
+
+            // 2. Processar OCR GPT-4o-mini
+            OcrResultadoDTO ocrResult = gptOcrService.extrairDadosImagem(imageBytes, mimeType);
+
+            // 3. Salvar no Postgres
+            ImagemOcrResultado entity = new ImagemOcrResultado();
+            entity.setDocumentoId(documentoId);
+            entity.setImagemUrl(imagemUrl);
+            entity.setIndice(indice);
+            entity.setTextoExtraido(ocrResult.getTextoCompleto());
+            
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                entity.setPessoasExtraidas(mapper.writeValueAsString(ocrResult.getPessoas()));
+                entity.setLocaisExtraidos(mapper.writeValueAsString(ocrResult.getLocais()));
+                entity.setEventosExtraidos(mapper.writeValueAsString(ocrResult.getEventos()));
+                entity.setOrganizacoesExtraidas(mapper.writeValueAsString(ocrResult.getOrganizacoes()));
+                entity.setAssuntosExtraidos(mapper.writeValueAsString(ocrResult.getAssuntos()));
+                entity.setDatasMencionadas(mapper.writeValueAsString(ocrResult.getDatasMencionadas()));
+            } catch (Exception e) {
+                log.error("Erro ao serializar arrays do OCR", e);
+            }
+            
+            entity.setTipoDocumento(ocrResult.getTipoDocumento());
+            imagemOcrRepository.save(entity);
+
+            // 4. Salvar no Neo4J
+            try {
+                ImagemNode imagemNode = new ImagemNode(documentoId, imagemUrl, indice);
+                imagemNode.setTextoExtraido(ocrResult.getTextoCompleto());
+                
+                for (String nome : ocrResult.getPessoas()) {
+                    if (nome != null && !nome.trim().isEmpty()) {
+                        br.com.unifef.biblioteca.domains.graph.Pessoa p = pessoaRepository.findById(nome)
+                            .orElse(new br.com.unifef.biblioteca.domains.graph.Pessoa(nome));
+                        pessoaRepository.save(p);
+                        imagemNode.getPessoas().add(p);
+                    }
+                }
+                
+                for (String local : ocrResult.getLocais()) {
+                    if (local != null && !local.trim().isEmpty()) {
+                        br.com.unifef.biblioteca.domains.graph.Local l = localRepository.findById(local)
+                            .orElse(new br.com.unifef.biblioteca.domains.graph.Local(local));
+                        localRepository.save(l);
+                        imagemNode.getLocais().add(l);
+                    }
+                }
+
+                for (String evento : ocrResult.getEventos()) {
+                    if (evento != null && !evento.trim().isEmpty()) {
+                        br.com.unifef.biblioteca.domains.graph.Evento e = eventoRepository.findById(evento)
+                            .orElse(new br.com.unifef.biblioteca.domains.graph.Evento(evento));
+                        eventoRepository.save(e);
+                        imagemNode.getEventos().add(e);
+                    }
+                }
+
+                for (String org : ocrResult.getOrganizacoes()) {
+                    if (org != null && !org.trim().isEmpty()) {
+                        br.com.unifef.biblioteca.domains.graph.Organizacao o = organizacaoRepository.findById(org)
+                            .orElse(new br.com.unifef.biblioteca.domains.graph.Organizacao(org));
+                        organizacaoRepository.save(o);
+                        imagemNode.getOrganizacoes().add(o);
+                    }
+                }
+
+                for (String assunto : ocrResult.getAssuntos()) {
+                    if (assunto != null && !assunto.trim().isEmpty()) {
+                        br.com.unifef.biblioteca.domains.graph.Assunto a = assuntoRepository.findById(assunto)
+                            .orElse(new br.com.unifef.biblioteca.domains.graph.Assunto(assunto));
+                        assuntoRepository.save(a);
+                        imagemNode.getAssuntos().add(a);
+                    }
+                }
+
+                imagemNodeRepository.save(imagemNode);
+            } catch (Exception e) {
+                log.error("Erro ao sincronizar OCR da imagem com Neo4J: {}", e.getMessage(), e);
+            }
+            
+            return ocrResult;
+        } catch (Exception e) {
+            log.error("Erro ao processar OCR para imagem {}: {}", imagemUrl, e.getMessage());
+            throw new RuntimeException("Falha no processo de OCR da imagem: " + e.getMessage(), e);
+        }
     }
 }

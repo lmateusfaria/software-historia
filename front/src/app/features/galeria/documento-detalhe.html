@@ -1,7 +1,7 @@
-<div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-[#fdfaf6] dark:bg-[#0f1115] text-[#2c2c2c] dark:text-[#e0e0e0] transition-colors duration-300 font-sans relative overflow-hidden">
+<div class="unifef-bg-container pt-24 pb-12 px-4 sm:px-6 lg:px-8">
     <!-- Background Elements -->
-    <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+    <div class="unifef-blur-teal"></div>
+    <div class="unifef-blur-orange"></div>
 
     <div class="max-w-7xl mx-auto relative z-10">
         <!-- Breadcrumb / Back -->
@@ -33,6 +33,18 @@
                             </svg>
                             <p>Nenhuma imagem disponível</p>
                         </div>
+                    </div>
+
+                    <!-- Botao OCR da Imagem -->
+                    <div *ngIf="imagemSelecionada && isProfessor" class="flex justify-end gap-2 px-2 fade-in" style="animation-delay: 0.1s">
+                         <button (click)="extrairOcrDaImagem()" [disabled]="loadingOcr[imagemSelecionada]" 
+                                 class="inline-flex items-center px-5 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all shadow-lg hover:shadow-amber-600/20 active:scale-95">
+                             <span *ngIf="loadingOcr[imagemSelecionada]" class="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                             <svg *ngIf="!loadingOcr[imagemSelecionada]" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                             Extrair Dados (OCR) desta imagem
+                         </button>
                     </div>
 
                     <!-- Miniaturas -->
@@ -82,39 +94,64 @@
                     </div>
 
                     <!-- Conexões Neo4j -->
-                    <div class="space-y-4 fade-in" style="animation-delay: 0.3s" *ngIf="documento.pessoas?.length || documento.locais?.length || documento.eventos?.length || documento.organizacoes?.length">
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.3s" *ngIf="(ocrAtual?.pessoas?.length || ocrAtual?.locais?.length || ocrAtual?.eventos?.length || ocrAtual?.organizacoes?.length || ocrAtual?.assuntos?.length) || (!ocrAtual && (documento.pessoas?.length || documento.locais?.length || documento.eventos?.length || documento.organizacoes?.length))">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                             Conexões Históricas
+                            <span *ngIf="ocrAtual" class="ml-3 px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-wider rounded border border-amber-500/20">Desta Imagem</span>
                         </h3>
                         
-                        <div class="flex flex-wrap gap-2">
-                            <span *ngFor="let p of documento.pessoas" class="px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm rounded-lg border border-blue-500/20">
+                        <!-- Dados Específicos da Imagem Extraída (OCR Atual) -->
+                        <div *ngIf="ocrAtual" class="flex flex-wrap gap-2">
+                            <span *ngFor="let p of ocrAtual.pessoas" class="px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm font-medium rounded-lg border border-blue-500/20 transition-all hover:bg-blue-500/20 cursor-default">
                                👤 {{ p }}
                             </span>
-                            <span *ngFor="let l of documento.locais" class="px-3 py-1.5 bg-green-500/10 text-green-500 text-sm rounded-lg border border-green-500/20">
+                            <span *ngFor="let l of ocrAtual.locais" class="px-3 py-1.5 bg-green-500/10 text-green-500 text-sm font-medium rounded-lg border border-green-500/20 transition-all hover:bg-green-500/20 cursor-default">
                                📍 {{ l }}
                             </span>
-                            <span *ngFor="let e of documento.eventos" class="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-sm rounded-lg border border-purple-500/20">
+                            <span *ngFor="let e of ocrAtual.eventos" class="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-sm font-medium rounded-lg border border-purple-500/20 transition-all hover:bg-purple-500/20 cursor-default">
                                📅 {{ e }}
                             </span>
-                            <span *ngFor="let o of documento.organizacoes" class="px-3 py-1.5 bg-orange-500/10 text-orange-500 text-sm rounded-lg border border-orange-500/20">
+                            <span *ngFor="let o of ocrAtual.organizacoes" class="px-3 py-1.5 bg-orange-500/10 text-orange-500 text-sm font-medium rounded-lg border border-orange-500/20 transition-all hover:bg-orange-500/20 cursor-default">
+                               🏢 {{ o }}
+                            </span>
+                            <span *ngFor="let a of ocrAtual.assuntos" class="px-3 py-1.5 bg-indigo-500/10 text-indigo-500 text-sm font-medium rounded-lg border border-indigo-500/20 transition-all hover:bg-indigo-500/20 cursor-default">
+                               📚 {{ a }}
+                            </span>
+                        </div>
+
+                        <!-- Dados do Documento Geral (Fallback se OCR não carregado ou extraído pra img) -->
+                        <div *ngIf="!ocrAtual" class="flex flex-wrap gap-2">
+                            <span *ngFor="let p of documento.pessoas" class="px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm font-medium rounded-lg border border-blue-500/20 transition-all hover:bg-blue-500/20 cursor-default">
+                               👤 {{ p }}
+                            </span>
+                            <span *ngFor="let l of documento.locais" class="px-3 py-1.5 bg-green-500/10 text-green-500 text-sm font-medium rounded-lg border border-green-500/20 transition-all hover:bg-green-500/20 cursor-default">
+                               📍 {{ l }}
+                            </span>
+                            <span *ngFor="let e of documento.eventos" class="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-sm font-medium rounded-lg border border-purple-500/20 transition-all hover:bg-purple-500/20 cursor-default">
+                               📅 {{ e }}
+                            </span>
+                            <span *ngFor="let o of documento.organizacoes" class="px-3 py-1.5 bg-orange-500/10 text-orange-500 text-sm font-medium rounded-lg border border-orange-500/20 transition-all hover:bg-orange-500/20 cursor-default">
                                🏢 {{ o }}
                             </span>
                         </div>
                     </div>
 
                     <!-- OCR Conteúdo -->
-                    <div class="space-y-4 fade-in" style="animation-delay: 0.4s" *ngIf="documento.conteudoOcr">
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.4s" *ngIf="ocrAtual?.textoCompleto || documento.conteudoOcr">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             Transcrição Digital (OCR)
+                            <span *ngIf="ocrAtual" class="ml-3 px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-wider rounded border border-amber-500/20">Desta Imagem</span>
                         </h3>
-                        <div class="glass p-6 rounded-2xl max-h-96 overflow-y-auto text-sm text-gray-700 dark:text-neutral-400 bg-white/30 dark:bg-black/20 leading-loose whitespace-pre-wrap font-mono">
+                        <div *ngIf="ocrAtual" class="glass p-6 rounded-2xl max-h-96 overflow-y-auto text-sm text-gray-700 dark:text-neutral-300 bg-white/30 dark:bg-black/20 leading-loose whitespace-pre-wrap font-mono border-l-4 border-l-amber-500">
+                            {{ ocrAtual.textoCompleto }}
+                        </div>
+                        <div *ngIf="!ocrAtual && documento.conteudoOcr" class="glass p-6 rounded-2xl max-h-96 overflow-y-auto text-sm text-gray-700 dark:text-neutral-300 bg-white/30 dark:bg-black/20 leading-loose whitespace-pre-wrap font-mono border-l-4 border-l-neutral-400">
                             {{ documento.conteudoOcr }}
                         </div>
                     </div>

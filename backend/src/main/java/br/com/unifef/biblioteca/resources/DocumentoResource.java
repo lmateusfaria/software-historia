@@ -115,4 +115,10 @@ public class DocumentoResource {
             return ResponseEntity.internalServerError().body(erro);
         }
     }
+
+    @PostMapping(value = "/{id}/ocr-imagem")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<OcrResultadoDTO> ocrImagem(@PathVariable Long id, @RequestParam String imagemUrl) {
+        return ResponseEntity.ok(service.processarOcrImagem(id, imagemUrl));
+    }
 }

@@ -61,6 +61,11 @@ export class DocumentoService {
         return this.http.put<DocumentoDTO>(`${this.apiUrl}/${id}/aprovar`, {});
     }
 
+    ocrImagem(id: number, imagemUrl: string): Observable<OcrResultadoDTO> {
+        return this.http.post<OcrResultadoDTO>(`${this.apiUrl}/${id}/ocr-imagem`, null, { 
+            params: { imagemUrl } 
+        });
+    }
     testarOcr(file: File): Observable<OcrResultadoDTO> {
         const formData = new FormData();
         formData.append('file', file);

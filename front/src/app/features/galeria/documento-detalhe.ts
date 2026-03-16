@@ -5,6 +5,7 @@ import { DocumentoService } from '../../core/documento.service';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
+import { OcrResultadoDTO } from '../../core/documento.service';
 
 @Component({
     selector: 'app-documento-detalhe',
@@ -18,6 +19,8 @@ export class DocumentoDetalheComponent implements OnInit {
     usuario?: UsuarioInfo;
     loading = true;
     imagemSelecionada?: string;
+    loadingOcr: { [url: string]: boolean } = {};
+    ocrResultados: { [url: string]: OcrResultadoDTO } = {};
 
     constructor(
         private route: ActivatedRoute,
@@ -96,6 +99,32 @@ export class DocumentoDetalheComponent implements OnInit {
 
     selecionarImagem(url: string) {
         this.imagemSelecionada = url;
+    }
+
+    extrairOcrDaImagem() {
+        if (!this.imagemSelecionada || !this.documento?.id) return;
+        
+        let urlClean = this.imagemSelecionada;
+        if (urlClean.includes('/download/')) {
+            urlClean = urlClean.split('/download/')[1];
+        }
+
+        this.loadingOcr[this.imagemSelecionada] = true;
+        this.documentoService.ocrImagem(this.documento.id, urlClean).subscribe({
+            next: (res) => {
+                this.ocrResultados[this.imagemSelecionada!] = res;
+                this.loadingOcr[this.imagemSelecionada!] = false;
+                this.toast.success('OCR extraído do GPT com sucesso!');
+            },
+            error: () => {
+                this.toast.error('Erro ao extrair OCR da imagem.');
+                this.loadingOcr[this.imagemSelecionada!] = false;
+            }
+        });
+    }
+
+    get ocrAtual(): OcrResultadoDTO | undefined {
+        return this.imagemSelecionada ? this.ocrResultados[this.imagemSelecionada] : undefined;
     }
 
     voltar() {

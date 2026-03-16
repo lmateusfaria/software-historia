@@ -19,6 +19,10 @@ public class Pessoa {
 
     public Pessoa() {}
 
+    public Pessoa(String nome) {
+        this.nome = nome;
+    }
+
     public Pessoa(String nome, String descricao) {
         this.nome = nome;
         this.descricao = descricao;

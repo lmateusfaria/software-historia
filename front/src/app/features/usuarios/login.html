@@ -4,79 +4,126 @@
   <div class="unifef-blur-teal"></div>
   <div class="unifef-blur-orange"></div>
 
-  <div class="w-full max-w-sm relative z-10 fade-in px-4">
-    <!-- Formulário Glassmorphism -->
-    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-      <form (ngSubmit)="onSubmit()" autocomplete="off" class="space-y-6">
-        
-        <!-- Input E-mail / Username -->
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <!-- User Icon -->
-            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <input 
-            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 text-center py-4 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
-            type="email" 
-            placeholder="E-mail ou Usuário" 
-            [(ngModel)]="login" 
-            name="login" 
-            required>
+  <div class="flex items-center justify-center min-h-screen w-full relative z-10 px-4 py-8">
+    <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center fade-in">
+      
+      <!-- Lado Esquerdo: Boas-vindas/Texto -->
+      <div class="hidden lg:flex flex-col justify-center text-white space-y-8 pr-12">
+        <div class="space-y-4">
+          <h1 class="text-6xl font-black leading-tight tracking-tighter">
+            BIBLIOTECA <br>
+            <span class="text-unifef-orange">DIGITAL</span>
+          </h1>
+          <div class="w-24 h-2 bg-unifef-teal rounded-full"></div>
         </div>
         
-        <!-- Input Senha -->
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <!-- Lock Icon -->
-            <svg class="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-            </svg>
+        <p class="text-xl text-white/70 leading-relaxed font-light max-w-md">
+          Preservando a memória da região através da digitalização de acervos históricos e documentos raros.
+        </p>
+
+        <ul class="space-y-4 pt-4">
+          <li class="flex items-center gap-3 text-white/80">
+            <div class="p-2 bg-white/5 rounded-lg border border-white/10">
+              <svg class="w-5 h-5 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span>Acesso rápido ao acervo digitalizado</span>
+          </li>
+          <li class="flex items-center gap-3 text-white/80">
+            <div class="p-2 bg-white/5 rounded-lg border border-white/10">
+              <svg class="w-5 h-5 text-unifef-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span>Busca avançada com tecnologia OCR</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Lado Direito: Formulário -->
+      <div class="w-full max-w-md mx-auto lg:mx-0">
+        <div class="glass card-premium !p-10 shadow-2xl relative overflow-hidden group">
+          <!-- Brilho sutil no hover -->
+          <div class="absolute -top-24 -right-24 w-48 h-48 bg-unifef-teal/10 rounded-full blur-3xl group-hover:bg-unifef-teal/20 transition-all duration-500"></div>
+          
+          <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-white mb-2">Login</h2>
+            <p class="text-white/50 text-sm">Acesse sua conta para continuar</p>
           </div>
-          <input 
-            class="w-full bg-white/20 border border-white/5 backdrop-blur-md text-white placeholder-white/80 text-center py-4 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 transition-all font-medium" 
-            type="password" 
-            placeholder="Senha" 
-            [(ngModel)]="password" 
-            name="password" 
-            required>
+
+          <form (ngSubmit)="onSubmit()" autocomplete="off" class="space-y-6">
+            
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-white/40 uppercase tracking-wider ml-1">Credenciais</label>
+              <div class="relative group/input">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within/input:text-unifef-teal transition-colors">
+                  <svg class="w-5 h-5 text-white/30" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <input 
+                  class="w-full bg-white/5 border border-white/10 backdrop-blur-md text-white placeholder-white/20 pl-12 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-unifef-teal/50 focus:border-unifef-teal/50 transition-all font-medium" 
+                  type="text" 
+                  placeholder="E-mail ou Usuário" 
+                  [(ngModel)]="login" 
+                  name="login" 
+                  required>
+              </div>
+            </div>
+            
+            <div class="space-y-2">
+              <div class="flex justify-between items-end px-1">
+                <label class="text-xs font-semibold text-white/40 uppercase tracking-wider">Senha</label>
+                <a (click)="router.navigate(['/forgot-password']); $event.preventDefault()" href="#" class="text-xs font-medium hover:text-unifef-orange text-white/40 transition-all cursor-pointer">Esqueceu?</a>
+              </div>
+              <div class="relative group/input">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within/input:text-unifef-teal transition-colors">
+                  <svg class="w-5 h-5 text-white/30" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <input 
+                  class="w-full bg-white/5 border border-white/10 backdrop-blur-md text-white placeholder-white/20 pl-12 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-unifef-teal/50 focus:border-unifef-teal/50 transition-all font-medium" 
+                  type="password" 
+                  placeholder="Sua senha secreta" 
+                  [(ngModel)]="password" 
+                  name="password" 
+                  required>
+              </div>
+            </div>
+    
+            <div class="flex items-center px-1">
+              <label class="flex items-center gap-2 cursor-pointer group hover:text-white transition-colors">
+                <input type="checkbox" class="w-4 h-4 rounded border-white/20 bg-white/10 text-unifef-teal focus:ring-2 focus:ring-unifef-teal/50 focus:ring-offset-0 transition-all cursor-pointer">
+                <span class="select-none text-white/40 group-hover:text-white/70 text-sm">Manter conectado</span>
+              </label>
+            </div>
+    
+            @if (error) {
+              <div class="p-4 bg-red-900/20 border border-red-500/20 rounded-xl text-red-200 text-sm text-center backdrop-blur-sm animate-pulse">
+                {{ error }}
+              </div>
+            }
+    
+            <div class="pt-4">
+              <button 
+                class="w-full bg-unifef-teal hover:bg-unifef-teal-dark text-white py-4 rounded-xl font-bold text-lg transition-all shadow-xl shadow-unifef-teal/20 hover:-translate-y-1 active:translate-y-0" 
+                type="submit" 
+                [disabled]="loading">
+                {{ loading ? 'AUTENTICANDO...' : 'ENTRAR NO SISTEMA' }}
+              </button>
+            </div>
+    
+            <div class="mt-8 text-center pt-8 border-t border-white/5">
+              <p class="text-white/20 text-xs mb-4 uppercase tracking-widest font-bold">Novo por aqui?</p>
+              <button 
+                class="w-full py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all font-semibold" 
+                type="button" 
+                (click)="router.navigate(['/register'])">
+                CRIAR MINHA CONTA
+              </button>
+            </div>
+    
+          </form>
         </div>
-
-        <div class="flex flex-row items-center justify-start w-full text-white/90 text-sm px-1 py-1">
-          <label class="flex items-center gap-2 cursor-pointer group hover:text-white transition-colors">
-            <input type="checkbox" class="w-4 h-4 rounded border-white/30 bg-white/10 text-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-0 transition-all cursor-pointer">
-            <span class="select-none">Manter conectado</span>
-          </label>
-        </div>
-
-        @if (error) {
-          <div class="p-3 bg-red-900/50 border border-red-500/30 rounded-md text-red-200 text-sm text-center backdrop-blur-sm mt-4">
-            {{ error }}
-          </div>
-        }
-
-        <div class="flex flex-row items-center justify-between pt-4 gap-4">
-          <button 
-            class="flex-1 bg-unifef-teal hover:bg-unifef-teal-dark text-white py-3 px-6 rounded-md font-medium transition-colors shadow-lg shadow-black/20" 
-            type="submit" 
-            [disabled]="loading">
-            {{ loading ? 'ENTRANDO...' : 'ENTRAR' }}
-          </button>
-          <a (click)="router.navigate(['/forgot-password']); $event.preventDefault()" href="#" class="flex-1 text-center text-sm font-medium hover:text-white text-white/80 hover:underline transition-all cursor-pointer">Esqueceu a senha?</a>
-        </div>
-
-        <!-- Botão para tela de registro -->
-        <div class="mt-6 text-center">
-          <button 
-            class="text-white/60 text-sm hover:text-white transition-colors" 
-            type="button" 
-            (click)="router.navigate(['/register'])">
-            Não tem uma conta? Cadastre-se
-          </button>
-        </div>
-
-      </form>
+      </div>
     </div>
   </div>
 </div>

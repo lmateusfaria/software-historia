@@ -126,30 +126,34 @@ public class DocumentoService {
         doc.setResponsavel(usuario);
 
         if (files != null && !files.isEmpty()) {
-            List<String> urls = Collections.synchronizedList(new ArrayList<>());
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            List<CompletableFuture<List<String>>> futures = new ArrayList<>();
 
             for (MultipartFile file : files) {
                 String originalFilename = file.getOriginalFilename();
                 String contentType = file.getContentType();
 
                 if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
-                    futures.add(processPdf(file, urls));
+                    futures.add(processPdf(file));
                 } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
-                    urls.add(processHeic(file));
+                    futures.add(CompletableFuture.supplyAsync(() -> 
+                        Collections.singletonList(processHeic(file)), generalExecutor));
                 } else {
-                    urls.add(fileStorageService.save(file));
+                    futures.add(CompletableFuture.supplyAsync(() -> 
+                        Collections.singletonList(fileStorageService.save(file)), generalExecutor));
                 }
             }
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            doc.setImagensUrls(new ArrayList<>(urls));
+            List<String> urls = new ArrayList<>();
+            for (CompletableFuture<List<String>> future : futures) {
+                urls.addAll(future.join());
+            }
+            doc.setImagensUrls(urls);
         }
 
         // Suporte para arquivos pré-upados via chunked upload
         if (dto.getPreUploadedFiles() != null && !dto.getPreUploadedFiles().isEmpty()) {
-            List<String> urls = doc.getImagensUrls() != null ? doc.getImagensUrls() : new ArrayList<>();
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            List<String> existingUrls = doc.getImagensUrls() != null ? doc.getImagensUrls() : new ArrayList<>();
+            List<CompletableFuture<List<String>>> futures = new ArrayList<>();
             List<File> filesToDelete = new ArrayList<>();
 
             for (String filePath : dto.getPreUploadedFiles()) {
@@ -161,16 +165,21 @@ public class DocumentoService {
                         String contentType = Files.probeContentType(file.toPath());
                         
                         if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
-                            futures.add(processPdfFromDisk(file, urls));
+                            futures.add(processPdfFromDisk(file));
                         } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
-                            urls.add(processHeicFromDisk(file));
+                            futures.add(CompletableFuture.supplyAsync(() -> 
+                                Collections.singletonList(processHeicFromDisk(file)), generalExecutor));
                         } else {
-                            try (InputStream is = new java.io.FileInputStream(file)) {
-                                MultipartFile multipartFile = new MockMultipartFile(
-                                    originalFilename, originalFilename, contentType, is
-                                );
-                                urls.add(fileStorageService.save(multipartFile));
-                            }
+                            futures.add(CompletableFuture.supplyAsync(() -> {
+                                try (InputStream is = new java.io.FileInputStream(file)) {
+                                    MultipartFile multipartFile = new MockMultipartFile(
+                                        originalFilename, originalFilename, contentType, is
+                                    );
+                                    return Collections.singletonList(fileStorageService.save(multipartFile));
+                                } catch (Exception e) {
+                                    throw new RuntimeException("Erro ao processar arquivo regular do disco", e);
+                                }
+                            }, generalExecutor));
                         }
                     } catch (Exception e) {
                         log.error("Erro ao preparar arquivo pré-upado no disco: {}", filePath, e);
@@ -178,8 +187,8 @@ public class DocumentoService {
                 }
             }
 
-            if (!futures.isEmpty()) {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            for (CompletableFuture<List<String>> future : futures) {
+                existingUrls.addAll(future.join());
             }
 
             // Limpar arquivos temporários mesclados SOMENTE após o processamento completo
@@ -193,7 +202,7 @@ public class DocumentoService {
                 }
             }
             
-            doc.setImagensUrls(new ArrayList<>(urls));
+            doc.setImagensUrls(existingUrls);
         }
 
         Documento savedDoc = repository.save(doc);
@@ -212,13 +221,13 @@ public class DocumentoService {
         return new DocumentoDTO(savedDoc);
     }
 
-    private CompletableFuture<Void> processPdf(MultipartFile file, List<String> urls) {
-        return CompletableFuture.runAsync(() -> {
+    private CompletableFuture<List<String>> processPdf(MultipartFile file) {
+        return CompletableFuture.supplyAsync(() -> {
             Path tempFile = null;
             try {
                 tempFile = Files.createTempFile("pdf-upload-", ".pdf");
                 file.transferTo(tempFile.toFile());
-                processPdfInternal(tempFile.toFile(), file.getOriginalFilename(), urls);
+                return processPdfInternal(tempFile.toFile(), file.getOriginalFilename());
             } catch (Exception e) {
                 log.error("Erro ao carregar ou processar PDF", e);
                 throw new RuntimeException("Erro ao processar PDF", e);
@@ -230,10 +239,10 @@ public class DocumentoService {
         }, generalExecutor);
     }
 
-    private CompletableFuture<Void> processPdfFromDisk(File file, List<String> urls) {
-        return CompletableFuture.runAsync(() -> {
+    private CompletableFuture<List<String>> processPdfFromDisk(File file) {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                processPdfInternal(file, file.getName(), urls);
+                return processPdfInternal(file, file.getName());
             } catch (Exception e) {
                 log.error("Erro ao processar PDF do disco", e);
                 throw new RuntimeException("Erro ao processar PDF do disco", e);
@@ -241,7 +250,7 @@ public class DocumentoService {
         }, generalExecutor);
     }
 
-    private void processPdfInternal(File file, String originalFilename, List<String> urls) throws Exception {
+    private List<String> processPdfInternal(File file, String originalFilename) throws Exception {
         try (PDDocument pdfDocument = Loader.loadPDF(new org.apache.pdfbox.io.RandomAccessReadBufferedFile(file))) {
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
             List<CompletableFuture<String>> pageFutures = new ArrayList<>();
@@ -270,10 +279,9 @@ public class DocumentoService {
                 }, pdfExecutor)); // Uso do executor limitado
             }
 
-            List<String> pageUrls = pageFutures.stream()
+            return pageFutures.stream()
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
-            urls.addAll(pageUrls);
         }
     }
 

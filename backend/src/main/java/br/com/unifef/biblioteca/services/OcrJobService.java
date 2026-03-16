@@ -15,8 +15,8 @@ public class OcrJobService {
     @Autowired
     private DocumentoRepository repository;
 
-    // Executa a cada 3 minutos (180.000 milissegundos)
-    @Scheduled(fixedRate = 180000)
+    // OCR automático DESABILITADO - acionado apenas manualmente pelo professor via botão "Testar OCR"
+    // @Scheduled(fixedRate = 180000)
     public void processPendingOcr() {
         List<Documento> pendentes = repository.findByStatus(StatusDocumento.PENDENTE_OCR);
         

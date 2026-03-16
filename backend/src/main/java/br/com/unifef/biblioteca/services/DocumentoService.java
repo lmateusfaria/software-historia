@@ -150,11 +150,13 @@ public class DocumentoService {
         if (dto.getPreUploadedFiles() != null && !dto.getPreUploadedFiles().isEmpty()) {
             List<String> urls = doc.getImagensUrls() != null ? doc.getImagensUrls() : new ArrayList<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
+            List<File> filesToDelete = new ArrayList<>();
 
             for (String filePath : dto.getPreUploadedFiles()) {
                 File file = new File(filePath);
                 if (file.exists()) {
                     try {
+                        filesToDelete.add(file);
                         String originalFilename = file.getName();
                         String contentType = Files.probeContentType(file.toPath());
                         
@@ -170,16 +172,27 @@ public class DocumentoService {
                                 urls.add(fileStorageService.save(multipartFile));
                             }
                         }
-                        // Limpar arquivo temporário mesclado após processar
-                        Files.deleteIfExists(file.toPath());
                     } catch (Exception e) {
-                        log.error("Erro ao processar arquivo pré-upado no disco: {}", filePath, e);
+                        log.error("Erro ao preparar arquivo pré-upado no disco: {}", filePath, e);
                     }
                 }
             }
+
             if (!futures.isEmpty()) {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
+
+            // Limpar arquivos temporários mesclados SOMENTE após o processamento completo
+            for (File f : filesToDelete) {
+                try {
+                    Files.deleteIfExists(f.toPath());
+                    // Também tenta remover a pasta pai (o ID do upload) se estiver vazia
+                    Files.deleteIfExists(f.getParentFile().toPath());
+                } catch (Exception e) {
+                    log.warn("Erro ao limpar arquivo ou pasta temporária: {}", f.getAbsolutePath());
+                }
+            }
+            
             doc.setImagensUrls(new ArrayList<>(urls));
         }
 

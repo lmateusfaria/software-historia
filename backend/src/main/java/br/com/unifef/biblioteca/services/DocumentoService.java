@@ -60,7 +60,11 @@ public class DocumentoService {
     @Autowired
     private DocumentoNodeRepository documentoNodeRepository;
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    // Executor para processamento geral (OCR, sincronização, etc)
+    private final ExecutorService generalExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    
+    // Executor dedicado para processamento de PDF (limitado para preservar RAM)
+    private final ExecutorService pdfExecutor = Executors.newFixedThreadPool(4);
 
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
@@ -150,26 +154,26 @@ public class DocumentoService {
             for (String filePath : dto.getPreUploadedFiles()) {
                 File file = new File(filePath);
                 if (file.exists()) {
-                    String originalFilename = file.getName();
-                    // Mockando MultipartFile a partir do arquivo já mesclado no disco
                     try {
-                        byte[] content = Files.readAllBytes(file.toPath());
+                        String originalFilename = file.getName();
                         String contentType = Files.probeContentType(file.toPath());
-                        MultipartFile multipartFile = new MockMultipartFile(
-                            originalFilename, originalFilename, contentType, new ByteArrayInputStream(content)
-                        );
-
+                        
                         if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
-                            futures.add(processPdf(multipartFile, urls));
+                            futures.add(processPdfFromDisk(file, urls));
                         } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
-                            urls.add(processHeic(multipartFile));
+                            urls.add(processHeicFromDisk(file));
                         } else {
-                            urls.add(fileStorageService.save(multipartFile));
+                            try (InputStream is = new java.io.FileInputStream(file)) {
+                                MultipartFile multipartFile = new MockMultipartFile(
+                                    originalFilename, originalFilename, contentType, is
+                                );
+                                urls.add(fileStorageService.save(multipartFile));
+                            }
                         }
                         // Limpar arquivo temporário mesclado após processar
                         Files.deleteIfExists(file.toPath());
                     } catch (Exception e) {
-                        log.error("Erro ao processar arquivo pré-upado: {}", filePath, e);
+                        log.error("Erro ao processar arquivo pré-upado no disco: {}", filePath, e);
                     }
                 }
             }
@@ -199,58 +203,65 @@ public class DocumentoService {
         return CompletableFuture.runAsync(() -> {
             Path tempFile = null;
             try {
-                // Criar arquivo temporário para evitar OOM com arquivos de 600MB+
                 tempFile = Files.createTempFile("pdf-upload-", ".pdf");
                 file.transferTo(tempFile.toFile());
-
-                try (PDDocument pdfDocument = Loader.loadPDF(new org.apache.pdfbox.io.RandomAccessReadBufferedFile(tempFile.toFile()))) {
-                    PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-                    List<CompletableFuture<String>> pageFutures = new ArrayList<>();
-
-                    for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
-                        final int pageNum = page;
-                        pageFutures.add(CompletableFuture.supplyAsync(() -> {
-                            try {
-                                // Usando 200 DPI para equilíbrio entre qualidade e memória/velocidade
-                                BufferedImage bim = pdfRenderer.renderImageWithDPI(pageNum, 200, ImageType.RGB);
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                ImageIO.write(bim, "jpg", baos);
-                                baos.flush();
-                                byte[] imageInByte = baos.toByteArray();
-                                
-                                String genName = (file.getOriginalFilename() != null ? 
-                                       file.getOriginalFilename().replaceAll("(?i)\\.pdf$", "") : "doc") + 
-                                       "_pag_" + (pageNum + 1) + ".jpg";
-
-                                MultipartFile pageFile = new MockMultipartFile(
-                                    genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
-                                );
-                                return fileStorageService.save(pageFile);
-                            } catch (Exception e) {
-                                throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
-                            }
-                        }, executor));
-                    }
-
-                    List<String> pageUrls = pageFutures.stream()
-                            .map(CompletableFuture::join)
-                            .collect(Collectors.toList());
-                    urls.addAll(pageUrls);
-                }
-
+                processPdfInternal(tempFile.toFile(), file.getOriginalFilename(), urls);
             } catch (Exception e) {
                 log.error("Erro ao carregar ou processar PDF", e);
                 throw new RuntimeException("Erro ao processar PDF", e);
             } finally {
                 if (tempFile != null) {
-                    try {
-                        Files.deleteIfExists(tempFile);
-                    } catch (Exception ex) {
-                        log.warn("Erro ao deletar PDF temporário", ex);
-                    }
+                    try { Files.deleteIfExists(tempFile); } catch (Exception ex) { log.warn("Erro ao deletar PDF temporário", ex); }
                 }
             }
-        }, executor);
+        }, generalExecutor);
+    }
+
+    private CompletableFuture<Void> processPdfFromDisk(File file, List<String> urls) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                processPdfInternal(file, file.getName(), urls);
+            } catch (Exception e) {
+                log.error("Erro ao processar PDF do disco", e);
+                throw new RuntimeException("Erro ao processar PDF do disco", e);
+            }
+        }, generalExecutor);
+    }
+
+    private void processPdfInternal(File file, String originalFilename, List<String> urls) throws Exception {
+        try (PDDocument pdfDocument = Loader.loadPDF(new org.apache.pdfbox.io.RandomAccessReadBufferedFile(file))) {
+            PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+            List<CompletableFuture<String>> pageFutures = new ArrayList<>();
+
+            for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
+                final int pageNum = page;
+                pageFutures.add(CompletableFuture.supplyAsync(() -> {
+                    try {
+                        BufferedImage bim = pdfRenderer.renderImageWithDPI(pageNum, 200, ImageType.RGB);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(bim, "jpg", baos);
+                        baos.flush();
+                        byte[] imageInByte = baos.toByteArray();
+                        
+                        String genName = (originalFilename != null ? 
+                               originalFilename.replaceAll("(?i)\\.pdf$", "") : "doc") + 
+                               "_pag_" + (pageNum + 1) + ".jpg";
+
+                        MultipartFile pageFile = new MockMultipartFile(
+                            genName, genName, "image/jpeg", new ByteArrayInputStream(imageInByte)
+                        );
+                        return fileStorageService.save(pageFile);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
+                    }
+                }, pdfExecutor)); // Uso do executor limitado
+            }
+
+            List<String> pageUrls = pageFutures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+            urls.addAll(pageUrls);
+        }
     }
 
     private String processHeic(MultipartFile file) {
@@ -275,12 +286,12 @@ public class DocumentoService {
             String genName = (file.getOriginalFilename() != null ? 
                     file.getOriginalFilename().replaceAll("(?i)\\.heic$", "") : "image") + ".jpg";
             
-            byte[] jpgBytes = Files.readAllBytes(tempJpg);
-            MultipartFile convertedFile = new MockMultipartFile(
-                genName, genName, "image/jpeg", new ByteArrayInputStream(jpgBytes)
-            );
-
-            return fileStorageService.save(convertedFile);
+            try (InputStream is = Files.newInputStream(tempJpg)) {
+                MultipartFile convertedFile = new MockMultipartFile(
+                    genName, genName, "image/jpeg", is
+                );
+                return fileStorageService.save(convertedFile);
+            }
 
         } catch (Exception e) {
             log.error("Erro ao converter HEIC para JPG", e);
@@ -292,6 +303,32 @@ public class DocumentoService {
             } catch (Exception ex) {
                 log.warn("Erro ao limpar arquivos temporários de conversão HEIC", ex);
             }
+        }
+    }
+
+    private String processHeicFromDisk(File file) {
+        Path tempJpg = null;
+        try {
+            Path tempHeic = file.toPath();
+            tempJpg = tempHeic.resolveSibling(tempHeic.getFileName().toString().replace(".heic", ".jpg"));
+
+            log.info("Iniciando conversão HEIC do disco para JPG: {}", tempHeic);
+            ProcessBuilder pb = new ProcessBuilder("heif-convert", tempHeic.toString(), tempJpg.toString());
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) throw new RuntimeException("Falha na conversão HEIC. Código: " + exitCode);
+
+            String genName = file.getName().replaceAll("(?i)\\.heic$", "") + ".jpg";
+            try (InputStream is = Files.newInputStream(tempJpg)) {
+                MultipartFile convertedFile = new MockMultipartFile(genName, genName, "image/jpeg", is);
+                return fileStorageService.save(convertedFile);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao converter HEIC do disco", e);
+            throw new RuntimeException("Erro ao processar HEIC do disco", e);
+        } finally {
+            if (tempJpg != null) try { Files.deleteIfExists(tempJpg); } catch (Exception ex) {}
         }
     }
 

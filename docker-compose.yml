@@ -9,7 +9,7 @@ services:
           - back-biblioteca-digital
       infra_network:
     environment:
-      - JAVA_OPTS=-Xmx384m -Xms256m
+      - JAVA_OPTS=-Xmx1024m -Xms512m
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://atb-db-postgres:5432/db_biblioteca_digital_unifef
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -19,7 +19,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1536M
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 8080 || exit 1" ]
       interval: 30s

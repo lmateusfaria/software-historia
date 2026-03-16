@@ -11,8 +11,24 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 })
 export class Home implements OnInit, AfterViewInit, OnDestroy {
 
-  // Sinal para controlar qual card está em foco (para o efeito de blur global)
+  // Sinal para controlar qual card está em foco
   protected focusedCard = signal<number | null>(null);
+
+  // Referências para limpeza
+  private rafId: number | null = null;
+  private scrollObserver: IntersectionObserver | null = null;
+  private counterObserver: IntersectionObserver | null = null;
+  private resizeListener: (() => void) | null = null;
+
+  // WebGL Uniform Locations Cache
+  private locations: {
+    res?: WebGLUniformLocation | null;
+    time?: WebGLUniformLocation | null;
+    mouse?: WebGLUniformLocation | null;
+    dpr?: WebGLUniformLocation | null;
+    points?: WebGLUniformLocation | null;
+    count?: WebGLUniformLocation | null;
+  } = {};
 
   constructor(
     private router: Router,
@@ -32,13 +48,24 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
+      // 1. Cancelar animações
+      if (this.rafId) cancelAnimationFrame(this.rafId);
+
+      // 2. Remover listeners globais
       window.removeEventListener('mousemove', this.onMouseMove);
+      if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
+
+      const heroSection = document.getElementById('hero');
+      if (heroSection) heroSection.removeEventListener('click', this.onCanvasClick);
+
+      // 3. Desconectar observers
+      if (this.scrollObserver) this.scrollObserver.disconnect();
+      if (this.counterObserver) this.counterObserver.disconnect();
     }
   }
 
   private async runHeroGSAP(): Promise<void> {
     const gsap = (await import('gsap')).gsap;
-
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.to('#hero-badge', { opacity: 1, y: 0, duration: 0.6, delay: 0.2 })
       .to('#hero-title', { opacity: 1, y: 0, duration: 0.7 }, '-=0.3')
@@ -49,7 +76,8 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
 
     gsap.set(['#hero-badge', '#hero-title', '#hero-logo', '#hero-sub', '#hero-ctas'], { y: 30 });
   }
-  private gl: WebGLRenderingContext | null = null;
+
+  private gl: WebGLRenderingContext | null = null;
   private program: WebGLProgram | null = null;
   private mouseX = 0;
   private mouseY = 0;
@@ -59,32 +87,27 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     const canvas = document.getElementById('hero-particles') as HTMLCanvasElement;
     if (!canvas) return;
 
-    this.gl = canvas.getContext('webgl', { antialias: true, alpha: true });
-    if (!this.gl) {
-      console.error('WebGL não suportado');
-      return;
-    }
+    this.gl = canvas.getContext('webgl', { antialias: false, alpha: true, preserveDrawingBuffer: false });
+    if (!this.gl) return;
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap em 2 para performance
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       if (this.gl) this.gl.viewport(0, 0, canvas.width, canvas.height);
     };
+    
+    this.resizeListener = resize;
     resize();
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', this.onMouseMove);
     
     const heroSection = document.getElementById('hero');
-    if (heroSection) {
-      heroSection.addEventListener('click', this.onCanvasClick);
-    }
+    if (heroSection) heroSection.addEventListener('click', this.onCanvasClick);
 
     const vsSource = `
       attribute vec2 a_position;
-      void main() {
-        gl_Position = vec4(a_position, 0, 1);
-      }
+      void main() { gl_Position = vec4(a_position, 0, 1); }
     `;
 
     const fsSource = `
@@ -109,8 +132,8 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
         vec2 mouseAspect = vec2(mouseUv.x * aspect, mouseUv.y);
         
         float dist = distance(uvAspect, mouseAspect);
-        vec3 color1 = vec3(0.0, 0.65, 0.61); // UNIFEF Teal
-        vec3 color2 = vec3(0.97, 0.58, 0.11); // UNIFEF Orange
+        vec3 color1 = vec3(0.0, 0.65, 0.61);
+        vec3 color2 = vec3(0.97, 0.58, 0.11);
         
         float strength = smoothstep(0.25 * aspect, 0.0, dist);
         vec3 finalColor = mix(vec3(0.01, 0.02, 0.02), color1, uv.y * 0.4);
@@ -119,30 +142,24 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
         float dTeal = distance(uvAspect, vec2(0.3 * aspect, 0.7));
         finalColor += color1 * smoothstep(0.5, 0.0, dTeal) * 0.2;
 
-        // --- Partículas Lentas ---
-        for (int i = 0; i < 36; i++) {
+        for (int i = 0; i < 20; i++) { // Reduzido de 36 para 20
           float id = float(i);
           vec2 pBase = fract(vec2(noise(vec2(id, 111.1)) + sin(u_time * 0.05 + id) * 0.05, noise(vec2(id, 222.2)) + cos(u_time * 0.03 + id) * 0.05));
           vec2 pAspect = vec2(pBase.x * aspect, pBase.y);
           float mDist = distance(pAspect, mouseAspect);
           vec2 push = mDist < 0.2 ? normalize(pAspect - mouseAspect) * (0.2 - mDist) * 0.5 : vec2(0.0);
           float d = distance(uvAspect, pAspect + push);
-          float size = 0.0008 + noise(vec2(id)) * 0.002;
+          float size = 0.001; 
           float pt = smoothstep(size, 0.0, d);
-          float glow = smoothstep(0.3 * aspect, 0.0, distance(pAspect + push, mouseAspect));
-          finalColor += pt * mix(color1, color2, glow) * (0.72 + glow * 0.48);
+          finalColor += pt * color1 * 0.8;
         }
 
-        // --- Partículas por Clique (Maiores e Interativas) ---
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10; i++) { // Reduzido de 20 para 10
           if (i >= u_clickedCount) break;
           vec2 pBase = u_clickedPoints[i];
           vec2 pAspect = vec2(pBase.x * aspect, pBase.y);
-          float mDist = distance(pAspect, mouseAspect);
-          vec2 push = mDist < 0.15 ? normalize(pAspect - mouseAspect) * (0.15 - mDist) * 0.4 : vec2(0.0);
-          float d = distance(uvAspect, pAspect + push);
-          float size = 0.003; // 30%+ maior que as normais
-          float pt = smoothstep(size, 0.0, d);
+          float d = distance(uvAspect, pAspect);
+          float pt = smoothstep(0.003, 0.0, d);
           finalColor += pt * color2 * 0.8;
         }
 
@@ -153,6 +170,14 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     this.program = this.createProgram(vsSource, fsSource);
     if (!this.program) return;
 
+    // Cache locations
+    this.locations.res = this.gl.getUniformLocation(this.program, 'u_resolution');
+    this.locations.time = this.gl.getUniformLocation(this.program, 'u_time');
+    this.locations.mouse = this.gl.getUniformLocation(this.program, 'u_mouse');
+    this.locations.dpr = this.gl.getUniformLocation(this.program, 'u_dpr');
+    this.locations.points = this.gl.getUniformLocation(this.program, 'u_clickedPoints');
+    this.locations.count = this.gl.getUniformLocation(this.program, 'u_clickedCount');
+
     const positionBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), this.gl.STATIC_DRAW);
@@ -162,34 +187,29 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
       this.gl.clear(this.gl.COLOR_BUFFER_BIT);
       this.gl.useProgram(this.program);
 
-      const resLoc = this.gl.getUniformLocation(this.program, 'u_resolution');
-      const timeLoc = this.gl.getUniformLocation(this.program, 'u_time');
-      const mouseLoc = this.gl.getUniformLocation(this.program, 'u_mouse');
-      const dprLoc = this.gl.getUniformLocation(this.program, 'u_dpr');
-      const pointsLoc = this.gl.getUniformLocation(this.program, 'u_clickedPoints');
-      const countLoc = this.gl.getUniformLocation(this.program, 'u_clickedCount');
-
-      this.gl.uniform2f(resLoc, canvas.width, canvas.height);
-      this.gl.uniform1f(timeLoc, time * 0.001);
-      this.gl.uniform2f(mouseLoc, this.mouseX, this.mouseY);
-      this.gl.uniform1f(dprLoc, window.devicePixelRatio || 1);
+      this.gl.uniform2f(this.locations.res!, canvas.width, canvas.height);
+      this.gl.uniform1f(this.locations.time!, time * 0.001);
+      this.gl.uniform2f(this.locations.mouse!, this.mouseX, this.mouseY);
+      this.gl.uniform1f(this.locations.dpr!, window.devicePixelRatio || 1);
       
       const flatPoints = new Float32Array(40);
       this.clickedParticles.forEach((p, i) => {
-        flatPoints[i * 2] = p.x;
-        flatPoints[i * 2 + 1] = p.y;
+        if (i < 20) {
+          flatPoints[i * 2] = p.x;
+          flatPoints[i * 2 + 1] = p.y;
+        }
       });
-      this.gl.uniform2fv(pointsLoc, flatPoints);
-      this.gl.uniform1i(countLoc, this.clickedParticles.length);
+      this.gl.uniform2fv(this.locations.points!, flatPoints);
+      this.gl.uniform1i(this.locations.count!, Math.min(this.clickedParticles.length, 10));
 
       const posLoc = this.gl.getAttribLocation(this.program, 'a_position');
       this.gl.enableVertexAttribArray(posLoc);
       this.gl.vertexAttribPointer(posLoc, 2, this.gl.FLOAT, false, 0, 0);
 
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-      requestAnimationFrame(animate);
+      this.rafId = requestAnimationFrame(animate);
     };
-    requestAnimationFrame(animate);
+    this.rafId = requestAnimationFrame(animate);
   }
 
   private onMouseMove = (e: MouseEvent): void => {
@@ -228,23 +248,23 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private observeScrollElements(): void {
-    const observer = new IntersectionObserver((entries) => {
+    this.scrollObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           (entry.target as HTMLElement).style.animation = 'fadeUpIn 0.7s ease-out both';
           (entry.target as HTMLElement).style.opacity = '1';
-          observer.unobserve(entry.target);
+          this.scrollObserver?.unobserve(entry.target);
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
 
     document.querySelectorAll('.feat-animate, .stat-item, .cta-animate').forEach(el => {
-      observer.observe(el);
+      this.scrollObserver?.observe(el);
     });
   }
 
   private runCounters(): void {
-    const counterObserver = new IntersectionObserver((entries) => {
+    this.counterObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const el = entry.target as HTMLElement;
@@ -261,21 +281,16 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
             }
           };
           tick();
-          counterObserver.unobserve(entry.target);
+          this.counterObserver?.unobserve(entry.target);
         }
       });
     }, { threshold: 0.5 });
 
-    document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+    document.querySelectorAll('.counter').forEach(el => this.counterObserver?.observe(el));
   }
 
-  onGetStarted(): void {
-    this.router.navigate(['/login']);
-  }
-
-  onExploreFeatures(): void {
-    this.router.navigate(['/register']);
-  }
+  onGetStarted(): void { this.router.navigate(['/login']); }
+  onExploreFeatures(): void { this.router.navigate(['/register']); }
 
   scrollToSection(sectionId: string): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -285,32 +300,5 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
 
   setFocusedCard(index: number | null): void {
     this.focusedCard.set(index);
-  }
-
-  getCardStyles(cardNumber: number, type: 'teal' | 'orange') {
-    if (this.focusedCard() === cardNumber) {
-      if (type === 'teal') {
-        return {
-          'box-shadow': '0 0 40px rgba(0, 167, 157, 0.6), inset 0 0 15px rgba(0, 167, 157, 0.1)',
-          'border-color': 'rgba(0, 167, 157, 0.8)'
-        };
-      } else {
-        return {
-          'box-shadow': '0 0 40px rgba(247, 148, 29, 0.6), inset 0 0 15px rgba(247, 148, 29, 0.1)',
-          'border-color': 'rgba(247, 148, 29, 0.8)'
-        };
-      }
-    }
-    return {};
-  }
-  
-  getCardClasses(cardNumber: number) {
-    const focused = this.focusedCard();
-    if (focused === cardNumber) {
-      return 'z-40 transform scale-110 -translate-y-2';
-    } else if (focused !== null) {
-      return 'blur-[5px] opacity-40 transform scale-95';
-    }
-    return '';
   }
 }

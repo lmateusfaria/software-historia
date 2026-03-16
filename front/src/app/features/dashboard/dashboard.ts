@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { UserService, UsuarioDTO } from '../../core/user.service';
 import { AuthService } from '../../core/auth.service';
-import { DocumentoService } from '../../core/documento.service';
+import { DocumentoService, OcrResultadoDTO } from '../../core/documento.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DecimalPipe, DatePipe } from '@angular/common';
@@ -67,6 +67,13 @@ export class Dashboard implements OnInit, OnDestroy {
   private routerSub?: Subscription;
   showDeleteAccountModal: boolean = false;
   deleteAccountPassword: string = '';
+
+  // OCR Test
+  showOcrTest: boolean = false;
+  ocrFile: File | null = null;
+  ocrResult: OcrResultadoDTO | null = null;
+  ocrLoading: boolean = false;
+  ocrError: string = '';
 
   constructor(
     private userInfo: UserInfoService,
@@ -222,22 +229,22 @@ export class Dashboard implements OnInit, OnDestroy {
         this.totalAcervos = docs.length;
         this.totalAguardandoRevisao = docs.filter(d => d.status === 'PENDENTE' || d.status === 'AGUARDANDO_REVISAO' || !d.status).length;
         
-        // Lógica para contribuição do usuário logado
+        // Logica para contribuicao do usuario logado
         if (this.usuario) {
           this.minhaContribuicao = docs.filter(d => d.usuarioId === this.usuario?.id).length;
         }
 
-        // Dados simulados para manter a estética do dashboard (podem ser integrados futuramente)
+        // Dados simulados para manter a estetica do dashboard (podem ser integrados futuramente)
         this.statusCrescimento = 'positivo';
-        this.crescimentoVariavel = 12; // Exemplo: 12% de crescimento
+        this.crescimentoVariavel = 12;
         this.statusRevisao = 'negativo';
-        this.crescimentoRevisao = 5; // Exemplo: +5% de documentos pendentes
-        this.tempoUltimaRevisao = 'Há 2 horas';
+        this.crescimentoRevisao = 5;
+        this.tempoUltimaRevisao = 'Ha 2 horas';
 
         this.atividades = [
-          { inicial: 'AD', nome: 'Admin', acao: 'Aprovou 5 documentos', tempo: '15 min atrás', cor: 'bg-primary/20 text-primary' },
-          { inicial: 'US', nome: 'Usuário', acao: 'Fez upload de "Ata_1950.pdf"', tempo: '1 hora atrás', cor: 'bg-blue-100 text-blue-600' },
-          { inicial: 'LG', nome: 'Log', acao: 'Processamento OCR concluído', tempo: '3 horas atrás', cor: 'bg-green-100 text-green-600' }
+          { inicial: 'AD', nome: 'Admin', acao: 'Aprovou 5 documentos', tempo: '15 min atras', cor: 'bg-primary/20 text-primary' },
+          { inicial: 'US', nome: 'Usuario', acao: 'Fez upload de "Ata_1950.pdf"', tempo: '1 hora atras', cor: 'bg-blue-100 text-blue-600' },
+          { inicial: 'LG', nome: 'Log', acao: 'Processamento OCR concluido', tempo: '3 horas atras', cor: 'bg-green-100 text-green-600' }
         ];
 
         this.distribuicaoTipos = [
@@ -248,6 +255,51 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erro ao carregar documentos', err);
+      }
+    });
+  }
+
+  // OCR Test Methods
+  onTestarOcr() {
+    this.showOcrTest = true;
+    this.ocrFile = null;
+    this.ocrResult = null;
+    this.ocrError = '';
+  }
+
+  onCloseOcr() {
+    this.showOcrTest = false;
+    this.ocrFile = null;
+    this.ocrResult = null;
+    this.ocrError = '';
+    this.ocrLoading = false;
+  }
+
+  onOcrFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.ocrFile = input.files[0];
+      this.ocrResult = null;
+      this.ocrError = '';
+    }
+  }
+
+  onSubmitOcr() {
+    if (!this.ocrFile) return;
+    this.ocrLoading = true;
+    this.ocrError = '';
+    this.ocrResult = null;
+
+    this.documentoService.testarOcr(this.ocrFile).subscribe({
+      next: (result) => {
+        this.ocrResult = result;
+        this.ocrLoading = false;
+        this.toast.success('Extracao OCR concluida com sucesso!');
+      },
+      error: (err) => {
+        this.ocrLoading = false;
+        this.ocrError = err.error?.textoCompleto || 'Erro ao processar OCR. Verifique se a API Key esta configurada.';
+        this.toast.error('Erro ao processar OCR');
       }
     });
   }

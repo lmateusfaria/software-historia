@@ -101,9 +101,14 @@
         <!-- Card 1 -->
         <div
           (mouseenter)="setFocusedCard(1)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 1" [class.scale-110]="focusedCard() === 1" [class.-translate-y-2]="focusedCard() === 1"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 1" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 1" [class.scale-95]="focusedCard() !== null && focusedCard() !== 1"
-          [ngStyle]="getCardStyles(1, 'teal')"
+          [class.z-40]="focusedCard() === 1" 
+          [class.scale-110]="focusedCard() === 1" 
+          [class.-translate-y-2]="focusedCard() === 1"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 1" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 1" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 1"
+          [style.box-shadow]="focusedCard() === 1 ? '0 0 40px rgba(0, 167, 157, 0.6), inset 0 0 15px rgba(0, 167, 157, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 1 ? 'rgba(0, 167, 157, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
@@ -120,9 +125,14 @@
         <!-- Card 2 -->
         <div
           (mouseenter)="setFocusedCard(2)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 2" [class.scale-110]="focusedCard() === 2" [class.-translate-y-2]="focusedCard() === 2"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 2" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 2" [class.scale-95]="focusedCard() !== null && focusedCard() !== 2"
-          [ngStyle]="getCardStyles(2, 'orange')"
+          [class.z-40]="focusedCard() === 2" 
+          [class.scale-110]="focusedCard() === 2" 
+          [class.-translate-y-2]="focusedCard() === 2"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 2" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 2" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 2"
+          [style.box-shadow]="focusedCard() === 2 ? '0 0 40px rgba(247, 148, 29, 0.6), inset 0 0 15px rgba(247, 148, 29, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 2 ? 'rgba(247, 148, 29, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
@@ -139,9 +149,14 @@
         <!-- Card 3 -->
         <div
           (mouseenter)="setFocusedCard(3)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 3" [class.scale-110]="focusedCard() === 3" [class.-translate-y-2]="focusedCard() === 3"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 3" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 3" [class.scale-95]="focusedCard() !== null && focusedCard() !== 3"
-          [ngStyle]="getCardStyles(3, 'teal')"
+          [class.z-40]="focusedCard() === 3" 
+          [class.scale-110]="focusedCard() === 3" 
+          [class.-translate-y-2]="focusedCard() === 3"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 3" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 3" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 3"
+          [style.box-shadow]="focusedCard() === 3 ? '0 0 40px rgba(0, 167, 157, 0.6), inset 0 0 15px rgba(0, 167, 157, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 3 ? 'rgba(0, 167, 157, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
@@ -158,9 +173,14 @@
         <!-- Card 4 -->
         <div
           (mouseenter)="setFocusedCard(4)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 4" [class.scale-110]="focusedCard() === 4" [class.-translate-y-2]="focusedCard() === 4"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 4" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 4" [class.scale-95]="focusedCard() !== null && focusedCard() !== 4"
-          [ngStyle]="getCardStyles(4, 'orange')"
+          [class.z-40]="focusedCard() === 4" 
+          [class.scale-110]="focusedCard() === 4" 
+          [class.-translate-y-2]="focusedCard() === 4"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 4" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 4" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 4"
+          [style.box-shadow]="focusedCard() === 4 ? '0 0 40px rgba(247, 148, 29, 0.6), inset 0 0 15px rgba(247, 148, 29, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 4 ? 'rgba(247, 148, 29, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">
@@ -177,9 +197,14 @@
         <!-- Card 5 -->
         <div
           (mouseenter)="setFocusedCard(5)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 5" [class.scale-110]="focusedCard() === 5" [class.-translate-y-2]="focusedCard() === 5"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 5" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 5" [class.scale-95]="focusedCard() !== null && focusedCard() !== 5"
-          [ngStyle]="getCardStyles(5, 'teal')"
+          [class.z-40]="focusedCard() === 5" 
+          [class.scale-110]="focusedCard() === 5" 
+          [class.-translate-y-2]="focusedCard() === 5"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 5" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 5" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 5"
+          [style.box-shadow]="focusedCard() === 5 ? '0 0 40px rgba(0, 167, 157, 0.6), inset 0 0 15px rgba(0, 167, 157, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 5 ? 'rgba(0, 167, 157, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #00A79D22, #00A79D44);">
@@ -196,9 +221,14 @@
         <!-- Card 6 -->
         <div
           (mouseenter)="setFocusedCard(6)" (mouseleave)="setFocusedCard(null)"
-          [class.z-40]="focusedCard() === 6" [class.scale-110]="focusedCard() === 6" [class.-translate-y-2]="focusedCard() === 6"
-          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 6" [class.opacity-40]="focusedCard() !== null && focusedCard() !== 6" [class.scale-95]="focusedCard() !== null && focusedCard() !== 6"
-          [ngStyle]="getCardStyles(6, 'orange')"
+          [class.z-40]="focusedCard() === 6" 
+          [class.scale-110]="focusedCard() === 6" 
+          [class.-translate-y-2]="focusedCard() === 6"
+          [class.blur-[4px]]="focusedCard() !== null && focusedCard() !== 6" 
+          [class.opacity-40]="focusedCard() !== null && focusedCard() !== 6" 
+          [class.scale-95]="focusedCard() !== null && focusedCard() !== 6"
+          [style.box-shadow]="focusedCard() === 6 ? '0 0 40px rgba(247, 148, 29, 0.6), inset 0 0 15px rgba(247, 148, 29, 0.1)' : ''"
+          [style.border-color]="focusedCard() === 6 ? 'rgba(247, 148, 29, 0.8)' : ''"
           class="feat-animate opacity-0 group relative p-6 rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark transition-all duration-500 cursor-default transform">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
             style="background: linear-gradient(135deg, #F7941D22, #F7941D44);">

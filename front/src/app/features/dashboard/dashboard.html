@@ -161,7 +161,16 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <span class="whitespace-normal text-center leading-tight">Gestão de Usuários</span>
+            <span class="whitespace-normal text-center leading-tight">Gestao de Usuarios</span>
+          </button>
+          <button (click)="onTestarOcr()"
+            class="flex-1 min-w-[130px] btn-premium flex flex-col items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold py-3 px-2 rounded-lg transition-all shadow-lg shadow-cyan-900/20 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span class="whitespace-normal text-center leading-tight">Testar OCR</span>
           </button>
           }
         </div>
@@ -319,6 +328,117 @@
           }
         </div>
       </form>
+    </div>
+  </div>
+  }
+
+  @if (showOcrTest) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-in">
+    <div class="card-premium w-full max-w-2xl !bg-white dark:!bg-[#1a1c23] max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <svg class="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Testar OCR com IA
+        </h2>
+        <button (click)="onCloseOcr()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Selecione uma imagem de documento</label>
+        <input type="file" accept="image/*" (change)="onOcrFileSelected($event)" id="ocrFileInput"
+          class="input-premium w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" />
+      </div>
+
+      <button (click)="onSubmitOcr()" [disabled]="!ocrFile || ocrLoading"
+        class="w-full btn-premium bg-cyan-600 text-white py-3 rounded-xl font-bold mb-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        @if (ocrLoading) {
+          <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Analisando com GPT-4o-mini...
+        } @else {
+          Extrair Dados com IA
+        }
+      </button>
+
+      @if (ocrResult) {
+      <div class="space-y-4">
+        <div class="card-premium !p-4 !bg-gray-50 dark:!bg-gray-800/50">
+          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Texto Extraido</h3>
+          <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ ocrResult.textoCompleto }}</p>
+        </div>
+
+        @if (ocrResult.tipoDocumento) {
+        <div class="inline-flex px-3 py-1.5 bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 text-xs font-bold rounded-full uppercase">
+          Tipo: {{ ocrResult.tipoDocumento }}
+        </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          @if (ocrResult.pessoas.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-blue-500">
+            <h4 class="text-xs font-bold text-blue-600 uppercase mb-2">Pessoas ({{ ocrResult.pessoas.length }})</h4>
+            @for (p of ocrResult.pessoas; track p) {
+            <span class="inline-block px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs rounded-lg mr-1 mb-1">{{ p }}</span>
+            }
+          </div>
+          }
+          @if (ocrResult.locais.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-green-500">
+            <h4 class="text-xs font-bold text-green-600 uppercase mb-2">Locais ({{ ocrResult.locais.length }})</h4>
+            @for (l of ocrResult.locais; track l) {
+            <span class="inline-block px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs rounded-lg mr-1 mb-1">{{ l }}</span>
+            }
+          </div>
+          }
+          @if (ocrResult.eventos.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-orange-500">
+            <h4 class="text-xs font-bold text-orange-600 uppercase mb-2">Eventos ({{ ocrResult.eventos.length }})</h4>
+            @for (e of ocrResult.eventos; track e) {
+            <span class="inline-block px-2 py-1 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 text-xs rounded-lg mr-1 mb-1">{{ e }}</span>
+            }
+          </div>
+          }
+          @if (ocrResult.organizacoes.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-purple-500">
+            <h4 class="text-xs font-bold text-purple-600 uppercase mb-2">Organizacoes ({{ ocrResult.organizacoes.length }})</h4>
+            @for (o of ocrResult.organizacoes; track o) {
+            <span class="inline-block px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 text-xs rounded-lg mr-1 mb-1">{{ o }}</span>
+            }
+          </div>
+          }
+          @if (ocrResult.assuntos.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-cyan-500">
+            <h4 class="text-xs font-bold text-cyan-600 uppercase mb-2">Assuntos ({{ ocrResult.assuntos.length }})</h4>
+            @for (a of ocrResult.assuntos; track a) {
+            <span class="inline-block px-2 py-1 bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 text-xs rounded-lg mr-1 mb-1">{{ a }}</span>
+            }
+          </div>
+          }
+          @if (ocrResult.datasMencionadas.length > 0) {
+          <div class="card-premium !p-3 border-l-4 !border-l-amber-500">
+            <h4 class="text-xs font-bold text-amber-600 uppercase mb-2">Datas ({{ ocrResult.datasMencionadas.length }})</h4>
+            @for (d of ocrResult.datasMencionadas; track d) {
+            <span class="inline-block px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-xs rounded-lg mr-1 mb-1">{{ d }}</span>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (ocrError) {
+      <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
+        {{ ocrError }}
+      </div>
+      }
     </div>
   </div>
   }

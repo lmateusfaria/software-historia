@@ -42,16 +42,16 @@ pipeline {
             steps {
                 echo 'Realizando deploy no ambiente de Produção...'
                 script {
-                    // Tenta copiar o .env de locais prováveis, mas garante a execução mesmo se falhar
+                    // Copia o .env do local correto no servidor
                     sh '''
-                        if [ -f /home/user/bibliotecadigitalunifef/.env ]; then
+                        if [ -f /home/user/projects/bibliotecadigitalunifef/.env ]; then
+                            cp /home/user/projects/bibliotecadigitalunifef/.env .env
+                        elif [ -f /home/user/bibliotecadigitalunifef/.env ]; then
                             cp /home/user/bibliotecadigitalunifef/.env .env
-                        elif [ -f /home/user/pdv/bibliotecadigital/.env ]; then
-                            cp /home/user/pdv/bibliotecadigital/.env .env
                         elif [ -f /home/user/.env ]; then
                             cp /home/user/.env .env
                         else
-                            echo "AVISO: .env não encontrado em locais padrão. Usando configurações internas."
+                            echo "AVISO: .env nao encontrado em locais padrao. Usando configuracoes internas."
                             touch .env
                         fi
                     '''

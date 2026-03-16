@@ -2,8 +2,10 @@ package br.com.unifef.biblioteca.resources;
 
 import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
+import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;
+import br.com.unifef.biblioteca.services.GptOcrService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ public class DocumentoResource {
 
     @Autowired
     private DocumentoService service;
+
+    @Autowired
+    private GptOcrService gptOcrService;
 
     @GetMapping
     public ResponseEntity<List<DocumentoDTO>> findAll() {
@@ -89,5 +94,25 @@ public class DocumentoResource {
     @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<DocumentoDTO> approve(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.approve(id));
+    }
+
+    @PostMapping(value = "/testar-ocr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<OcrResultadoDTO> testarOcr(
+            @RequestPart("file") MultipartFile file) {
+        try {
+            String contentType = file.getContentType();
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+            OcrResultadoDTO resultado = gptOcrService.extrairDadosImagem(file.getBytes(), contentType);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            System.err.println("Erro no teste OCR: " + e.getMessage());
+            e.printStackTrace();
+            OcrResultadoDTO erro = new OcrResultadoDTO();
+            erro.setTextoCompleto("Erro ao processar: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(erro);
+        }
     }
 }

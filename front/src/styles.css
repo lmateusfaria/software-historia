@@ -41,6 +41,19 @@
     @apply w-full py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-primary/20 hover:scale-[0.98] active:scale-95 transition-all disabled:opacity-50;
   }
 
+  /* Background Unificado UNIFEF */
+  .unifef-bg-container {
+    @apply min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-300 font-sans relative overflow-hidden;
+  }
+
+  .unifef-blur-teal {
+    @apply absolute top-0 right-0 w-[60%] h-[60%] bg-unifef-teal/5 dark:bg-unifef-teal/10 rounded-full blur-[120px] pointer-events-none;
+  }
+
+  .unifef-blur-orange {
+    @apply absolute bottom-0 left-0 w-[60%] h-[60%] bg-unifef-orange/5 dark:bg-unifef-orange/10 rounded-full blur-[120px] pointer-events-none;
+  }
+
   /* Animações */
   .fade-in {
     animation: fadeIn 0.8s ease-out forwards;

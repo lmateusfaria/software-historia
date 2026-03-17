@@ -5,8 +5,8 @@ import { Subscription } from 'rxjs';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { UserService, UsuarioDTO } from '../../core/user.service';
 import { AuthService } from '../../core/auth.service';
-import { DocumentoService, OcrResultadoDTO } from '../../core/documento.service';
-import { DocumentoDTO } from '../../core/models/documento.model';
+import { DocumentoService } from '../../core/documento.service';
+import { DocumentoDTO, OcrResultadoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DecimalPipe, DatePipe } from '@angular/common';
 

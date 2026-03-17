@@ -182,6 +182,16 @@ public class DocumentoService {
                 urls.addAll(future.join());
             }
             doc.setImagensUrls(urls);
+            
+            // Gerar thumbnail da primeira imagem se disponível
+            if (!urls.isEmpty()) {
+                try (InputStream is = fileStorageService.fetch(urls.get(0))) {
+                    byte[] imageBytes = is.readAllBytes();
+                    doc.setUrlThumbnail(gerarThumbnail(imageBytes, urls.get(0)));
+                } catch (Exception e) {
+                    log.warn("Falha ao gerar thumbnail para novo documento: {}", e.getMessage());
+                }
+            }
         }
 
         // Suporte para arquivos pré-upados via chunked upload
@@ -237,6 +247,16 @@ public class DocumentoService {
             }
             
             doc.setImagensUrls(existingUrls);
+
+            // Gerar thumbnail da primeira imagem do chunked upload
+            if (doc.getUrlThumbnail() == null && !existingUrls.isEmpty()) {
+                try (InputStream is = fileStorageService.fetch(existingUrls.get(0))) {
+                    byte[] imageBytes = is.readAllBytes();
+                    doc.setUrlThumbnail(gerarThumbnail(imageBytes, existingUrls.get(0)));
+                } catch (Exception e) {
+                    log.warn("Falha ao gerar thumbnail para chunked upload: {}", e.getMessage());
+                }
+            }
         }
 
         Documento savedDoc = repository.save(doc);
@@ -589,6 +609,54 @@ public class DocumentoService {
         } catch (Exception e) {
             log.error("Erro ao processar OCR para imagem {}: {}", imagemUrl, e.getMessage());
             throw new RuntimeException("Falha no processo de OCR da imagem: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public int migrarThumbnails() {
+        List<Documento> documentos = repository.findAll();
+        int count = 0;
+        for (Documento doc : documentos) {
+            if (doc.getUrlThumbnail() == null && doc.getImagensUrls() != null && !doc.getImagensUrls().isEmpty()) {
+                String primeiraImagem = doc.getImagensUrls().get(0);
+                try (InputStream is = fileStorageService.fetch(primeiraImagem)) {
+                    byte[] imageBytes = is.readAllBytes();
+                    String thumbUrl = gerarThumbnail(imageBytes, primeiraImagem);
+                    if (thumbUrl != null) {
+                        doc.setUrlThumbnail(thumbUrl);
+                        repository.save(doc);
+                        count++;
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao migrar thumbnail para documento {}: {}", doc.getId(), e.getMessage());
+                }
+            }
+        }
+        return count;
+    }
+
+    private String gerarThumbnail(byte[] imageBytes, String originalFilename) {
+        try {
+            BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            if (originalImage == null) return null;
+
+            int targetWidth = 300;
+            int targetHeight = (int) (originalImage.getHeight() * (targetWidth / (double) originalImage.getWidth()));
+
+            BufferedImage thumbnail = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+            thumbnail.getGraphics().drawImage(originalImage.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH), 0, 0, null);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(thumbnail, "jpg", baos);
+            byte[] thumbBytes = baos.toByteArray();
+
+            String thumbName = originalFilename.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "") + "_thumb.jpg";
+            MultipartFile thumbFile = new MockMultipartFile(thumbName, thumbName, "image/jpeg", new ByteArrayInputStream(thumbBytes));
+            
+            return fileStorageService.save(thumbFile);
+        } catch (Exception e) {
+            log.error("Erro ao gerar thumbnail para {}", originalFilename, e);
+            return null;
         }
     }
 }

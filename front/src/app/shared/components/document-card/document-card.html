@@ -1,0 +1,39 @@
+<div class="glass card-premium rounded-2xl overflow-hidden fade-in group cursor-pointer h-full flex flex-col"
+    [style.animation-delay]="delay"
+    (click)="onCardClick()">
+
+    <div class="aspect-[3/4] overflow-hidden relative bg-neutral-100 dark:bg-neutral-800">
+        <!-- NgOptimizedImage para performance e lazy loading nativo -->
+        <img [ngSrc]="document.urlThumbnail || document.urlImagem || ''" 
+             [alt]="document.tipo || 'Visualização do documento'"
+             fill
+             priority="false"
+             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent opacity-60"></div>
+
+        <div class="absolute top-4 left-4">
+            <span class="px-3 py-1 bg-amber-500/20 text-amber-500 text-xs font-bold rounded-full border border-amber-500/30 backdrop-blur-sm">
+                {{ document.status }}
+            </span>
+        </div>
+    </div>
+
+    <div class="p-6 flex-1 flex flex-col">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-neutral-100 mb-2 line-clamp-1 group-hover:text-amber-500 transition-colors">
+            {{ document.tipo || 'Documento' }}
+        </h3>
+        <p class="text-gray-600 dark:text-neutral-400 text-sm line-clamp-3 mb-4 flex-1">
+            {{ document.descricao }}
+        </p>
+        <div class="flex items-center justify-between pt-4 border-t border-neutral-800 text-xs text-neutral-500">
+            <span>{{ document.dataDigitalizacao | date:'dd/MM/yyyy' }}</span>
+            <span class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {{ document.usuarioNome }}
+            </span>
+        </div>
+    </div>
+</div>

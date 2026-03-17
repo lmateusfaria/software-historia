@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
+import { DocumentCardComponent } from '../../shared/components/document-card/document-card';
 
 @Component({
     selector: 'app-galeria',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, DocumentCardComponent],
     templateUrl: './galeria.html',
     styleUrls: ['./galeria.css']
 })

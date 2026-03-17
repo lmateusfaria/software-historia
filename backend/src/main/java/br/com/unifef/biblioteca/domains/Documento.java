@@ -43,6 +43,7 @@ public class Documento {
     private String localOrigem;
     private String edicao;
     private String marcadores; 
+    private String urlThumbnail;
 
     public Documento() {}
 
@@ -103,5 +104,8 @@ public class Documento {
 
     public String getMarcadores() { return marcadores; }
     public void setMarcadores(String marcadores) { this.marcadores = marcadores; }
+
+    public String getUrlThumbnail() { return urlThumbnail; }
+    public void setUrlThumbnail(String urlThumbnail) { this.urlThumbnail = urlThumbnail; }
 }
 

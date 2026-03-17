@@ -121,4 +121,14 @@ public class DocumentoResource {
     public ResponseEntity<OcrResultadoDTO> ocrImagem(@PathVariable Long id, @RequestParam String imagemUrl) {
         return ResponseEntity.ok(service.processarOcrImagem(id, imagemUrl));
     }
+
+    @PostMapping(value = "/migrar-thumbnails")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<Map<String, String>> migrarThumbnails() {
+        int processados = service.migrarThumbnails();
+        Map<String, String> response = new HashMap<>();
+        response.put("mensagem", "Processamento de thumbnails finalizado");
+        response.put("processados", String.valueOf(processados));
+        return ResponseEntity.ok(response);
+    }
 }

@@ -25,6 +25,7 @@ public class DocumentoDTO implements Serializable {
     private Long id;
     private String descricao;
     private String urlImagem;
+    private String urlThumbnail;
     private String conteudoOcr;
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataDigitalizacao;
@@ -52,6 +53,7 @@ public class DocumentoDTO implements Serializable {
         this.id = obj.getId();
         this.descricao = obj.getDescricao();
         this.urlImagem = obj.getUrlImagem() != null ? "/api/documentos/download/" + obj.getUrlImagem() : null;
+        this.urlThumbnail = obj.getUrlThumbnail() != null ? "/api/documentos/download/" + obj.getUrlThumbnail() : this.urlImagem;
         this.conteudoOcr = obj.getConteudoOcr();
         this.dataDigitalizacao = obj.getDataDigitalizacao();
         this.status = obj.getStatus();
@@ -99,6 +101,9 @@ public class DocumentoDTO implements Serializable {
 
     public String getUrlImagem() { return urlImagem; }
     public void setUrlImagem(String urlImagem) { this.urlImagem = urlImagem; }
+
+    public String getUrlThumbnail() { return urlThumbnail; }
+    public void setUrlThumbnail(String urlThumbnail) { this.urlThumbnail = urlThumbnail; }
 
     public String getConteudoOcr() { return conteudoOcr; }
     public void setConteudoOcr(String conteudoOcr) { this.conteudoOcr = conteudoOcr; }

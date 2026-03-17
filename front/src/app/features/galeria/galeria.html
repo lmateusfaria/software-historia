@@ -62,50 +62,12 @@
             </div>
         </div>
 
-        <!-- Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            <div *ngFor="let doc of documentosFiltrados; let i = index"
-                class="glass card-premium rounded-2xl overflow-hidden fade-in group cursor-pointer"
-                [style.animation-delay]="(i * 0.05) + 's'"
-                (click)="verDetalhes(doc.id!)">
-
-                <div class="aspect-[3/4] overflow-hidden relative">
-                    <img [src]="doc.urlImagem" [alt]="doc.tipo || 'Visualização do documento'"
-                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent opacity-60">
-                    </div>
-
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-3 py-1 bg-amber-500/20 text-amber-500 text-xs font-bold rounded-full border border-amber-500/30 backdrop-blur-sm">
-                            {{ doc.status }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    <h3
-                        class="text-lg font-bold text-gray-900 dark:text-neutral-100 mb-2 line-clamp-1 group-hover:text-amber-500 transition-colors">
-                        {{ doc.tipo || 'Documento' }}
-                    </h3>
-                    <p class="text-gray-600 dark:text-neutral-400 text-sm line-clamp-3 mb-4">
-                        {{ doc.descricao }}
-                    </p>
-                    <div
-                        class="flex items-center justify-between pt-4 border-t border-neutral-800 text-xs text-neutral-500">
-                        <span>{{ doc.dataDigitalizacao | date:'dd/MM/yyyy' }}</span>
-                        <span class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            {{ doc.usuarioNome }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <app-document-card *ngFor="let doc of documentosFiltrados; let i = index"
+                [document]="doc"
+                [index]="i"
+                (clickCard)="verDetalhes($event)">
+            </app-document-card>
         </div>
 
         <!-- Empty State -->

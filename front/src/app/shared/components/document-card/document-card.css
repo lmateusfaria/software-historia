@@ -1,0 +1,5 @@
+/* Estilos específicos do card se necessário, mas a maioria vem do global.css ou utilitários */
+:host {
+    display: block;
+    height: 100%;
+}

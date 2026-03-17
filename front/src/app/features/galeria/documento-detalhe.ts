@@ -22,6 +22,15 @@ export class DocumentoDetalheComponent implements OnInit {
     loadingOcr: { [url: string]: boolean } = {};
     ocrResultados: { [url: string]: OcrResultadoDTO } = {};
 
+    // Zoom e Pan State
+    zoom = 1;
+    isPanning = false;
+    startX = 0;
+    startY = 0;
+    posX = 0;
+    posY = 0;
+    isFullscreen = false;
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -99,6 +108,77 @@ export class DocumentoDetalheComponent implements OnInit {
 
     selecionarImagem(url: string) {
         this.imagemSelecionada = url;
+        this.resetZoom();
+    }
+
+    // Métodos de Zoom e Pan
+    zoomIn() {
+        this.zoom = Math.min(this.zoom + 0.2, 3);
+    }
+
+    zoomOut() {
+        this.zoom = Math.max(this.zoom - 0.2, 1);
+        if (this.zoom === 1) this.resetPan();
+    }
+
+    resetZoom() {
+        this.zoom = 1;
+        this.resetPan();
+    }
+
+    resetPan() {
+        this.posX = 0;
+        this.posY = 0;
+    }
+
+    toggleFullscreen() {
+        this.isFullscreen = !this.isFullscreen;
+        if (!this.isFullscreen) this.resetZoom();
+    }
+
+    onMouseDown(e: MouseEvent) {
+        if (this.zoom > 1) {
+            this.isPanning = true;
+            this.startX = e.clientX - this.posX;
+            this.startY = e.clientY - this.posY;
+            e.preventDefault();
+        }
+    }
+
+    onMouseMove(e: MouseEvent) {
+        if (this.isPanning && this.zoom > 1) {
+            this.posX = e.clientX - this.startX;
+            this.posY = e.clientY - this.startY;
+        }
+    }
+
+    onMouseUp() {
+        this.isPanning = false;
+    }
+
+    // Touch events for mobile
+    onTouchStart(e: TouchEvent) {
+        if (this.zoom > 1 && e.touches.length === 1) {
+            this.isPanning = true;
+            this.startX = e.touches[0].clientX - this.posX;
+            this.startY = e.touches[0].clientY - this.posY;
+        }
+    }
+
+    onTouchMove(e: TouchEvent) {
+        if (this.isPanning && this.zoom > 1 && e.touches.length === 1) {
+            this.posX = e.touches[0].clientX - this.startX;
+            this.posY = e.touches[0].clientY - this.startY;
+            e.preventDefault();
+        }
+    }
+
+    onTouchEnd() {
+        this.isPanning = false;
+    }
+
+    get transformStyle() {
+        return `scale(${this.zoom}) translate(${this.posX / this.zoom}px, ${this.posY / this.zoom}px)`;
     }
 
     extrairOcrDaImagem() {

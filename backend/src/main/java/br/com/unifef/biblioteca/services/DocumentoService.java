@@ -138,7 +138,38 @@ public class DocumentoService {
             log.warn("O sistema seguirá servindo o documento básico do PostgreSQL.");
         }
         
-        return new DocumentoDTO(doc, node);
+        DocumentoDTO dto = new DocumentoDTO(doc, node);
+        
+        // Carregar resultados de OCR persistidos para cada imagem
+        List<ImagemOcrResultado> ocrResultados = imagemOcrRepository.findByDocumentoIdOrderByIndice(id);
+        if (ocrResultados != null && !ocrResultados.isEmpty()) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, OcrResultadoDTO> ocrMap = new HashMap<>();
+            
+            for (ImagemOcrResultado res : ocrResultados) {
+                try {
+                    OcrResultadoDTO ocrDto = new OcrResultadoDTO();
+                    ocrDto.setTextoCompleto(res.getTextoExtraido());
+                    ocrDto.setTipoDocumento(res.getTipoDocumento());
+                    
+                    if (res.getPessoasExtraidas() != null) ocrDto.setPessoas(mapper.readValue(res.getPessoasExtraidas(), new TypeReference<List<String>>(){}));
+                    if (res.getLocaisExtraidos() != null) ocrDto.setLocais(mapper.readValue(res.getLocaisExtraidos(), new TypeReference<List<String>>(){}));
+                    if (res.getEventosExtraidos() != null) ocrDto.setEventos(mapper.readValue(res.getEventosExtraidos(), new TypeReference<List<String>>(){}));
+                    if (res.getOrganizacoesExtraidas() != null) ocrDto.setOrganizacoes(mapper.readValue(res.getOrganizacoesExtraidas(), new TypeReference<List<String>>(){}));
+                    if (res.getAssuntosExtraidos() != null) ocrDto.setAssuntos(mapper.readValue(res.getAssuntosExtraidos(), new TypeReference<List<String>>(){}));
+                    if (res.getDatasMencionadas() != null) ocrDto.setDatasMencionadas(mapper.readValue(res.getDatasMencionadas(), new TypeReference<List<String>>(){}));
+                    
+                    // A chave deve ser a URL formatada para o download, para coincidir com o frontend
+                    String fullUrl = "/api/documentos/download/" + res.getImagemUrl();
+                    ocrMap.put(fullUrl, ocrDto);
+                } catch (Exception e) {
+                    log.error("Erro ao converter OCR persistido para DTO no documento {}", id, e);
+                }
+            }
+            dto.setOcrResultadosImagem(ocrMap);
+        }
+        
+        return dto;
     }
 
     @Transactional(transactionManager = "transactionManager")

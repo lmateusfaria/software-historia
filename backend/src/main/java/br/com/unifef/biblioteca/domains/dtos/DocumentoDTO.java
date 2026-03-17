@@ -45,6 +45,7 @@ public class DocumentoDTO implements Serializable {
     private List<String> eventos = new ArrayList<>();
     private List<String> organizacoes = new ArrayList<>();
     private List<String> preUploadedFiles = new ArrayList<>();
+    private java.util.Map<String, OcrResultadoDTO> ocrResultadosImagem = new java.util.HashMap<>();
 
     public DocumentoDTO() {
     }
@@ -158,4 +159,7 @@ public class DocumentoDTO implements Serializable {
 
     public List<String> getPreUploadedFiles() { return preUploadedFiles; }
     public void setPreUploadedFiles(List<String> preUploadedFiles) { this.preUploadedFiles = preUploadedFiles; }
+
+    public java.util.Map<String, OcrResultadoDTO> getOcrResultadosImagem() { return ocrResultadosImagem; }
+    public void setOcrResultadosImagem(java.util.Map<String, OcrResultadoDTO> ocrResultadosImagem) { this.ocrResultadosImagem = ocrResultadosImagem; }
 }

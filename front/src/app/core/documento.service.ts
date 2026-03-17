@@ -1,19 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DocumentoDTO } from './models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO } from './models/documento.model';
 import { AuthService } from './auth.service';
-
-export interface OcrResultadoDTO {
-    textoCompleto: string;
-    pessoas: string[];
-    locais: string[];
-    eventos: string[];
-    organizacoes: string[];
-    assuntos: string[];
-    datasMencionadas: string[];
-    tipoDocumento: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class DocumentoService {

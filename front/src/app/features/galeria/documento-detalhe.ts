@@ -3,9 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentoService } from '../../core/documento.service';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
-import { DocumentoDTO } from '../../core/models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
-import { OcrResultadoDTO } from '../../core/documento.service';
 
 @Component({
     selector: 'app-documento-detalhe',
@@ -97,6 +96,9 @@ export class DocumentoDetalheComponent implements OnInit {
                 if (doc.imagensUrls && doc.imagensUrls.length > 0) {
                     this.imagemSelecionada = doc.imagensUrls[0];
                 }
+                if (doc.ocrResultadosImagem) {
+                    this.ocrResultados = { ...doc.ocrResultadosImagem };
+                }
             },
             error: () => {
                 this.toast.error('Erro ao carregar detalhes do documento.');
@@ -107,8 +109,13 @@ export class DocumentoDetalheComponent implements OnInit {
     }
 
     selecionarImagem(url: string) {
+        if (this.imagemSelecionada === url) return;
         this.imagemSelecionada = url;
         this.resetZoom();
+    }
+
+    trackByUrl(index: number, url: string): string {
+        return url;
     }
 
     // Métodos de Zoom e Pan

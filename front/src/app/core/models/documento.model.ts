@@ -1,3 +1,14 @@
+export interface OcrResultadoDTO {
+    textoCompleto?: string;
+    pessoas: string[];
+    locais: string[];
+    eventos: string[];
+    organizacoes: string[];
+    assuntos: string[];
+    datasMencionadas: string[];
+    tipoDocumento?: string;
+}
+
 export interface DocumentoDTO {
     id?: number;
     descricao: string;
@@ -21,4 +32,5 @@ export interface DocumentoDTO {
     eventos?: string[];
     organizacoes?: string[];
     preUploadedFiles?: string[];
+    ocrResultadosImagem?: { [url: string]: OcrResultadoDTO };
 }

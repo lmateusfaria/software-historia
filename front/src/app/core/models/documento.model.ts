@@ -2,6 +2,7 @@ export interface DocumentoDTO {
     id?: number;
     descricao: string;
     urlImagem?: string;
+    urlThumbnail?: string;
     conteudoOcr?: string;
     dataDigitalizacao?: string;
     status?: string;

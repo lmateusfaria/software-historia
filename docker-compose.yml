@@ -10,6 +10,9 @@ services:
       infra_network:
     environment:
       - JAVA_OPTS=-Xmx1024m -Xms512m
+      - TZ=America/Sao_Paulo
+      - SPRING_JACKSON_TIME_ZONE=America/Sao_Paulo
+      - SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE=America/Sao_Paulo
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://atb-db-postgres:5432/db_biblioteca_digital_unifef
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -36,6 +39,8 @@ services:
   bibliotecadigitalunifef-front:
     image: agenciatelabranca/bibliotecadigital-frontend:latest
     container_name: bibliotecadigitalunifef-front
+    environment:
+      - TZ=America/Sao_Paulo
     depends_on:
       bibliotecadigitalunifef-back:
         condition: service_healthy
@@ -65,6 +70,7 @@ services:
     container_name: bibliotecadigitalunifef-tunnel
     command: tunnel --no-autoupdate run
     environment:
+      - TZ=America/Sao_Paulo
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - default

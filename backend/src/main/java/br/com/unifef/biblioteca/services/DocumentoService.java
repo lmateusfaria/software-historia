@@ -18,6 +18,8 @@ import br.com.unifef.biblioteca.repositories.graph.EventoRepository;
 import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
 import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.events.DocumentoCriadoEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +66,9 @@ public class DocumentoService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private DocumentoRepository repository;

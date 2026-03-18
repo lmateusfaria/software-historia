@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 
 @ComponentScan(basePackages = "br.com.unifef.biblioteca")
@@ -24,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     transactionManagerRef = "neo4jTransactionManager"
 )
 @EnableScheduling
+@EnableAsync
 @SpringBootApplication
 public class MainApplication {
 

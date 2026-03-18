@@ -5,7 +5,9 @@ public enum StatusDocumento {
     APROVADO(2, "Aprovado"),
     REJEITADO(3, "Rejeitado"),
     PENDENTE_OCR(4, "Pendente de OCR"),
-    PROCESSANDO_OCR(5, "Processando OCR");
+    PROCESSANDO_OCR(5, "Processando OCR"),
+    PROCESSANDO(6, "Processando Imagens"),
+    ERRO(7, "Erro no Processamento");
 
     private int cod;
     private String descricao;

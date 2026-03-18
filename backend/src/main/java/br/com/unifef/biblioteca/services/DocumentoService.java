@@ -187,7 +187,7 @@ public class DocumentoService {
     public DocumentoDTO create(DocumentoDTO dto, List<MultipartFile> files) {
         Documento doc = new Documento();
         doc.setDescricao(dto.getDescricao());
-        doc.setStatus(StatusDocumento.PENDENTE_OCR);
+        doc.setStatus(StatusDocumento.PROCESSANDO); // Status inicial durante o processamento assíncrono
         doc.setDataDigitalizacao(LocalDate.now());
         doc.setTipo(dto.getTipo());
         doc.setDiaDocumento(dto.getDiaDocumento());
@@ -201,129 +201,136 @@ public class DocumentoService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         doc.setResponsavel(usuario);
 
-        if (files != null && !files.isEmpty()) {
-            List<CompletableFuture<List<String>>> futures = new ArrayList<>();
-
-            for (MultipartFile file : files) {
-                String originalFilename = file.getOriginalFilename();
-                String contentType = file.getContentType();
-
-                if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
-                    futures.add(processPdf(file));
-                } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
-                    futures.add(CompletableFuture.supplyAsync(() -> 
-                        Collections.singletonList(processHeic(file)), generalExecutor));
-                } else {
-                    futures.add(CompletableFuture.supplyAsync(() -> 
-                        Collections.singletonList(fileStorageService.save(file)), generalExecutor));
-                }
-            }
-
-            List<String> urls = new ArrayList<>();
-            List<String> thumbs = new ArrayList<>();
-            
-            for (CompletableFuture<List<String>> future : futures) {
-                urls.addAll(future.join());
-            }
-            doc.setImagensUrls(urls);
-            
-            // Gerar thumbnails para todas as imagens
-            for (String imageUrl : urls) {
-                try (InputStream is = fileStorageService.fetch(imageUrl)) {
-                    byte[] imageBytes = is.readAllBytes();
-                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
-                    if (thumbUrl != null) thumbs.add(thumbUrl);
-                } catch (Exception e) {
-                    log.warn("Falha ao gerar thumbnail para imagem {}: {}", imageUrl, e.getMessage());
-                }
-            }
-            doc.setThumbnailsUrls(thumbs);
-            if (!thumbs.isEmpty()) doc.setUrlThumbnail(thumbs.get(0));
-        }
-
-        // Suporte para arquivos pré-upados via chunked upload
-        if (dto.getPreUploadedFiles() != null && !dto.getPreUploadedFiles().isEmpty()) {
-            List<String> existingUrls = doc.getImagensUrls() != null ? doc.getImagensUrls() : new ArrayList<>();
-            List<CompletableFuture<List<String>>> futures = new ArrayList<>();
-            List<File> filesToDelete = new ArrayList<>();
-
-            for (String filePath : dto.getPreUploadedFiles()) {
-                File file = new File(filePath);
-                if (file.exists()) {
-                    try {
-                        filesToDelete.add(file);
-                        String originalFilename = file.getName();
-                        String contentType = Files.probeContentType(file.toPath());
-                        
-                        if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
-                            futures.add(processPdfFromDisk(file));
-                        } else if (originalFilename != null && originalFilename.toLowerCase().endsWith(".heic")) {
-                            futures.add(CompletableFuture.supplyAsync(() -> 
-                                Collections.singletonList(processHeicFromDisk(file)), generalExecutor));
-                        } else {
-                            futures.add(CompletableFuture.supplyAsync(() -> {
-                                try (InputStream is = new java.io.FileInputStream(file)) {
-                                    MultipartFile multipartFile = new MockMultipartFile(
-                                        originalFilename, originalFilename, contentType, is
-                                    );
-                                    return Collections.singletonList(fileStorageService.save(multipartFile));
-                                } catch (Exception e) {
-                                    throw new RuntimeException("Erro ao processar arquivo regular do disco", e);
-                                }
-                            }, generalExecutor));
-                        }
-                    } catch (Exception e) {
-                        log.error("Erro ao preparar arquivo pré-upado no disco: {}", filePath, e);
-                    }
-                }
-            }
-
-            for (CompletableFuture<List<String>> future : futures) {
-                existingUrls.addAll(future.join());
-            }
-
-            // Limpar arquivos temporários mesclados SOMENTE após o processamento completo
-            for (File f : filesToDelete) {
-                try {
-                    Files.deleteIfExists(f.toPath());
-                    // Também tenta remover a pasta pai (o ID do upload) se estiver vazia
-                    Files.deleteIfExists(f.getParentFile().toPath());
-                } catch (Exception e) {
-                    log.warn("Erro ao limpar arquivo ou pasta temporária: {}", f.getAbsolutePath());
-                }
-            }
-            
-            doc.setImagensUrls(existingUrls);
-
-            // Gerar thumbnails para todos os novos arquivos do chunked upload
-            List<String> thumbs = new ArrayList<>();
-            for (String imageUrl : existingUrls) {
-                try (InputStream is = fileStorageService.fetch(imageUrl)) {
-                    byte[] imageBytes = is.readAllBytes();
-                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
-                    if (thumbUrl != null) thumbs.add(thumbUrl);
-                } catch (Exception e) {
-                    log.warn("Falha ao gerar thumbnail para chunk: {}", e.getMessage());
-                }
-            }
-            doc.setThumbnailsUrls(thumbs);
-            if (!thumbs.isEmpty()) doc.setUrlThumbnail(thumbs.get(0));
-        }
-
         Documento savedDoc = repository.save(doc);
 
-        // Sincronização com Neo4j (Grafo)
-        try {
-            log.info("Sincronizando novo documento com Neo4j. ID: {}", savedDoc.getId());
-            DocumentoNode node = new DocumentoNode(savedDoc.getId(), savedDoc.getEdicao() != null ? savedDoc.getEdicao() : savedDoc.getTipo());
-            documentoNodeRepository.save(node);
-            log.info("Documento {} sincronizado com sucesso no Neo4j.", savedDoc.getId());
-        } catch (Exception e) {
-            log.error("Falha ao sincronizar documento {} com Neo4j: {}", savedDoc.getId(), e.getMessage());
-            // O processo continua pois o Postgres é a fonte primária de verdade
+        List<String> allFilePaths = new ArrayList<>();
+        
+        // Se houver arquivos pré-upados (chunks), adicionamos à lista
+        if (dto.getPreUploadedFiles() != null) {
+            allFilePaths.addAll(dto.getPreUploadedFiles());
         }
 
+        // Se houver MultipartFiles novos, salvamos temporariamente para processamento assíncrono
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                try {
+                    String tempName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                    Path tempPath = Paths.get(System.getProperty("java.io.tmpdir"), tempName);
+                    file.transferTo(tempPath.toFile());
+                    allFilePaths.add(tempPath.toString());
+                } catch (Exception e) {
+                    log.error("Erro ao salvar arquivo temporário para processamento assíncrono", e);
+                }
+            }
+        }
+
+        // Sincronização básica com Neo4j (Grafo)
+        try {
+            DocumentoNode node = new DocumentoNode(savedDoc.getId(), savedDoc.getEdicao() != null ? savedDoc.getEdicao() : savedDoc.getTipo());
+            documentoNodeRepository.save(node);
+        } catch (Exception e) {
+            log.warn("Erro ao criar node inicial no Neo4j: {}", e.getMessage());
+        }
+
+        // Disparar o processamento assíncrono via Evento
+        eventPublisher.publishEvent(new DocumentoCriadoEvent(this, savedDoc.getId(), allFilePaths));
+
         return new DocumentoDTO(savedDoc);
+    }
+
+    /**
+     * Método chamado assincronamente pelo DocumentoEventListener
+     */
+    @Transactional
+    public void processarDocumentoAssincrono(Long documentoId, List<String> filePaths) {
+        log.info("Processando documento {} com {} arquivos", documentoId, filePaths != null ? filePaths.size() : 0);
+        Documento doc = repository.findById(documentoId)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado para processamento assíncrono"));
+
+        if (filePaths == null || filePaths.isEmpty()) {
+            doc.setStatus(StatusDocumento.PENDENTE_OCR);
+            repository.save(doc);
+            return;
+        }
+
+        List<String> finalUrls = new ArrayList<>();
+        List<File> tempFilesToDelete = new ArrayList<>();
+
+        try {
+            List<CompletableFuture<List<String>>> futures = new ArrayList<>();
+
+            for (String path : filePaths) {
+                File file = new File(path);
+                if (!file.exists()) continue;
+
+                tempFilesToDelete.add(file);
+                String filename = file.getName();
+                String contentType = Files.probeContentType(file.toPath());
+
+                if (contentType != null && contentType.equalsIgnoreCase("application/pdf")) {
+                    futures.add(processPdfFromDisk(file));
+                } else if (filename.toLowerCase().endsWith(".heic")) {
+                    futures.add(CompletableFuture.supplyAsync(() -> 
+                        Collections.singletonList(processHeicFromDisk(file)), generalExecutor));
+                } else {
+                    futures.add(CompletableFuture.supplyAsync(() -> {
+                        try (InputStream is = new java.io.FileInputStream(file)) {
+                            MultipartFile multipartFile = new MockMultipartFile(
+                                filename, filename, contentType, is
+                            );
+                            return Collections.singletonList(fileStorageService.save(multipartFile));
+                        } catch (Exception e) {
+                            log.error("Erro ao salvar imagem do disco: {}", filename, e);
+                            return Collections.emptyList();
+                        }
+                    }, generalExecutor));
+                }
+            }
+
+            // Aguardar todos os processamentos
+            for (CompletableFuture<List<String>> future : futures) {
+                finalUrls.addAll(future.join());
+            }
+
+            doc.setImagensUrls(finalUrls);
+
+            // Gerar thumbnails para todas as imagens resultantes
+            List<String> thumbnails = new ArrayList<>();
+            for (String imageUrl : finalUrls) {
+                try (InputStream is = fileStorageService.fetch(imageUrl)) {
+                    byte[] imageBytes = is.readAllBytes();
+                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
+                    if (thumbUrl != null) thumbnails.add(thumbUrl);
+                } catch (Exception e) {
+                    log.warn("Falha ao gerar thumbnail assíncrono para {}: {}", imageUrl, e.getMessage());
+                }
+            }
+            doc.setThumbnailsUrls(thumbnails);
+            if (!thumbnails.isEmpty()) doc.setUrlThumbnail(thumbnails.get(0));
+
+            // Finalizar processamento
+            doc.setStatus(StatusDocumento.PENDENTE_OCR);
+            repository.save(doc);
+            log.info("Processamento assíncrono do documento {} finalizado com sucesso. {} imagens geradas.", documentoId, finalUrls.size());
+
+        } catch (Exception e) {
+            log.error("Erro grave no processamento assíncrono do documento {}: {}", documentoId, e.getMessage(), e);
+            doc.setStatus(StatusDocumento.ERRO);
+            repository.save(doc);
+        } finally {
+            // Limpeza de arquivos temporários
+            for (File f : tempFilesToDelete) {
+                try {
+                    Files.deleteIfExists(f.toPath());
+                    // Tenta remover pastas de chunks se ficarem vazias
+                    if (f.getParentFile().getName().startsWith("upload-")) {
+                         Files.deleteIfExists(f.getParentFile().toPath());
+                    }
+                } catch (Exception ex) {
+                    log.warn("Erro ao deletar arquivo temporário: {}", f.getAbsolutePath());
+                }
+            }
+        }
     }
 
     private CompletableFuture<List<String>> processPdf(MultipartFile file) {

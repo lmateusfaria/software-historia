@@ -40,6 +40,7 @@ public class DocumentoDTO implements Serializable {
     private String edicao;
     private String marcadores;
     private List<String> imagensUrls = new ArrayList<>();
+    private List<String> thumbnailsUrls = new ArrayList<>();
     private List<String> pessoas = new ArrayList<>();
     private List<String> locais = new ArrayList<>();
     private List<String> eventos = new ArrayList<>();
@@ -71,6 +72,12 @@ public class DocumentoDTO implements Serializable {
         if (obj.getImagensUrls() != null) {
             this.imagensUrls = obj.getImagensUrls().stream()
                 .map(img -> "/api/documentos/download/" + img)
+                .collect(Collectors.toList());
+        }
+
+        if (obj.getThumbnailsUrls() != null) {
+            this.thumbnailsUrls = obj.getThumbnailsUrls().stream()
+                .map(thumb -> "/api/documentos/download/" + thumb)
                 .collect(Collectors.toList());
         }
     }
@@ -144,6 +151,9 @@ public class DocumentoDTO implements Serializable {
 
     public List<String> getImagensUrls() { return imagensUrls; }
     public void setImagensUrls(List<String> imagensUrls) { this.imagensUrls = imagensUrls; }
+
+    public List<String> getThumbnailsUrls() { return thumbnailsUrls; }
+    public void setThumbnailsUrls(List<String> thumbnailsUrls) { this.thumbnailsUrls = thumbnailsUrls; }
 
     public List<String> getPessoas() { return pessoas; }
     public void setPessoas(List<String> pessoas) { this.pessoas = pessoas; }

@@ -59,6 +59,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.UUID;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 
 @Slf4j
 @Service
@@ -218,20 +220,25 @@ public class DocumentoService {
             }
 
             List<String> urls = new ArrayList<>();
+            List<String> thumbs = new ArrayList<>();
+            
             for (CompletableFuture<List<String>> future : futures) {
                 urls.addAll(future.join());
             }
             doc.setImagensUrls(urls);
             
-            // Gerar thumbnail da primeira imagem se disponível
-            if (!urls.isEmpty()) {
-                try (InputStream is = fileStorageService.fetch(urls.get(0))) {
+            // Gerar thumbnails para todas as imagens
+            for (String imageUrl : urls) {
+                try (InputStream is = fileStorageService.fetch(imageUrl)) {
                     byte[] imageBytes = is.readAllBytes();
-                    doc.setUrlThumbnail(gerarThumbnail(imageBytes, urls.get(0)));
+                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
+                    if (thumbUrl != null) thumbs.add(thumbUrl);
                 } catch (Exception e) {
-                    log.warn("Falha ao gerar thumbnail para novo documento: {}", e.getMessage());
+                    log.warn("Falha ao gerar thumbnail para imagem {}: {}", imageUrl, e.getMessage());
                 }
             }
+            doc.setThumbnailsUrls(thumbs);
+            if (!thumbs.isEmpty()) doc.setUrlThumbnail(thumbs.get(0));
         }
 
         // Suporte para arquivos pré-upados via chunked upload
@@ -288,15 +295,19 @@ public class DocumentoService {
             
             doc.setImagensUrls(existingUrls);
 
-            // Gerar thumbnail da primeira imagem do chunked upload
-            if (doc.getUrlThumbnail() == null && !existingUrls.isEmpty()) {
-                try (InputStream is = fileStorageService.fetch(existingUrls.get(0))) {
+            // Gerar thumbnails para todos os novos arquivos do chunked upload
+            List<String> thumbs = new ArrayList<>();
+            for (String imageUrl : existingUrls) {
+                try (InputStream is = fileStorageService.fetch(imageUrl)) {
                     byte[] imageBytes = is.readAllBytes();
-                    doc.setUrlThumbnail(gerarThumbnail(imageBytes, existingUrls.get(0)));
+                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
+                    if (thumbUrl != null) thumbs.add(thumbUrl);
                 } catch (Exception e) {
-                    log.warn("Falha ao gerar thumbnail para chunked upload: {}", e.getMessage());
+                    log.warn("Falha ao gerar thumbnail para chunk: {}", e.getMessage());
                 }
             }
+            doc.setThumbnailsUrls(thumbs);
+            if (!thumbs.isEmpty()) doc.setUrlThumbnail(thumbs.get(0));
         }
 
         Documento savedDoc = repository.save(doc);
@@ -501,14 +512,16 @@ public class DocumentoService {
         Documento doc = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
         
-        // 1. Remover arquivos do MinIO
-        if (doc.getImagensUrls() != null) {
-            for (String filename : doc.getImagensUrls()) {
-                try {
-                    fileStorageService.delete(filename);
-                } catch (Exception e) {
-                    log.error("Erro ao deletar arquivo no MinIO: {}. Erro: {}", filename, e.getMessage());
-                }
+        // 1. Remover arquivos do MinIO (Imagens e Thumbnails)
+        List<String> allFiles = new ArrayList<>();
+        if (doc.getImagensUrls() != null) allFiles.addAll(doc.getImagensUrls());
+        if (doc.getThumbnailsUrls() != null) allFiles.addAll(doc.getThumbnailsUrls());
+
+        for (String filename : allFiles) {
+            try {
+                fileStorageService.delete(filename);
+            } catch (Exception e) {
+                log.error("Erro ao deletar arquivo no MinIO: {}. Erro: {}", filename, e.getMessage());
             }
         }
 
@@ -562,11 +575,11 @@ public class DocumentoService {
                 imageBytes = is.readAllBytes();
             }
             
-            String mimeType = "image/jpeg";
-            if (imagemUrl.toLowerCase().endsWith(".png")) mimeType = "image/png";
-
-            // 2. Processar OCR GPT-4o-mini
-            OcrResultadoDTO ocrResult = gptOcrService.extrairDadosImagem(imageBytes, mimeType);
+            // 2. Pré-processamento avançado da imagem (Grayscale, Crop, Resize, JPEG)
+            byte[] processedBytes = preProcessarImagemParaOcr(imageBytes);
+            
+            // 3. Processar OCR GPT-4o-mini com imagem otimizada
+            OcrResultadoDTO ocrResult = gptOcrService.extrairDadosImagem(processedBytes, "image/jpeg");
 
             // 3. Salvar no Postgres
             ImagemOcrResultado entity = new ImagemOcrResultado();
@@ -657,19 +670,31 @@ public class DocumentoService {
         List<Documento> documentos = repository.findAll();
         int count = 0;
         for (Documento doc : documentos) {
-            if (doc.getUrlThumbnail() == null && doc.getImagensUrls() != null && !doc.getImagensUrls().isEmpty()) {
-                String primeiraImagem = doc.getImagensUrls().get(0);
-                try (InputStream is = fileStorageService.fetch(primeiraImagem)) {
-                    byte[] imageBytes = is.readAllBytes();
-                    String thumbUrl = gerarThumbnail(imageBytes, primeiraImagem);
-                    if (thumbUrl != null) {
-                        doc.setUrlThumbnail(thumbUrl);
-                        repository.save(doc);
-                        count++;
+            boolean mudou = false;
+            List<String> thumbs = doc.getThumbnailsUrls() != null ? doc.getThumbnailsUrls() : new ArrayList<>();
+            
+            if (doc.getImagensUrls() != null && !doc.getImagensUrls().isEmpty()) {
+                // Se não tem a lista completa de thumbs, tenta gerar para todas
+                if (thumbs.size() < doc.getImagensUrls().size()) {
+                    thumbs.clear();
+                    for (String imgUrl : doc.getImagensUrls()) {
+                        try (InputStream is = fileStorageService.fetch(imgUrl)) {
+                            byte[] imageBytes = is.readAllBytes();
+                            String thumbUrl = gerarThumbnail(imageBytes, imgUrl);
+                            if (thumbUrl != null) thumbs.add(thumbUrl);
+                        } catch (Exception e) {
+                            log.error("Erro ao migrar thumb p/ {}: {}", imgUrl, e.getMessage());
+                        }
                     }
-                } catch (Exception e) {
-                    log.error("Erro ao migrar thumbnail para documento {}: {}", doc.getId(), e.getMessage());
+                    doc.setThumbnailsUrls(thumbs);
+                    if (!thumbs.isEmpty()) doc.setUrlThumbnail(thumbs.get(0));
+                    mudou = true;
                 }
+            }
+            
+            if (mudou) {
+                repository.save(doc);
+                count++;
             }
         }
         return count;
@@ -698,5 +723,104 @@ public class DocumentoService {
             log.error("Erro ao gerar thumbnail para {}", originalFilename, e);
             return null;
         }
+    }
+
+    private byte[] preProcessarImagemParaOcr(byte[] imageBytes) {
+        try {
+            BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            if (originalImage == null) return imageBytes;
+
+            // 1. Redimensionar se for muito grande (max 2000px)
+            int maxDimension = 2000;
+            int width = originalImage.getWidth();
+            int height = originalImage.getHeight();
+            
+            if (width > maxDimension || height > maxDimension) {
+                double scale = Math.min((double) maxDimension / width, (double) maxDimension / height);
+                int newWidth = (int) (width * scale);
+                int newHeight = (int) (height * scale);
+                
+                BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_BYTE_GRAY);
+                Graphics2D g = resized.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+                g.dispose();
+                originalImage = resized;
+            } else {
+                // Converter para Escala de Cinza se não redimensionou
+                BufferedImage gray = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+                Graphics2D g = gray.createGraphics();
+                g.drawImage(originalImage, 0, 0, null);
+                g.dispose();
+                originalImage = gray;
+            }
+
+            // 2. Crop Automático (Remover bordas brancas/vazias)
+            originalImage = autoCrop(originalImage);
+
+            // 3. Exportar como JPEG comprimido
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(originalImage, "jpg", baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Erro no pré-processamento da imagem: {}", e.getMessage());
+            return imageBytes;
+        }
+    }
+
+    private BufferedImage autoCrop(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int top = 0, left = 0, bottom = height - 1, right = width - 1;
+
+        // Limiar para considerar "branco" (em escala de cinza 0-255, 240+ é quase branco)
+        int threshold = 240;
+
+        // Encontrar o topo
+        outer: for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if ((image.getRGB(x, y) & 0xFF) < threshold) {
+                    top = y;
+                    break outer;
+                }
+            }
+        }
+        // Encontrar a base
+        outer: for (int y = height - 1; y >= top; y--) {
+            for (int x = 0; x < width; x++) {
+                if ((image.getRGB(x, y) & 0xFF) < threshold) {
+                    bottom = y;
+                    break outer;
+                }
+            }
+        }
+        // Encontrar a esquerda
+        outer: for (int x = 0; x < width; x++) {
+            for (int y = top; y <= bottom; y++) {
+                if ((image.getRGB(x, y) & 0xFF) < threshold) {
+                    left = x;
+                    break outer;
+                }
+            }
+        }
+        // Encontrar a direita
+        outer: for (int x = width - 1; x >= left; x--) {
+            for (int y = top; y <= bottom; y++) {
+                if ((image.getRGB(x, y) & 0xFF) < threshold) {
+                    right = x;
+                    break outer;
+                }
+            }
+        }
+
+        int newWidth = right - left + 1;
+        int newHeight = bottom - top + 1;
+        
+        // Validar limites para evitar exceção de crop inválido
+        if (newWidth <= 0 || newHeight <= 0 || (left == 0 && top == 0 && right == width - 1 && bottom == height - 1)) {
+            return image;
+        }
+
+        return image.getSubimage(left, top, newWidth, newHeight);
     }
 }

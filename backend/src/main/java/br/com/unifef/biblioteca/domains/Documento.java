@@ -45,6 +45,11 @@ public class Documento {
     private String marcadores; 
     private String urlThumbnail;
 
+    @ElementCollection
+    @CollectionTable(name = "documento_thumbnails", joinColumns = @JoinColumn(name = "documento_id"))
+    @Column(name = "thumbnail_url")
+    private List<String> thumbnailsUrls = new ArrayList<>();
+
     public Documento() {}
 
     public Documento(Long id, String descricao, Usuario responsavel) {
@@ -107,5 +112,8 @@ public class Documento {
 
     public String getUrlThumbnail() { return urlThumbnail; }
     public void setUrlThumbnail(String urlThumbnail) { this.urlThumbnail = urlThumbnail; }
+
+    public List<String> getThumbnailsUrls() { return thumbnailsUrls; }
+    public void setThumbnailsUrls(List<String> thumbnailsUrls) { this.thumbnailsUrls = thumbnailsUrls; }
 }
 

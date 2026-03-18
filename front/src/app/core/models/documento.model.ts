@@ -27,6 +27,7 @@ export interface DocumentoDTO {
     edicao?: string;
     marcadores?: string;
     imagensUrls?: string[];
+    thumbnailsUrls?: string[];
     pessoas?: string[];
     locais?: string[];
     eventos?: string[];

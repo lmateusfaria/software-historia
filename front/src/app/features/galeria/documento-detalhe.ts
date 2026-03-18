@@ -20,6 +20,7 @@ export class DocumentoDetalheComponent implements OnInit {
     imagemSelecionada?: string;
     loadingOcr: { [url: string]: boolean } = {};
     ocrResultados: { [url: string]: OcrResultadoDTO } = {};
+    imageLoaded = false;
 
     // Zoom e Pan State
     zoom = 1;
@@ -111,7 +112,18 @@ export class DocumentoDetalheComponent implements OnInit {
     selecionarImagem(url: string) {
         if (this.imagemSelecionada === url) return;
         this.imagemSelecionada = url;
+        this.imageLoaded = false;
         this.resetZoom();
+    }
+
+    onImageLoad() {
+        this.imageLoaded = true;
+    }
+
+    get thumbSelecionada(): string | undefined {
+        if (!this.documento || !this.imagemSelecionada || !this.documento.imagensUrls || !this.documento.thumbnailsUrls) return undefined;
+        const index = this.documento.imagensUrls.indexOf(this.imagemSelecionada);
+        return index !== -1 ? this.documento.thumbnailsUrls[index] : undefined;
     }
 
     trackByUrl(index: number, url: string): string {

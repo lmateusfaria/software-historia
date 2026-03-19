@@ -251,10 +251,6 @@ public class DocumentoService {
         } catch (Exception e) {
             log.warn("Erro ao criar node inicial no Neo4j (fluxo assíncrono): {}", e.getMessage());
         }
-            doc.setStatus(StatusDocumento.PENDENTE_OCR);
-            repository.save(doc);
-            return;
-        }
 
         List<String> finalUrls = new ArrayList<>();
         List<File> tempFilesToDelete = new ArrayList<>();
@@ -429,6 +425,40 @@ public class DocumentoService {
             return pageFutures.stream()
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
+        }
+    }
+
+    private String processHeicFromDisk(File file) {
+        Path tempJpg = null;
+        try {
+            tempJpg = file.toPath().resolveSibling(file.getName().replace(".heic", ".jpg"));
+
+            log.info("Iniciando conversão HEIC para JPG (disco): {}", file.getAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder("heif-convert", file.getAbsolutePath(), tempJpg.toString());
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            log.info("Conversão HEIC finalizada (disco). Exit code: {}", exitCode);
+
+            if (exitCode != 0) {
+                log.warn("Falha ao converter HEIC {}, prosseguindo sem ele.", file.getName());
+                return null;
+            }
+
+            // Ler o JPG resultante e salvar no MinIO
+            byte[] content = Files.readAllBytes(tempJpg);
+            String finalName = file.getName().replace(".heic", ".jpg");
+            MultipartFile multipartFile = new MockMultipartFile(
+                finalName, finalName, "image/jpeg", content
+            );
+            return fileStorageService.save(multipartFile);
+
+        } catch (Exception e) {
+            log.error("Erro ao converter HEIC do disco", e);
+            return null;
+        } finally {
+            if (tempJpg != null) {
+                try { Files.deleteIfExists(tempJpg); } catch (Exception ex) { log.warn("Erro ao deletar JPG temporário", ex); }
+            }
         }
     }
 

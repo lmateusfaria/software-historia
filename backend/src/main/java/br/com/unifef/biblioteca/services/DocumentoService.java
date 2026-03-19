@@ -274,13 +274,22 @@ public class DocumentoService {
                         Collections.singletonList(processHeicFromDisk(file)), generalExecutor));
                 } else {
                     futures.add(CompletableFuture.supplyAsync(() -> {
-                        try (InputStream is = new java.io.FileInputStream(file)) {
+                        try {
+                            byte[] content = Files.readAllBytes(file.toPath());
+                            String finalContentType = Files.probeContentType(file.toPath());
+                            if (finalContentType == null) {
+                                if (filename.toLowerCase().endsWith(".png")) finalContentType = "image/png";
+                                else if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) finalContentType = "image/jpeg";
+                                else finalContentType = "application/octet-stream";
+                            }
+                            
                             MultipartFile multipartFile = new MockMultipartFile(
-                                filename, filename, contentType, is
+                                filename, filename, finalContentType, content
                             );
+                            log.info("Salvando arquivo do disco no MinIO: {} ({} bytes)", filename, content.length);
                             return Collections.singletonList(fileStorageService.save(multipartFile));
                         } catch (Exception e) {
-                            log.error("Erro ao salvar imagem do disco: {}", filename, e);
+                            log.error("Erro ao salvar imagem do disco no MinIO: {}", filename, e);
                             return Collections.emptyList();
                         }
                     }, generalExecutor));

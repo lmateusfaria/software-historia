@@ -6,6 +6,7 @@ import io.minio.GetObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class MinioStorageService implements FileStorageService {
 
@@ -30,6 +32,7 @@ public class MinioStorageService implements FileStorageService {
         try {
             ensureBucketExists();
             String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            log.info("Enviando para o MinIO: {} | Tamanho: {} bytes | ContentType: {}", filename, file.getSize(), file.getContentType());
             
             minioClient.putObject(
                 PutObjectArgs.builder()

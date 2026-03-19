@@ -26,6 +26,7 @@ public class DocumentoDTO implements Serializable {
     private String descricao;
     private String urlImagem;
     private String urlThumbnail;
+    private String urlPreview;
     private String conteudoOcr;
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataDigitalizacao;
@@ -41,6 +42,7 @@ public class DocumentoDTO implements Serializable {
     private String marcadores;
     private List<String> imagensUrls = new ArrayList<>();
     private List<String> thumbnailsUrls = new ArrayList<>();
+    private List<String> previewsUrls = new ArrayList<>();
     private List<String> pessoas = new ArrayList<>();
     private List<String> locais = new ArrayList<>();
     private List<String> eventos = new ArrayList<>();
@@ -56,6 +58,7 @@ public class DocumentoDTO implements Serializable {
         this.descricao = obj.getDescricao();
         this.urlImagem = obj.getUrlImagem() != null ? "/api/documentos/download/" + obj.getUrlImagem() : null;
         this.urlThumbnail = obj.getUrlThumbnail() != null ? "/api/documentos/download/" + obj.getUrlThumbnail() : this.urlImagem;
+        this.urlPreview = obj.getUrlPreview() != null ? "/api/documentos/download/" + obj.getUrlPreview() : this.urlImagem;
         this.conteudoOcr = obj.getConteudoOcr();
         this.dataDigitalizacao = obj.getDataDigitalizacao();
         this.status = obj.getStatus();
@@ -78,6 +81,12 @@ public class DocumentoDTO implements Serializable {
         if (obj.getThumbnailsUrls() != null) {
             this.thumbnailsUrls = obj.getThumbnailsUrls().stream()
                 .map(thumb -> "/api/documentos/download/" + thumb)
+                .collect(Collectors.toList());
+        }
+
+        if (obj.getPreviewsUrls() != null) {
+            this.previewsUrls = obj.getPreviewsUrls().stream()
+                .map(prev -> "/api/documentos/download/" + prev)
                 .collect(Collectors.toList());
         }
     }
@@ -112,6 +121,9 @@ public class DocumentoDTO implements Serializable {
 
     public String getUrlThumbnail() { return urlThumbnail; }
     public void setUrlThumbnail(String urlThumbnail) { this.urlThumbnail = urlThumbnail; }
+
+    public String getUrlPreview() { return urlPreview; }
+    public void setUrlPreview(String urlPreview) { this.urlPreview = urlPreview; }
 
     public String getConteudoOcr() { return conteudoOcr; }
     public void setConteudoOcr(String conteudoOcr) { this.conteudoOcr = conteudoOcr; }

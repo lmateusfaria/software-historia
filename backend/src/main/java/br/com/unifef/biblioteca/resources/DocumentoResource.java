@@ -80,6 +80,7 @@ public class DocumentoResource {
         
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
                 .body(resource);
     }
 
@@ -128,6 +129,16 @@ public class DocumentoResource {
         int processados = service.migrarThumbnails();
         Map<String, String> response = new HashMap<>();
         response.put("mensagem", "Processamento de thumbnails finalizado");
+        response.put("processados", String.valueOf(processados));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/migrar-previews")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<Map<String, String>> migrarPreviews() {
+        int processados = service.migrarPreviews();
+        Map<String, String> response = new HashMap<>();
+        response.put("mensagem", "Processamento de previews finalizado");
         response.put("processados", String.valueOf(processados));
         return ResponseEntity.ok(response);
     }

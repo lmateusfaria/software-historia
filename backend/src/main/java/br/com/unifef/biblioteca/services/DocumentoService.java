@@ -293,25 +293,48 @@ public class DocumentoService {
             }
 
             doc.setImagensUrls(finalUrls);
+            repository.saveAndFlush(doc); // Garante que as imagens originais persistiram
 
-            // Gerar thumbnails para todas as imagens resultantes
-            List<String> thumbnails = new ArrayList<>();
+            // Gerar thumbnails e previews para todas as imagens de forma paralela
+            List<CompletableFuture<Void>> processingFutures = new ArrayList<>();
+            List<String> thumbnails = Collections.synchronizedList(new ArrayList<>());
+            List<String> previews = Collections.synchronizedList(new ArrayList<>());
+
             for (String imageUrl : finalUrls) {
-                try (InputStream is = fileStorageService.fetch(imageUrl)) {
-                    byte[] imageBytes = is.readAllBytes();
-                    String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
-                    if (thumbUrl != null) thumbnails.add(thumbUrl);
-                } catch (Exception e) {
-                    log.warn("Falha ao gerar thumbnail assíncrono para {}: {}", imageUrl, e.getMessage());
-                }
+                processingFutures.add(CompletableFuture.runAsync(() -> {
+                    try (InputStream is = fileStorageService.fetch(imageUrl)) {
+                        byte[] imageBytes = is.readAllBytes();
+                        
+                        // Gerar Thumbnail (300px)
+                        String thumbUrl = gerarThumbnail(imageBytes, imageUrl);
+                        if (thumbUrl != null) thumbnails.add(thumbUrl);
+                        
+                        // Gerar Preview (1200px) - NOVO
+                        String previewUrl = gerarPreview(imageBytes, imageUrl);
+                        if (previewUrl != null) previews.add(previewUrl);
+                        
+                    } catch (Exception e) {
+                        log.warn("Falha ao gerar processamento visual para {}: {}", imageUrl, e.getMessage());
+                    }
+                }, generalExecutor));
             }
-            doc.setThumbnailsUrls(thumbnails);
+
+            // Aguardar todos os processamentos visuais
+            CompletableFuture.allOf(processingFutures.toArray(new CompletableFuture[0])).join();
+
+            // Ordenar para manter correspondência com as imagens originais (opcional, mas bom)
+            // Aqui simplificamos salvando as listas conforme geradas
+            doc.setThumbnailsUrls(new ArrayList<>(thumbnails));
+            doc.setPreviewsUrls(new ArrayList<>(previews));
+            
             if (!thumbnails.isEmpty()) doc.setUrlThumbnail(thumbnails.get(0));
+            if (!previews.isEmpty()) doc.setUrlPreview(previews.get(0));
 
             // Finalizar processamento
             doc.setStatus(StatusDocumento.PENDENTE_OCR);
             repository.save(doc);
-            log.info("Processamento assíncrono do documento {} finalizado com sucesso. {} imagens geradas.", documentoId, finalUrls.size());
+            log.info("Processamento assíncrono do documento {} finalizado. Imagens: {}, Thumbs: {}, Previews: {}", 
+                documentoId, finalUrls.size(), thumbnails.size(), previews.size());
 
         } catch (Exception e) {
             log.error("Erro grave no processamento assíncrono do documento {}: {}", documentoId, e.getMessage(), e);
@@ -523,6 +546,7 @@ public class DocumentoService {
         List<String> allFiles = new ArrayList<>();
         if (doc.getImagensUrls() != null) allFiles.addAll(doc.getImagensUrls());
         if (doc.getThumbnailsUrls() != null) allFiles.addAll(doc.getThumbnailsUrls());
+        if (doc.getPreviewsUrls() != null) allFiles.addAll(doc.getPreviewsUrls());
 
         for (String filename : allFiles) {
             try {
@@ -707,27 +731,76 @@ public class DocumentoService {
         return count;
     }
 
+    @Transactional(transactionManager = "transactionManager")
+    public int migrarPreviews() {
+        List<Documento> documentos = repository.findAll();
+        int count = 0;
+        for (Documento doc : documentos) {
+            boolean mudou = false;
+            List<String> previews = doc.getPreviewsUrls() != null ? doc.getPreviewsUrls() : new ArrayList<>();
+            
+            if (doc.getImagensUrls() != null && !doc.getImagensUrls().isEmpty()) {
+                if (previews.size() < doc.getImagensUrls().size()) {
+                    previews.clear();
+                    for (String imgUrl : doc.getImagensUrls()) {
+                        try (InputStream is = fileStorageService.fetch(imgUrl)) {
+                            byte[] imageBytes = is.readAllBytes();
+                            String prevUrl = gerarPreview(imageBytes, imgUrl);
+                            if (prevUrl != null) previews.add(prevUrl);
+                        } catch (Exception e) {
+                            log.error("Erro ao migrar preview p/ {}: {}", imgUrl, e.getMessage());
+                        }
+                    }
+                    doc.setPreviewsUrls(previews);
+                    if (!previews.isEmpty()) doc.setUrlPreview(previews.get(0));
+                    mudou = true;
+                }
+            }
+            
+            if (mudou) {
+                repository.save(doc);
+                count++;
+            }
+        }
+        return count;
+    }
+
     private String gerarThumbnail(byte[] imageBytes, String originalFilename) {
+        return gerarImagemRedimensionada(imageBytes, originalFilename, 300, "_thumb");
+    }
+
+    private String gerarPreview(byte[] imageBytes, String originalFilename) {
+        return gerarImagemRedimensionada(imageBytes, originalFilename, 1200, "_preview");
+    }
+
+    private String gerarImagemRedimensionada(byte[] imageBytes, String originalFilename, int targetWidth, String suffix) {
         try {
             BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (originalImage == null) return null;
 
-            int targetWidth = 300;
-            int targetHeight = (int) (originalImage.getHeight() * (targetWidth / (double) originalImage.getWidth()));
+            int width = originalImage.getWidth();
+            int height = originalImage.getHeight();
+            
+            // Se a imagem original for menor que o alvo, não redimensiona (ou redimensiona para o original)
+            int finalWidth = Math.min(targetWidth, width);
+            int finalHeight = (int) (height * (finalWidth / (double) width));
 
-            BufferedImage thumbnail = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
-            thumbnail.getGraphics().drawImage(originalImage.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH), 0, 0, null);
+            BufferedImage resized = new BufferedImage(finalWidth, finalHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = resized.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(originalImage, 0, 0, finalWidth, finalHeight, null);
+            g.dispose();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(thumbnail, "jpg", baos);
-            byte[] thumbBytes = baos.toByteArray();
+            ImageIO.write(resized, "jpg", baos);
+            byte[] outputBytes = baos.toByteArray();
 
-            String thumbName = originalFilename.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "") + "_thumb.jpg";
-            MultipartFile thumbFile = new MockMultipartFile(thumbName, thumbName, "image/jpeg", new ByteArrayInputStream(thumbBytes));
+            String newName = originalFilename.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "") + suffix + ".jpg";
+            MultipartFile multipartFile = new MockMultipartFile(newName, newName, "image/jpeg", new ByteArrayInputStream(outputBytes));
             
-            return fileStorageService.save(thumbFile);
+            return fileStorageService.save(multipartFile);
         } catch (Exception e) {
-            log.error("Erro ao gerar thumbnail para {}", originalFilename, e);
+            log.error("Erro ao gerar {} para {}", suffix, originalFilename, e);
             return null;
         }
     }

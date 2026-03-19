@@ -44,11 +44,17 @@ public class Documento {
     private String edicao;
     private String marcadores; 
     private String urlThumbnail;
+    private String urlPreview;
 
     @ElementCollection
     @CollectionTable(name = "documento_thumbnails", joinColumns = @JoinColumn(name = "documento_id"))
     @Column(name = "thumbnail_url")
     private List<String> thumbnailsUrls = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "documento_previews", joinColumns = @JoinColumn(name = "documento_id"))
+    @Column(name = "preview_url")
+    private List<String> previewsUrls = new ArrayList<>();
 
     public Documento() {}
 
@@ -113,7 +119,13 @@ public class Documento {
     public String getUrlThumbnail() { return urlThumbnail; }
     public void setUrlThumbnail(String urlThumbnail) { this.urlThumbnail = urlThumbnail; }
 
+    public String getUrlPreview() { return urlPreview; }
+    public void setUrlPreview(String urlPreview) { this.urlPreview = urlPreview; }
+
     public List<String> getThumbnailsUrls() { return thumbnailsUrls; }
     public void setThumbnailsUrls(List<String> thumbnailsUrls) { this.thumbnailsUrls = thumbnailsUrls; }
+
+    public List<String> getPreviewsUrls() { return previewsUrls; }
+    public void setPreviewsUrls(List<String> previewsUrls) { this.previewsUrls = previewsUrls; }
 }
 

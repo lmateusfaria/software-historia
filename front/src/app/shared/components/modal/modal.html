@@ -1,0 +1,46 @@
+<div *ngIf="isVisible" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in transition-all">
+    <div class="glass card-premium w-full max-w-md p-8 relative overflow-hidden">
+        <!-- Background Blurs inside modal -->
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/10 blur-3xl rounded-full"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-teal-500/10 blur-3xl rounded-full"></div>
+
+        <div class="relative z-10">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-2">{{ title }}</h3>
+            
+            <div *ngIf="!error" class="mt-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-500 dark:text-neutral-400">Progresso</span>
+                    <span class="text-sm font-bold text-amber-500">{{ progress }}%</span>
+                </div>
+                <!-- Progress Bar Container -->
+                <div class="w-full h-3 bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                    <div class="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300 ease-out shadow-lg shadow-amber-500/20"
+                         [style.width.%]="progress"></div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-neutral-500 mt-4 text-center">
+                    Aguarde, não feche esta página até a finalização.
+                </p>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="error" class="mt-6 animate-in slide-in-from-bottom-2">
+                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start space-x-3 mb-6">
+                    <div class="bg-red-500/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-red-400">Erro no Upload</h4>
+                        <p class="text-xs text-red-400/80 mt-1 leading-relaxed">{{ error }}</p>
+                    </div>
+                </div>
+                
+                <button (click)="onClose()" 
+                    class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-900/20">
+                    Fechar e Tentar Novamente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

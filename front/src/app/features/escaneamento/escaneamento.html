@@ -127,4 +127,12 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal de Progresso -->
+    <app-modal 
+        [isVisible]="isUploading" 
+        [progress]="uploadProgress" 
+        [error]="uploadError"
+        (close)="isUploading = false; uploadError = null">
+    </app-modal>
 </div>

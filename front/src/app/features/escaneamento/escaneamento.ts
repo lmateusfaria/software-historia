@@ -8,10 +8,12 @@ import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
 import { lastValueFrom } from 'rxjs';
 
+import { ModalComponent } from '../../shared/components/modal/modal';
+
 @Component({
     selector: 'app-escaneamento',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ModalComponent],
     templateUrl: './escaneamento.html',
     styleUrls: ['./escaneamento.css']
 })
@@ -31,6 +33,9 @@ export class EscaneamentoComponent implements OnInit {
     currentYear = new Date().getFullYear();
 
     loading = false;
+    isUploading = false;
+    uploadProgress = 0;
+    uploadError: string | null = null;
     selectedFiles: File[] = [];
     previews: string[] = [];
 
@@ -92,14 +97,26 @@ export class EscaneamentoComponent implements OnInit {
         }
 
         this.loading = true;
+        this.isUploading = true;
+        this.uploadProgress = 0;
+        this.uploadError = null;
+
         const uploadId = Math.random().toString(36).substring(7);
         const preUploadedFiles: string[] = [];
 
         try {
-            for (const file of this.selectedFiles) {
+            // Calcular total de chunks para todos os arquivos
+            const fileChunksInfo = this.selectedFiles.map(file => {
                 const chunkSize = 50 * 1024 * 1024; // 50MB
-                const totalChunks = Math.ceil(file.size / chunkSize);
-                let lastResponse: any;
+                return Math.ceil(file.size / chunkSize);
+            });
+            const totalChunksGlobal = fileChunksInfo.reduce((a, b) => a + b, 0);
+            let uploadedChunksCount = 0;
+
+            for (let fileIndex = 0; fileIndex < this.selectedFiles.length; fileIndex++) {
+                const file = this.selectedFiles[fileIndex];
+                const totalChunks = fileChunksInfo[fileIndex];
+                const chunkSize = 50 * 1024 * 1024; 
 
                 console.log(`Iniciando upload chunked para: ${file.name} (${totalChunks} partes)`);
 
@@ -108,26 +125,33 @@ export class EscaneamentoComponent implements OnInit {
                     const end = Math.min(start + chunkSize, file.size);
                     const chunk = file.slice(start, end);
                     
-                    lastResponse = await lastValueFrom(this.documentoService.uploadChunk(chunk, uploadId, i, totalChunks, file.name));
-                }
+                    const response = await lastValueFrom(this.documentoService.uploadChunk(chunk, uploadId, i, totalChunks, file.name));
+                    
+                    uploadedChunksCount++;
+                    this.uploadProgress = Math.round((uploadedChunksCount / totalChunksGlobal) * 100);
 
-                if (lastResponse && lastResponse.filePath) {
-                    preUploadedFiles.push(lastResponse.filePath);
+                    if (i === totalChunks - 1 && response && response.filePath) {
+                        preUploadedFiles.push(response.filePath);
+                    }
                 }
             }
 
             this.documento.preUploadedFiles = preUploadedFiles;
             
-            // Envia o DTO final sem enviar os arquivos novamente (já estão no servidor)
             await lastValueFrom(this.documentoService.create(this.documento, []));
 
             this.toast.success('Documento enviado para revisão com sucesso!');
+            this.isUploading = false;
             this.resetForm();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro no upload chunked:', error);
-            this.toast.error('Erro ao enviar documento em partes. Verifique sua conexão.');
-        } finally {
+            this.uploadError = 'Erro ao enviar documentos. ' + (error.message || 'Verifique sua conexão e tente novamente.');
             this.loading = false;
+        } finally {
+            if (!this.uploadError) {
+                this.loading = false;
+                this.isUploading = false;
+            }
         }
     }
 

@@ -34,6 +34,7 @@ public class MinioStorageService implements FileStorageService {
             String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             log.info("Enviando para o MinIO: {} | Tamanho: {} bytes | ContentType: {}", filename, file.getSize(), file.getContentType());
             
+            long start = System.currentTimeMillis();
             minioClient.putObject(
                 PutObjectArgs.builder()
                     .bucket(bucketName)
@@ -42,6 +43,8 @@ public class MinioStorageService implements FileStorageService {
                     .contentType(file.getContentType())
                     .build()
             );
+            long end = System.currentTimeMillis();
+            log.info("Arquivo salvo no MinIO em {}ms: {}", (end - start), filename);
             
             return filename;
         } catch (Exception e) {

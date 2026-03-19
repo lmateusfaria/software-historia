@@ -101,31 +101,41 @@ export class EscaneamentoComponent implements OnInit {
         this.uploadProgress = 0;
         this.uploadError = null;
 
-        const uploadId = Math.random().toString(36).substring(7);
-        const preUploadedFiles: string[] = [];
-
         try {
-            // Calcular total de chunks para todos os arquivos
-            const fileChunksInfo = this.selectedFiles.map(file => {
-                const chunkSize = 50 * 1024 * 1024; // 50MB
-                return Math.ceil(file.size / chunkSize);
-            });
+            // 1. Comprimir arquivos em paralelo
+            console.log('Iniciando compressão de imagens...');
+            const compressedFiles = await Promise.all(
+                this.selectedFiles.map(async (file) => {
+                    if (file.type === 'application/pdf') return file;
+                    const blob = await this.compressImage(file);
+                    return new File([blob], file.name, { type: 'image/jpeg' });
+                })
+            );
+
+            // 2. Calcular total de chunks para o progresso global
+            const chunkSize = 10 * 1024 * 1024; // 10MB para upload mais fluido
+            const fileChunksInfo = compressedFiles.map(file => Math.ceil(file.size / chunkSize));
             const totalChunksGlobal = fileChunksInfo.reduce((a, b) => a + b, 0);
             let uploadedChunksCount = 0;
 
-            for (let fileIndex = 0; fileIndex < this.selectedFiles.length; fileIndex++) {
-                const file = this.selectedFiles[fileIndex];
-                const totalChunks = fileChunksInfo[fileIndex];
-                const chunkSize = 50 * 1024 * 1024; 
+            const preUploadedFiles: string[] = [];
 
-                console.log(`Iniciando upload chunked para: ${file.name} (${totalChunks} partes)`);
+            // 3. Upload paralelo de arquivos (limitado para não saturar a banda)
+            // Vamos processar os arquivos um a um mas com chunks rápidos, ou em grupos. 
+            // Para maior estabilidade, faremos os arquivos em série mas chunks ultra otimizados.
+            for (let fileIndex = 0; fileIndex < compressedFiles.length; fileIndex++) {
+                const file = compressedFiles[fileIndex];
+                const totalChunks = fileChunksInfo[fileIndex];
+                const uploadId = Math.random().toString(36).substring(7);
+
+                console.log(`Enviando: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * chunkSize;
                     const end = Math.min(start + chunkSize, file.size);
                     const chunk = file.slice(start, end);
                     
-                    const response = await lastValueFrom(this.documentoService.uploadChunk(chunk, uploadId, i, totalChunks, file.name));
+                    const response: any = await lastValueFrom(this.documentoService.uploadChunk(chunk, uploadId, i, totalChunks, file.name));
                     
                     uploadedChunksCount++;
                     this.uploadProgress = Math.round((uploadedChunksCount / totalChunksGlobal) * 100);
@@ -137,15 +147,13 @@ export class EscaneamentoComponent implements OnInit {
             }
 
             this.documento.preUploadedFiles = preUploadedFiles;
-            
             await lastValueFrom(this.documentoService.create(this.documento, []));
 
-            this.toast.success('Documento enviado para revisão com sucesso!');
-            this.isUploading = false;
+            this.toast.success('Documento enviado com sucesso!');
             this.resetForm();
         } catch (error: any) {
-            console.error('Erro no upload chunked:', error);
-            this.uploadError = 'Erro ao enviar documentos. ' + (error.message || 'Verifique sua conexão e tente novamente.');
+            console.error('Erro no upload:', error);
+            this.uploadError = 'Erro ao enviar documentos. ' + (error.message || 'Verifique sua conexão.');
             this.loading = false;
         } finally {
             if (!this.uploadError) {
@@ -153,6 +161,46 @@ export class EscaneamentoComponent implements OnInit {
                 this.isUploading = false;
             }
         }
+    }
+
+    private compressImage(file: File): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event: any) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    const maxDim = 2500;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        } else {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => blob ? resolve(blob) : reject(new Error('Erro no canvas')),
+                        'image/jpeg',
+                        0.75
+                    );
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
     }
 
     resetForm() {

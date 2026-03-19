@@ -224,15 +224,7 @@ public class DocumentoService {
             }
         }
 
-        // Sincronização básica com Neo4j (Grafo)
-        try {
-            DocumentoNode node = new DocumentoNode(savedDoc.getId(), savedDoc.getEdicao() != null ? savedDoc.getEdicao() : savedDoc.getTipo());
-            documentoNodeRepository.save(node);
-        } catch (Exception e) {
-            log.warn("Erro ao criar node inicial no Neo4j: {}", e.getMessage());
-        }
-
-        // Disparar o processamento assíncrono via Evento
+        // Disparar o processamento assíncrono via Evento (Neo4j e MinIO agora são tratados no fluxo assíncrono)
         eventPublisher.publishEvent(new DocumentoCriadoEvent(this, savedDoc.getId(), allFilePaths));
 
         return new DocumentoDTO(savedDoc);
@@ -248,6 +240,17 @@ public class DocumentoService {
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado para processamento assíncrono"));
 
         if (filePaths == null || filePaths.isEmpty()) {
+            return;
+        }
+
+        // 1. Sincronização inicial com Neo4j (agora assíncrona para não travar o front)
+        try {
+            log.info("Criando nó inicial no Neo4j para o documento {}", documentoId);
+            DocumentoNode node = new DocumentoNode(doc.getId(), doc.getEdicao() != null ? doc.getEdicao() : doc.getTipo());
+            documentoNodeRepository.save(node);
+        } catch (Exception e) {
+            log.warn("Erro ao criar node inicial no Neo4j (fluxo assíncrono): {}", e.getMessage());
+        }
             doc.setStatus(StatusDocumento.PENDENTE_OCR);
             repository.save(doc);
             return;

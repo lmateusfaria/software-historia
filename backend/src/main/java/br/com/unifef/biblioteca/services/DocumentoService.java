@@ -270,7 +270,7 @@ public class DocumentoService {
                     futures.add(processPdfFromDisk(file));
                 } else if (filename.toLowerCase().endsWith(".heic")) {
                     futures.add(CompletableFuture.supplyAsync(() -> 
-                        Collections.singletonList(processHeicFromDisk(file)), generalExecutor));
+                        processHeicFromDisk(file), generalExecutor));
                 } else {
                     futures.add(CompletableFuture.supplyAsync(() -> {
                         try {
@@ -364,23 +364,6 @@ public class DocumentoService {
         }
     }
 
-    private CompletableFuture<List<String>> processPdf(MultipartFile file) {
-        return CompletableFuture.supplyAsync(() -> {
-            Path tempFile = null;
-            try {
-                tempFile = Files.createTempFile("pdf-upload-", ".pdf");
-                file.transferTo(tempFile.toFile());
-                return processPdfInternal(tempFile.toFile(), file.getOriginalFilename());
-            } catch (Exception e) {
-                log.error("Erro ao carregar ou processar PDF", e);
-                throw new RuntimeException("Erro ao processar PDF", e);
-            } finally {
-                if (tempFile != null) {
-                    try { Files.deleteIfExists(tempFile); } catch (Exception ex) { log.warn("Erro ao deletar PDF temporário", ex); }
-                }
-            }
-        }, generalExecutor);
-    }
 
     private CompletableFuture<List<String>> processPdfFromDisk(File file) {
         return CompletableFuture.supplyAsync(() -> {
@@ -428,7 +411,7 @@ public class DocumentoService {
         }
     }
 
-    private String processHeicFromDisk(File file) {
+    private List<String> processHeicFromDisk(File file) {
         Path tempJpg = null;
         try {
             tempJpg = file.toPath().resolveSibling(file.getName().replace(".heic", ".jpg"));
@@ -441,7 +424,7 @@ public class DocumentoService {
 
             if (exitCode != 0) {
                 log.warn("Falha ao converter HEIC {}, prosseguindo sem ele.", file.getName());
-                return null;
+                return Collections.emptyList();
             }
 
             // Ler o JPG resultante e salvar no MinIO
@@ -450,83 +433,15 @@ public class DocumentoService {
             MultipartFile multipartFile = new MockMultipartFile(
                 finalName, finalName, "image/jpeg", content
             );
-            return fileStorageService.save(multipartFile);
+            return Collections.singletonList(fileStorageService.save(multipartFile));
 
         } catch (Exception e) {
             log.error("Erro ao converter HEIC do disco", e);
-            return null;
+            return Collections.emptyList();
         } finally {
             if (tempJpg != null) {
                 try { Files.deleteIfExists(tempJpg); } catch (Exception ex) { log.warn("Erro ao deletar JPG temporário", ex); }
             }
-        }
-    }
-
-    private String processHeic(MultipartFile file) {
-        Path tempHeic = null;
-        Path tempJpg = null;
-        try {
-            tempHeic = Files.createTempFile("upload-", ".heic");
-            file.transferTo(tempHeic.toFile());
-
-            tempJpg = tempHeic.resolveSibling(tempHeic.getFileName().toString().replace(".heic", ".jpg"));
-
-            log.info("Iniciando conversão HEIC para JPG: {}", tempHeic);
-            ProcessBuilder pb = new ProcessBuilder("heif-convert", tempHeic.toString(), tempJpg.toString());
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-            log.info("Conversão HEIC finalizada. Exit code: {}", exitCode);
-
-            if (exitCode != 0) {
-                throw new RuntimeException("Falha na conversão HEIC. Código de saída: " + exitCode);
-            }
-
-            String genName = (file.getOriginalFilename() != null ? 
-                    file.getOriginalFilename().replaceAll("(?i)\\.heic$", "") : "image") + ".jpg";
-            
-            try (InputStream is = Files.newInputStream(tempJpg)) {
-                MultipartFile convertedFile = new MockMultipartFile(
-                    genName, genName, "image/jpeg", is
-                );
-                return fileStorageService.save(convertedFile);
-            }
-
-        } catch (Exception e) {
-            log.error("Erro ao converter HEIC para JPG", e);
-            throw new RuntimeException("Erro ao processar imagem HEIC", e);
-        } finally {
-            try {
-                if (tempHeic != null) Files.deleteIfExists(tempHeic);
-                if (tempJpg != null) Files.deleteIfExists(tempJpg);
-            } catch (Exception ex) {
-                log.warn("Erro ao limpar arquivos temporários de conversão HEIC", ex);
-            }
-        }
-    }
-
-    private String processHeicFromDisk(File file) {
-        Path tempJpg = null;
-        try {
-            Path tempHeic = file.toPath();
-            tempJpg = tempHeic.resolveSibling(tempHeic.getFileName().toString().replace(".heic", ".jpg"));
-
-            log.info("Iniciando conversão HEIC do disco para JPG: {}", tempHeic);
-            ProcessBuilder pb = new ProcessBuilder("heif-convert", tempHeic.toString(), tempJpg.toString());
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-
-            if (exitCode != 0) throw new RuntimeException("Falha na conversão HEIC. Código: " + exitCode);
-
-            String genName = file.getName().replaceAll("(?i)\\.heic$", "") + ".jpg";
-            try (InputStream is = Files.newInputStream(tempJpg)) {
-                MultipartFile convertedFile = new MockMultipartFile(genName, genName, "image/jpeg", is);
-                return fileStorageService.save(convertedFile);
-            }
-        } catch (Exception e) {
-            log.error("Erro ao converter HEIC do disco", e);
-            throw new RuntimeException("Erro ao processar HEIC do disco", e);
-        } finally {
-            if (tempJpg != null) try { Files.deleteIfExists(tempJpg); } catch (Exception ex) {}
         }
     }
 

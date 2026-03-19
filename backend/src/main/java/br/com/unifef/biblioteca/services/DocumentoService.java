@@ -496,7 +496,7 @@ public class DocumentoService {
             }
 
             Path chunkPath = uploadDir.resolve(String.format("%05d", chunkIndex));
-            Files.copy(chunk.getInputStream(), chunkPath);
+            Files.copy(chunk.getInputStream(), chunkPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
             if (chunkIndex == totalChunks - 1) {
                 return mergeChunks(uploadId, totalChunks, filename);

@@ -20,12 +20,88 @@
 
         <!-- Lista de Usuários -->
         <div class="glass rounded-3xl overflow-hidden border border-white/20 dark:border-white/5 shadow-2xl bg-white/40 dark:bg-black/20 backdrop-blur-xl">
-            <div *ngIf="loading" class="p-24 flex flex-col items-center justify-center">
-                <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            
+            <!-- Toolbar de Filtros -->
+            <div class="p-6 border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-black/10 backdrop-blur-sm flex flex-col xl:flex-row items-center gap-6 transition-all duration-300">
+                <!-- Busca -->
+                <div class="relative w-full xl:w-96 group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
+                        <svg class="h-5 w-5 text-neutral-400 group-focus-within:text-amber-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()" placeholder="Buscar Nome, E-mail ou CPF..." 
+                           class="w-full pl-11 pr-4 py-3 bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent transition-all text-sm font-medium placeholder-neutral-500 dark:text-neutral-200 shadow-inner group-hover:shadow-lg">
+                </div>
+
+                <div class="flex-1 w-full flex flex-wrap gap-4 items-center xl:justify-end justify-between">
+                    <!-- Filtro Perfil (Pills) -->
+                    <div class="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl shadow-inner overflow-x-auto w-full md:w-auto">
+                        <button *ngFor="let opt of opcoesFiltro" 
+                                (click)="filtroPerfil = opt.value; onFilterChange()"
+                                [ngClass]="{'bg-white dark:bg-[#2a2c33] shadow-md text-amber-600 scale-100': filtroPerfil === opt.value, 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 scale-95 hover:scale-100': filtroPerfil !== opt.value}"
+                                class="px-5 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 ease-out flex-1 md:flex-none whitespace-nowrap">
+                            {{ opt.label }}
+                        </button>
+                    </div>
+
+                    <!-- Filtro Permissão -->
+                    <div class="relative w-full sm:w-auto group">
+                        <select [(ngModel)]="filtroPermissao" (ngModelChange)="onFilterChange()"
+                                class="appearance-none w-full sm:w-auto pl-5 pr-12 py-3 bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all text-sm font-bold text-neutral-600 dark:text-neutral-300 cursor-pointer shadow-inner group-hover:shadow-lg">
+                            <option *ngFor="let perm of opcoesPermissao" [value]="perm.value" class="text-gray-900 bg-white dark:bg-[#1a1c22] dark:text-gray-100">{{ perm.label }}</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-neutral-400 group-hover:text-amber-500 transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Ordenação -->
+                    <div class="relative w-full sm:w-auto group">
+                        <select [(ngModel)]="ordenacao" (ngModelChange)="onFilterChange()"
+                                class="appearance-none w-full sm:w-auto pl-5 pr-12 py-3 bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all text-sm font-bold text-neutral-600 dark:text-neutral-300 cursor-pointer shadow-inner group-hover:shadow-lg">
+                            <option *ngFor="let ord of opcoesOrdenacao" [value]="ord.value" class="text-gray-900 bg-white dark:bg-[#1a1c22] dark:text-gray-100">{{ ord.label }}</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-neutral-400 group-hover:text-amber-500 transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="loading" class="p-24 flex flex-col items-center justify-center fade-in">
+                <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4 shadow-lg shadow-amber-600/30"></div>
                 <p class="text-neutral-500 font-mono text-sm tracking-widest uppercase">Consultando registros...</p>
             </div>
 
-            <div *ngIf="!loading" class="overflow-x-auto">
+            <!-- Resumo Resultados -->
+            <div *ngIf="!loading && usuarios.length > 0" class="px-8 py-4 flex flex-col sm:flex-row justify-between items-center bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 fade-in gap-4 sm:gap-0">
+                <span class="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                    Encontrados <span class="text-amber-600 bg-amber-600/10 px-2 py-1 rounded-lg">{{ usuariosFiltrados.length }}</span> registros
+                </span>
+                
+                <!-- Controle de Por Página -->
+                <div class="flex items-center text-xs font-bold text-neutral-500 gap-2">
+                    <span>Linhas por página:</span>
+                    <select [(ngModel)]="itemsPerPage" (ngModelChange)="onFilterChange()" 
+                            class="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer">
+                        <option *ngFor="let num of opcoesItensPorPagina" [value]="num" class="text-gray-900 bg-white dark:bg-[#1a1c22] dark:text-gray-100">{{ num }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div *ngIf="!loading && usuariosFiltrados.length === 0" class="p-24 flex flex-col items-center justify-center fade-in">
+                <div class="w-20 h-20 bg-neutral-200 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-6 text-neutral-400">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-2">Nenhum usuário encontrado</h3>
+                <p class="text-neutral-500 text-center max-w-sm">Não foi possível encontrar nenhum usuário com os filtros informados. Tente buscar por outros termos.</p>
+                <button (click)="searchTerm=''; filtroPerfil='TODOS'; filtroPermissao='TODAS'; onFilterChange()" class="mt-6 px-6 py-2 bg-amber-600/10 text-amber-600 font-bold rounded-xl hover:bg-amber-600/20 transition-colors">
+                    Limpar Filtros
+                </button>
+            </div>
+
+            <div *ngIf="!loading && usuariosFiltrados.length > 0" class="overflow-x-auto fade-in">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-black/5 dark:bg-white/5 text-xs font-bold uppercase tracking-wider text-neutral-500">
@@ -36,8 +112,8 @@
                             <th class="px-8 py-5 text-right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-black/5 dark:divide-white/5">
-                        <tr *ngFor="let user of usuarios" class="hover:bg-white/40 dark:hover:bg-white/5 transition-colors group">
+                    <tbody class="divide-y divide-black/5 dark:divide-white/5 relative">
+                        <tr *ngFor="let user of usuariosPaginados" class="hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-300 group hover:shadow-lg relative overflow-hidden">
                             <td class="px-8 py-6">
                                 <div class="flex items-center">
                                     <div class="w-10 h-10 rounded-full bg-amber-600/10 flex items-center justify-center mr-4 text-amber-600 font-bold border border-amber-600/20">
@@ -86,6 +162,27 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Controles de Paginação -->
+            <div *ngIf="!loading && usuariosFiltrados.length > 0" class="px-8 py-6 bg-black/5 dark:bg-white/5 border-t border-black/5 dark:border-white/5 flex items-center justify-between fade-in">
+                <span class="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                    Página <span class="text-gray-900 dark:text-neutral-100 mx-1">{{ currentPage }}</span> de <span class="text-gray-900 dark:text-neutral-100 ml-1">{{ totalPages }}</span>
+                </span>
+                
+                <div class="flex items-center gap-2">
+                    <button (click)="prevPage()" [disabled]="currentPage === 1"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === 1, 'hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-md': currentPage !== 1}"
+                            class="p-2 bg-white/40 dark:bg-black/20 border border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 rounded-xl transition-all shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    
+                    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages, 'hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-md': currentPage !== totalPages}"
+                            class="p-2 bg-white/40 dark:bg-black/20 border border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 rounded-xl transition-all shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

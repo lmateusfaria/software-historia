@@ -160,7 +160,10 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public List<ImagemBuscaDTO> searchEnrichedImages(String termo) {
         if (termo == null || termo.trim().isEmpty()) {
-            return Collections.emptyList();
+            log.info("Buscando todas as imagens enriquecidas (sem termo)");
+            return imagemNodeRepository.findAll().stream()
+                    .map(ImagemBuscaDTO::new)
+                    .collect(Collectors.toList());
         }
 
         log.info("Iniciando busca enriquecida de imagens por termo: {}", termo);
@@ -354,6 +357,18 @@ public class DocumentoService {
 
             doc.setImagensUrls(finalUrls);
             repository.saveAndFlush(doc); // Garante que as imagens originais persistiram
+
+            // 2. Sincronizar Galeria Individual (Neo4j) - Criação de nós iniciais para cada imagem/página
+            for (int i = 0; i < finalUrls.size(); i++) {
+                try {
+                    String url = finalUrls.get(i);
+                    ImagemNode imgNode = new ImagemNode(documentoId, url, i);
+                    imagemNodeRepository.save(imgNode);
+                    log.info("Nó de imagem {} (pág {}) criado no Neo4j para doc {}", url, i, documentoId);
+                } catch (Exception e) {
+                    log.warn("Falha ao criar nó de imagem no Neo4j (não crítico): {}", e.getMessage());
+                }
+            }
 
             // Gerar thumbnails e previews para todas as imagens de forma paralela
             List<CompletableFuture<Void>> processingFutures = new ArrayList<>();

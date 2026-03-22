@@ -37,7 +37,7 @@ export class GaleriaComponent implements OnInit {
 
     carregarAcervo() {
         this.loading = true;
-        if (this.termoBuscaEnriquecida) {
+        if (this.termoBuscaEnriquecida || this.viewMode === 'imagens') {
             this.documentoService.searchEnriched(this.termoBuscaEnriquecida, this.viewMode).subscribe({
                 next: (res) => {
                     if (this.viewMode === 'documentos') {

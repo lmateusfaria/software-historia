@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DocumentoService } from '../../core/documento.service';
-import { DocumentoDTO } from '../../core/models/documento.model';
+import { DocumentoDTO, ImagemBuscaDTO } from '../../core/models/documento.model';
 import { DocumentCardComponent } from '../../shared/components/document-card/document-card';
 
 @Component({
@@ -16,11 +16,14 @@ import { DocumentCardComponent } from '../../shared/components/document-card/doc
 })
 export class GaleriaComponent implements OnInit {
     documentos: DocumentoDTO[] = [];
+    imagens: ImagemBuscaDTO[] = [];
     filtro = '';
     filtroTipo = '';
     filtroAno = '';
     filtroLocal = '';
     loading = false;
+    viewMode: 'documentos' | 'imagens' = 'documentos';
+    termoBuscaEnriquecida = '';
 
     constructor(
         private documentoService: DocumentoService,
@@ -34,16 +37,46 @@ export class GaleriaComponent implements OnInit {
 
     carregarAcervo() {
         this.loading = true;
-        this.documentoService.findAll().subscribe({
-            next: (docs) => {
-                this.documentos = docs;
-                this.loading = false;
-            },
-            error: () => {
-                this.toast.error('Erro ao carregar acervo.');
-                this.loading = false;
-            }
-        });
+        if (this.termoBuscaEnriquecida) {
+            this.documentoService.searchEnriched(this.termoBuscaEnriquecida, this.viewMode).subscribe({
+                next: (res) => {
+                    if (this.viewMode === 'documentos') {
+                        this.documentos = res as DocumentoDTO[];
+                        this.imagens = [];
+                    } else {
+                        this.imagens = res as ImagemBuscaDTO[];
+                        this.documentos = [];
+                    }
+                    this.loading = false;
+                },
+                error: () => {
+                    this.toast.error('Erro na pesquisa enriquecida.');
+                    this.loading = false;
+                }
+            });
+        } else {
+            this.documentoService.findAll().subscribe({
+                next: (docs) => {
+                    this.documentos = docs;
+                    this.imagens = [];
+                    this.loading = false;
+                },
+                error: () => {
+                    this.toast.error('Erro ao carregar acervo.');
+                    this.loading = false;
+                }
+            });
+        }
+    }
+
+    mudarModo(modo: 'documentos' | 'imagens') {
+        this.viewMode = modo;
+        this.carregarAcervo();
+    }
+
+    limparBusca() {
+        this.termoBuscaEnriquecida = '';
+        this.carregarAcervo();
     }
 
     verDetalhes(id: number) {

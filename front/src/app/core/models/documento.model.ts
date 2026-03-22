@@ -14,6 +14,7 @@ export interface DocumentoDTO {
     descricao: string;
     urlImagem?: string;
     urlThumbnail?: string;
+    urlPreview?: string;
     conteudoOcr?: string;
     dataDigitalizacao?: string;
     status?: string;
@@ -28,10 +29,25 @@ export interface DocumentoDTO {
     marcadores?: string;
     imagensUrls?: string[];
     thumbnailsUrls?: string[];
+    previewsUrls?: string[];
     pessoas?: string[];
     locais?: string[];
     eventos?: string[];
     organizacoes?: string[];
     preUploadedFiles?: string[];
     ocrResultadosImagem?: { [url: string]: OcrResultadoDTO };
+}
+
+export interface ImagemBuscaDTO {
+    documentoId: number;
+    imagemUrl: string;
+    urlThumbnail: string;
+    urlPreview: string;
+    indice: number;
+    textoExtraido: string;
+    pessoas: string[];
+    locais: string[];
+    eventos: string[];
+    organizacoes: string[];
+    assuntos: string[];
 }

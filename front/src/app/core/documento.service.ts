@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DocumentoDTO, OcrResultadoDTO } from './models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO, ImagemBuscaDTO } from './models/documento.model';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -12,6 +12,12 @@ export class DocumentoService {
 
     findAll(): Observable<DocumentoDTO[]> {
         return this.http.get<DocumentoDTO[]>(this.apiUrl);
+    }
+
+    searchEnriched(termo: string, modo: 'documentos' | 'imagens' = 'documentos'): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/search`, {
+            params: { termo, modo }
+        });
     }
 
     findByStatus(status: string): Observable<DocumentoDTO[]> {

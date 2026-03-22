@@ -21,6 +21,7 @@ export class DocumentoDetalheComponent implements OnInit {
     loadingOcr: { [url: string]: boolean } = {};
     ocrResultados: { [url: string]: OcrResultadoDTO } = {};
     imageLoaded = false;
+    mostrarOriginal = false;
 
     // Zoom e Pan State
     zoom = 1;
@@ -113,6 +114,7 @@ export class DocumentoDetalheComponent implements OnInit {
         if (this.imagemSelecionada === url) return;
         this.imagemSelecionada = url;
         this.imageLoaded = false;
+        this.mostrarOriginal = false; // Volta para preview ao trocar de imagem
         this.resetZoom();
     }
 
@@ -124,6 +126,22 @@ export class DocumentoDetalheComponent implements OnInit {
         if (!this.documento || !this.imagemSelecionada || !this.documento.imagensUrls || !this.documento.thumbnailsUrls) return undefined;
         const index = this.documento.imagensUrls.indexOf(this.imagemSelecionada);
         return index !== -1 ? this.documento.thumbnailsUrls[index] : undefined;
+    }
+
+    get urlExibicao(): string | undefined {
+        if (!this.documento || !this.imagemSelecionada) return undefined;
+        if (this.mostrarOriginal) return this.imagemSelecionada;
+
+        const index = this.documento.imagensUrls.indexOf(this.imagemSelecionada);
+        if (index !== -1 && this.documento.previewsUrls && this.documento.previewsUrls[index]) {
+            return this.documento.previewsUrls[index];
+        }
+        return this.imagemSelecionada;
+    }
+
+    toggleOriginal() {
+        this.mostrarOriginal = !this.mostrarOriginal;
+        this.imageLoaded = false;
     }
 
     trackByUrl(index: number, url: string): string {

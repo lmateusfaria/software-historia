@@ -18,12 +18,14 @@ import br.com.unifef.biblioteca.repositories.graph.EventoRepository;
 import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
 import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
-import br.com.unifef.biblioteca.events.DocumentoCriadoEvent;
+import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -61,6 +63,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import javax.imageio.ImageWriter;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.IIOImage;
+import javax.imageio.stream.ImageOutputStream;
 
 @Slf4j
 @Service
@@ -114,6 +120,51 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
         return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<DocumentoDTO> searchEnrichedDocuments(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return findAll();
+        }
+
+        log.info("Iniciando busca enriquecida de documentos por termo: {}", termo);
+
+        // 1. IDs do Neo4j (Busca por entidades ligadas ao Documento)
+        List<DocumentoNode> nodes = documentoNodeRepository.findByEntidadeNome(termo);
+        Set<Long> allIds = nodes.stream().map(DocumentoNode::getId).collect(Collectors.toSet());
+
+        // 2. IDs do Neo4j (Busca por entidades ligadas às Imagens)
+        List<Long> extraDocIds = documentoNodeRepository.findDocumentIdsByImagemEntidadeNome(termo);
+        allIds.addAll(extraDocIds);
+
+        log.info("IDs encontrados no Neo4j: {}", allIds);
+
+        if (allIds.isEmpty()) {
+            log.info("Nenhum resultado no grafo, buscando por descrição no SQL.");
+            return repository.findByDescricaoContainingIgnoreCase(termo).stream()
+                    .map(DocumentoDTO::new)
+                    .collect(Collectors.toList());
+        }
+
+        // 3. Buscar documentos no SQL baseados nos IDs do Grafo
+        return repository.findAllById(allIds).stream()
+                .map(doc -> {
+                    DocumentoNode node = documentoNodeRepository.findById(doc.getId()).orElse(null);
+                    return new DocumentoDTO(doc, node);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ImagemBuscaDTO> searchEnrichedImages(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        log.info("Iniciando busca enriquecida de imagens por termo: {}", termo);
+        List<ImagemNode> nodes = imagemNodeRepository.findByEntidadeNomeOuTexto(termo);
+        return nodes.stream().map(ImagemBuscaDTO::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true, transactionManager = "transactionManager")
@@ -723,14 +774,14 @@ public class DocumentoService {
     }
 
     private String gerarThumbnail(byte[] imageBytes, String originalFilename) {
-        return gerarImagemRedimensionada(imageBytes, originalFilename, 300, "_thumb");
+        return gerarImagemRedimensionada(imageBytes, originalFilename, 300, "_thumb", 0.6f);
     }
 
     private String gerarPreview(byte[] imageBytes, String originalFilename) {
-        return gerarImagemRedimensionada(imageBytes, originalFilename, 1200, "_preview");
+        return gerarImagemRedimensionada(imageBytes, originalFilename, 1200, "_preview", 0.8f);
     }
 
-    private String gerarImagemRedimensionada(byte[] imageBytes, String originalFilename, int targetWidth, String suffix) {
+    private String gerarImagemRedimensionada(byte[] imageBytes, String originalFilename, int targetWidth, String suffix, float quality) {
         try {
             BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (originalImage == null) return null;
@@ -748,9 +799,7 @@ public class DocumentoService {
             g.drawImage(originalImage, 0, 0, finalWidth, finalHeight, null);
             g.dispose();
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(resized, "jpg", baos);
-            byte[] outputBytes = baos.toByteArray();
+            byte[] outputBytes = salvarJpegComprimido(resized, quality);
 
             String newName = originalFilename.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "") + suffix + ".jpg";
             MultipartFile multipartFile = new MockMultipartFile(newName, newName, "image/jpeg", new ByteArrayInputStream(outputBytes));
@@ -760,6 +809,28 @@ public class DocumentoService {
             log.error("Erro ao gerar {} para {}", suffix, originalFilename, e);
             return null;
         }
+    }
+
+    private byte[] salvarJpegComprimido(BufferedImage image, float quality) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+            writer.setOutput(ios);
+            
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            if (param.canWriteCompressed()) {
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                param.setCompressionType("JPEG");
+                param.setCompressionQuality(quality);
+            }
+            
+            writer.write(null, new IIOImage(image, null, null), param);
+        } finally {
+            writer.dispose();
+        }
+        
+        return baos.toByteArray();
     }
 
     private byte[] preProcessarImagemParaOcr(byte[] imageBytes) {
@@ -795,10 +866,8 @@ public class DocumentoService {
             // 2. Crop Automático (Remover bordas brancas/vazias)
             originalImage = autoCrop(originalImage);
 
-            // 3. Exportar como JPEG comprimido
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(originalImage, "jpg", baos);
-            return baos.toByteArray();
+            // 3. Exportar como JPEG comprimido (Qualidade média para OCR é suficiente e mais rápido)
+            return salvarJpegComprimido(originalImage, 0.7f);
         } catch (Exception e) {
             log.error("Erro no pré-processamento da imagem: {}", e.getMessage());
             return imageBytes;

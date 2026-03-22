@@ -3,6 +3,7 @@ package br.com.unifef.biblioteca.resources;
 import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;
 import br.com.unifef.biblioteca.services.GptOcrService;
@@ -33,6 +34,16 @@ public class DocumentoResource {
     @GetMapping
     public ResponseEntity<List<DocumentoDTO>> findAll() {
         return ResponseEntity.ok().body(service.findAll());
+    }
+
+    @GetMapping(value = "/search")
+    public ResponseEntity<?> search(
+            @RequestParam(required = false) String termo,
+            @RequestParam(defaultValue = "documentos") String modo) {
+        if ("imagens".equalsIgnoreCase(modo)) {
+            return ResponseEntity.ok().body(service.searchEnrichedImages(termo));
+        }
+        return ResponseEntity.ok().body(service.searchEnrichedDocuments(termo));
     }
 
     @GetMapping(value = "/status/{status}")

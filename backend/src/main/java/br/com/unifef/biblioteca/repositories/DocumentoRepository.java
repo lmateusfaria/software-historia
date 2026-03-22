@@ -12,4 +12,5 @@ import java.util.List;
 public interface DocumentoRepository extends JpaRepository<Documento, Long> {
     List<Documento> findByResponsavel(Usuario responsavel);
     List<Documento> findByStatus(StatusDocumento status);
+    List<Documento> findByDescricaoContainingIgnoreCase(String termo);
 }

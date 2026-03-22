@@ -8,27 +8,62 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
             <div class="fade-in">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-neutral-100 tracking-tight mb-2">Acervo Histórico</h1>
-                <p class="text-gray-500 dark:text-neutral-400">Explore documentos, jornais e registros preservados da nossa história.</p>
+                <p class="text-gray-500 dark:text-neutral-400">Explore documentos e imagens enriquecidas com IA e Grafos (Neo4j).</p>
             </div>
 
-            <div class="w-full md:w-96 fade-in" style="animation-delay: 0.1s">
-                <div class="relative">
-                    <input type="text" [(ngModel)]="filtro"
+            <div class="flex flex-col gap-4 fade-in" style="animation-delay: 0.1s">
+                <!-- Modo de Visualização Toggle -->
+                <div class="flex p-1 bg-neutral-100 dark:bg-neutral-900 rounded-xl w-fit self-end">
+                    <button (click)="mudarModo('documentos')" 
+                        [class.bg-white]="viewMode === 'documentos'"
+                        [class.dark:bg-neutral-800]="viewMode === 'documentos'"
+                        [class.shadow-sm]="viewMode === 'documentos'"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-neutral-600 dark:text-neutral-400"
+                        [class.!text-neutral-900]="viewMode === 'documentos'"
+                        [class.dark:!text-white]="viewMode === 'documentos'">
+                        Documentos
+                    </button>
+                    <button (click)="mudarModo('imagens')" 
+                        [class.bg-white]="viewMode === 'imagens'"
+                        [class.dark:bg-neutral-800]="viewMode === 'imagens'"
+                        [class.shadow-sm]="viewMode === 'imagens'"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-neutral-600 dark:text-neutral-400"
+                        [class.!text-neutral-900]="viewMode === 'imagens'"
+                        [class.dark:!text-white]="viewMode === 'imagens'">
+                        Imagens (Individual)
+                    </button>
+                </div>
+
+                <div class="w-full md:w-96 relative">
+                    <input type="text" [(ngModel)]="termoBuscaEnriquecida"
+                        (keyup.enter)="carregarAcervo()"
                         class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 pr-12 shadow-sm"
-                        placeholder="Pesquisar por descrição ou conteúdo...">
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        placeholder="Pesquisa Profunda (Pessoas, Locais...)"
+                        title="Busca por dados extraídos pela IA no Neo4j">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                        <button *ngIf="termoBuscaEnriquecida" (click)="limparBusca()" class="text-neutral-400 hover:text-neutral-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <button (click)="carregarAcervo()" class="text-neutral-500 hover:text-unifef-orange">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Advanced Filters -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12 fade-in" style="animation-delay: 0.15s">
+        <!-- Filtros Rápidos (Apenas se não houver busca profunda ou se for modo documentos) -->
+        <div *ngIf="viewMode === 'documentos'" class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-12 fade-in" style="animation-delay: 0.15s">
+            <div class="relative flex-1">
+                <input type="text" [(ngModel)]="filtro"
+                       class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 shadow-sm"
+                       placeholder="Filtro rápido local...">
+            </div>
+            
             <div class="relative">
                 <select [(ngModel)]="filtroTipo" 
                     class="input-premium w-full appearance-none bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 pr-10 shadow-sm">
@@ -58,11 +93,12 @@
             <div class="relative">
                 <input type="text" [(ngModel)]="filtroLocal"
                     class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 shadow-sm"
-                    placeholder="Filtrar por Local (Ex: São Paulo)">
+                    placeholder="Filtrar por Local">
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <!-- Document View -->
+        <div *ngIf="viewMode === 'documentos'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <app-document-card *ngFor="let doc of documentosFiltrados; let i = index"
                 [document]="doc"
                 [index]="i"
@@ -70,8 +106,32 @@
             </app-document-card>
         </div>
 
+        <!-- Individual Image View -->
+        <div *ngIf="viewMode === 'imagens'" class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div *ngFor="let img of imagens; let i = index" 
+                 class="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-900 shadow-xl cursor-pointer hover:scale-[1.02] transition-all duration-500 fade-in"
+                 [style.animation-delay]="(i * 0.05) + 's'"
+                 (click)="verDetalhes(img.documentoId)">
+                
+                <img [src]="img.urlThumbnail" [alt]="'Página ' + img.indice" 
+                     class="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                
+                <div class="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        <span *ngFor="let p of img.pessoas.slice(0, 2)" class="text-[10px] px-2 py-0.5 bg-unifef-orange/20 text-unifef-orange border border-unifef-orange/30 rounded-full">
+                            {{ p }}
+                        </span>
+                        <span *ngIf="img.pessoas.length > 2" class="text-[10px] text-white">...</span>
+                    </div>
+                    <div class="text-xs text-neutral-300">Pág. {{ img.indice + 1 }}</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Empty State -->
-        <div *ngIf="documentosFiltrados.length === 0 && !loading" class="text-center py-24 fade-in">
+        <div *ngIf="(viewMode === 'documentos' ? documentosFiltrados.length : imagens.length) === 0 && !loading" class="text-center py-24 fade-in">
             <div class="w-20 h-20 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-neutral-700" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
@@ -79,8 +139,8 @@
                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-300">Nenhum documento encontrado</h3>
-            <p class="text-gray-500 dark:text-neutral-500">Tente ajustar seus termos de pesquisa.</p>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-300">Nenhum resultado encontrado</h3>
+            <p class="text-gray-500 dark:text-neutral-500">Tente ajustar seus termos de pesquisa profunda ou filtros locais.</p>
         </div>
     </div>
 </div>

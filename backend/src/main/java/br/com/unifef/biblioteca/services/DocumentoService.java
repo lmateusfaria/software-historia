@@ -17,6 +17,7 @@ import br.com.unifef.biblioteca.repositories.graph.LocalRepository;
 import br.com.unifef.biblioteca.repositories.graph.EventoRepository;
 import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
 import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
+import br.com.unifef.biblioteca.events.DocumentoCriadoEvent;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
 import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import org.springframework.context.ApplicationEventPublisher;

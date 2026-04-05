@@ -11,8 +11,11 @@ import java.util.List;
 public interface ImagemNodeRepository extends Neo4jRepository<ImagemNode, Long> {
     List<ImagemNode> findByDocumentoId(Long documentoId);
 
-    @Query("MATCH (i:ImagemNode)<-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE|TRATA_DE]-(e) " +
-           "WHERE toLower(e.nome) CONTAINS toLower($termo) OR (i.textoExtraido IS NOT NULL AND toLower(i.textoExtraido) CONTAINS toLower($termo)) " +
-           "RETURN i")
+    @Query("CALL { " +
+           "  MATCH (i:ImagemNode) WHERE i.textoExtraido IS NOT NULL AND toLower(i.textoExtraido) CONTAINS toLower($termo) RETURN i " +
+           "  UNION " +
+           "  MATCH (e)-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE|TRATA_DE]->(i:ImagemNode) " +
+           "  WHERE toLower(e.nome) CONTAINS toLower($termo) RETURN i " +
+           "} RETURN i")
     List<ImagemNode> findByEntidadeNomeOuTexto(String termo);
 }

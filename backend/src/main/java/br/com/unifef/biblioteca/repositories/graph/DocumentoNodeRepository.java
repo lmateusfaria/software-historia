@@ -10,16 +10,19 @@ import java.util.List;
 public interface DocumentoNodeRepository extends Neo4jRepository<DocumentoNode, Long> {
     void deleteById(Long id);
 
-    @Query("MATCH (d:DocumentoNode) " +
-           "OPTIONAL MATCH (d)<-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE]-(e) " +
-           "WHERE (e.nome IS NOT NULL AND toLower(e.nome) CONTAINS toLower($termo)) OR (d.titulo IS NOT NULL AND toLower(d.titulo) CONTAINS toLower($termo)) " +
-           "RETURN DISTINCT d")
+    @Query("CALL { " +
+           "  MATCH (d:DocumentoNode) WHERE d.titulo IS NOT NULL AND toLower(d.titulo) CONTAINS toLower($termo) RETURN d " +
+           "  UNION " +
+           "  MATCH (e)-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE]->(d:DocumentoNode) " +
+           "  WHERE toLower(e.nome) CONTAINS toLower($termo) RETURN d " +
+           "} RETURN d")
     List<DocumentoNode> findByEntidadeNome(String termo);
 
-    @Query("MATCH (i:ImagemNode) " +
-           "OPTIONAL MATCH (i)<-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE|TRATA_DE]-(e) " +
-           "WHERE (e.nome IS NOT NULL AND toLower(e.nome) CONTAINS toLower($termo)) " +
-           "OR (i.textoExtraido IS NOT NULL AND toLower(i.textoExtraido) CONTAINS toLower($termo)) " +
-           "RETURN DISTINCT i.documentoId")
+    @Query("CALL { " +
+           "  MATCH (i:ImagemNode) WHERE i.textoExtraido IS NOT NULL AND toLower(i.textoExtraido) CONTAINS toLower($termo) RETURN i.documentoId AS docId " +
+           "  UNION " +
+           "  MATCH (e)-[:MENCIONADA_EM|LOCALIZADO_EM|OCORREU_EM|PARTICIPA_DE|TRATA_DE]->(i:ImagemNode) " +
+           "  WHERE toLower(e.nome) CONTAINS toLower($termo) RETURN i.documentoId AS docId " +
+           "} RETURN DISTINCT docId")
     List<Long> findDocumentIdsByImagemEntidadeNome(String termo);
 }

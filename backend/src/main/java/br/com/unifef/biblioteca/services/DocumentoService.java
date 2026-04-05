@@ -129,26 +129,37 @@ public class DocumentoService {
             return findAll();
         }
 
-        log.info("Iniciando busca enriquecida de documentos por termo: {}", termo);
+        log.info("Iniciando busca enriquecida de documentos por termo: '{}'", termo);
+        Set<Long> allIds = new HashSet<>();
 
-        // 1. IDs do Neo4j (Busca por entidades ligadas ao Documento)
-        List<DocumentoNode> nodes = documentoNodeRepository.findByEntidadeNome(termo);
-        Set<Long> allIds = nodes.stream().map(DocumentoNode::getId).collect(Collectors.toSet());
+        try {
+            // 1. IDs do Neo4j (Busca por entidades ligadas ao Documento)
+            List<DocumentoNode> nodes = documentoNodeRepository.findByEntidadeNome(termo);
+            log.info("Encontrados {} documentos via título/entidades no Neo4j", nodes.size());
+            nodes.forEach(n -> allIds.add(n.getId()));
 
-        // 2. IDs do Neo4j (Busca por entidades ligadas às Imagens)
-        List<Long> extraDocIds = documentoNodeRepository.findDocumentIdsByImagemEntidadeNome(termo);
-        allIds.addAll(extraDocIds);
+            // 2. IDs do Neo4j (Busca por entidades ligadas às Imagens/Páginas)
+            List<Long> extraDocIds = documentoNodeRepository.findDocumentIdsByImagemEntidadeNome(termo);
+            log.info("Encontrados {} documentos via conteúdo das imagens no Neo4j", extraDocIds.size());
+            allIds.addAll(extraDocIds);
 
-        log.info("IDs encontrados no Neo4j: {}", allIds);
+            log.info("Total de IDs únicos encontrados no Neo4j: {}", allIds);
+        } catch (Exception e) {
+            log.error("Falha ao consultar Neo4j para documentos: {}", e.getMessage());
+            // Se o Neo4j falhar, continuamos apenas com a busca SQL por descrição
+        }
 
         if (allIds.isEmpty()) {
-            log.info("Nenhum resultado no grafo, buscando por descrição no SQL.");
+            log.info("Nenhum resultado no grafo (ou erro no Neo4j), buscando apenas por descrição no SQL.");
             return repository.findByDescricaoContainingIgnoreCase(termo).stream()
                     .map(DocumentoDTO::new)
                     .collect(Collectors.toList());
         }
 
-        // 3. Buscar documentos no SQL baseados nos IDs do Grafo
+        // 3. Buscar documentos no SQL baseados nos IDs do Grafo + IDs da busca SQL por descrição
+        List<Documento> sqlResults = repository.findByDescricaoContainingIgnoreCase(termo);
+        sqlResults.forEach(doc -> allIds.add(doc.getId()));
+
         return repository.findAllById(allIds).stream()
                 .map(doc -> {
                     DocumentoNode node = documentoNodeRepository.findById(doc.getId()).orElse(null);
@@ -166,9 +177,15 @@ public class DocumentoService {
                     .collect(Collectors.toList());
         }
 
-        log.info("Iniciando busca enriquecida de imagens por termo: {}", termo);
-        List<ImagemNode> nodes = imagemNodeRepository.findByEntidadeNomeOuTexto(termo);
-        return nodes.stream().map(ImagemBuscaDTO::new).collect(Collectors.toList());
+        log.info("Iniciando busca enriquecida de imagens por termo: '{}'", termo);
+        try {
+            List<ImagemNode> nodes = imagemNodeRepository.findByEntidadeNomeOuTexto(termo);
+            log.info("Encontradas {} imagens correspondentes no Neo4j", nodes.size());
+            return nodes.stream().map(ImagemBuscaDTO::new).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Erro na busca enriquecida de imagens (Neo4j): {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     @Transactional(readOnly = true, transactionManager = "transactionManager")

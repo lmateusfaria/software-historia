@@ -87,6 +87,10 @@ public class DocumentoResource {
     @GetMapping(value = "/download/{filename}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> download(@PathVariable String filename) {
         InputStream stream = service.getFileStream(filename);
+        if (stream == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
         InputStreamResource resource = new InputStreamResource(stream);
         
         return ResponseEntity.ok()

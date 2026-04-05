@@ -61,8 +61,15 @@ public class MinioStorageService implements FileStorageService {
                     .object(filename)
                     .build()
             );
+        } catch (io.minio.errors.ErrorResponseException e) {
+            String code = e.errorResponse().code();
+            if ("NoSuchKey".equals(code) || "ObjectNotFound".equals(code)) {
+                log.warn("Arquivo não encontrado no MinIO: {}", filename);
+                return null;
+            }
+            throw new RuntimeException("Erro de resposta do MinIO ao buscar arquivo: " + filename, e);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao buscar arquivo no MinIO", e);
+            throw new RuntimeException("Erro inesperado ao buscar arquivo no MinIO: " + filename, e);
         }
     }
 

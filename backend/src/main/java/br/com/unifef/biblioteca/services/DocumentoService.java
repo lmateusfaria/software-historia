@@ -743,19 +743,41 @@ public class DocumentoService {
         int count = 0;
         for (Documento doc : documentos) {
             boolean mudou = false;
-            List<String> thumbs = doc.getThumbnailsUrls() != null ? doc.getThumbnailsUrls() : new ArrayList<>();
+            List<String> thumbs = doc.getThumbnailsUrls() != null ? new ArrayList<>(doc.getThumbnailsUrls()) : new ArrayList<>();
             
             if (doc.getImagensUrls() != null && !doc.getImagensUrls().isEmpty()) {
-                // Se não tem a lista completa de thumbs, tenta gerar para todas
+                // Verificar se todas as miniaturas existem e se a quantidade bate
+                boolean todasExistem = true;
                 if (thumbs.size() < doc.getImagensUrls().size()) {
+                    todasExistem = false;
+                } else {
+                    for (String thumb : thumbs) {
+                        try (InputStream is = fileStorageService.fetch(thumb)) {
+                            if (is == null) {
+                                todasExistem = false;
+                                break;
+                            }
+                        } catch (Exception e) {
+                            todasExistem = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!todasExistem) {
+                    log.info("Regenerando miniaturas para o documento ID: {} (motivo: incompleto ou arquivos ausentes)", doc.getId());
                     thumbs.clear();
                     for (String imgUrl : doc.getImagensUrls()) {
                         try (InputStream is = fileStorageService.fetch(imgUrl)) {
-                            byte[] imageBytes = is.readAllBytes();
-                            String thumbUrl = gerarThumbnail(imageBytes, imgUrl);
-                            if (thumbUrl != null) thumbs.add(thumbUrl);
+                            if (is != null) {
+                                byte[] imageBytes = is.readAllBytes();
+                                String thumbUrl = gerarThumbnail(imageBytes, imgUrl);
+                                if (thumbUrl != null) thumbs.add(thumbUrl);
+                            } else {
+                                log.warn("Não foi possível gerar thumb pois imagem original não existe: {}", imgUrl);
+                            }
                         } catch (Exception e) {
-                            log.error("Erro ao migrar thumb p/ {}: {}", imgUrl, e.getMessage());
+                            log.error("Erro ao processar thumb p/ {}: {}", imgUrl, e.getMessage());
                         }
                     }
                     doc.setThumbnailsUrls(thumbs);
@@ -837,9 +859,11 @@ public class DocumentoService {
             String newName = originalFilename.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "") + suffix + ".jpg";
             MultipartFile multipartFile = new MockMultipartFile(newName, newName, "image/jpeg", new ByteArrayInputStream(outputBytes));
             
-            return fileStorageService.save(multipartFile);
+            String savedName = fileStorageService.save(multipartFile);
+            log.debug("Imagem redimensionada {} gerada com sucesso para {}", suffix, originalFilename);
+            return savedName;
         } catch (Exception e) {
-            log.error("Erro ao gerar {} para {}", suffix, originalFilename, e);
+            log.error("Erro ao gerar {} para {}: {}", suffix, originalFilename, e.getMessage());
             return null;
         }
     }

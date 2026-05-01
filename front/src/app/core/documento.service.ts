@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DocumentoDTO, OcrResultadoDTO, ImagemBuscaDTO } from './models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO, OcrStatusDTO, ImagemBuscaDTO } from './models/documento.model';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -56,8 +56,8 @@ export class DocumentoService {
         return this.http.put<DocumentoDTO>(`${this.apiUrl}/${id}/aprovar`, {});
     }
 
-    ocrImagem(id: number, imagemUrl: string): Observable<OcrResultadoDTO> {
-        return this.http.post<OcrResultadoDTO>(`${this.apiUrl}/${id}/ocr-imagem`, null, { 
+    ocrImagem(id: number, imagemUrl: string): Observable<OcrStatusDTO> {
+        return this.http.post<OcrStatusDTO>(`${this.apiUrl}/${id}/ocr-imagem`, null, { 
             params: { imagemUrl } 
         });
     }

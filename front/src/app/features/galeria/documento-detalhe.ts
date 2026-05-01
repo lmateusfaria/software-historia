@@ -229,12 +229,22 @@ export class DocumentoDetalheComponent implements OnInit {
         this.loadingOcr[this.imagemSelecionada] = true;
         this.documentoService.ocrImagem(this.documento.id, urlClean).subscribe({
             next: (res) => {
-                this.ocrResultados[this.imagemSelecionada!] = res;
+                this.toast.info(res.mensagem || 'Processamento iniciado em segundo plano!');
                 this.loadingOcr[this.imagemSelecionada!] = false;
-                this.toast.success('OCR extraído do GPT com sucesso!');
+                
+                // Agendamos uma recarga do documento após 15 segundos para tentar pegar o resultado
+                setTimeout(() => {
+                    if (this.documento?.id) {
+                        this.carregarDocumento(this.documento.id);
+                    }
+                }, 15000);
             },
-            error: () => {
-                this.toast.error('Erro ao extrair OCR da imagem.');
+            error: (err) => {
+                if (err.status === 504) {
+                    this.toast.warning('O processamento está demorando, mas continua em segundo plano. Verifique em instantes.');
+                } else {
+                    this.toast.error('Erro ao solicitar OCR da imagem.');
+                }
                 this.loadingOcr[this.imagemSelecionada!] = false;
             }
         });

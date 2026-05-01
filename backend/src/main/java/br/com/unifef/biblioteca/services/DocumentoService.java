@@ -19,6 +19,7 @@ import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
 import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
 import br.com.unifef.biblioteca.events.DocumentoCriadoEvent;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.domains.dtos.OcrStatusDTO;
 import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -638,7 +639,23 @@ public class DocumentoService {
     }
 
     @Transactional(transactionManager = "transactionManager")
-    public OcrResultadoDTO processarOcrImagem(Long documentoId, String imagemUrl) {
+    public OcrStatusDTO processarOcrImagem(Long documentoId, String imagemUrl) {
+        log.info("Solicitação de OCR assíncrono recebida para documento {} e imagem {}", documentoId, imagemUrl);
+        
+        // Inicia o processamento em background
+        CompletableFuture.runAsync(() -> {
+            try {
+                executarOcrEPersistir(documentoId, imagemUrl);
+            } catch (Exception e) {
+                log.error("Erro no processamento assíncrono de OCR para documento {}: {}", documentoId, e.getMessage());
+            }
+        }, generalExecutor);
+
+        return OcrStatusDTO.processando(documentoId, imagemUrl);
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public OcrResultadoDTO executarOcrEPersistir(Long documentoId, String imagemUrl) {
         Documento doc = repository.findById(documentoId)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
 

@@ -3,6 +3,7 @@ package br.com.unifef.biblioteca.resources;
 import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.domains.dtos.OcrStatusDTO;
 import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
 import br.com.unifef.biblioteca.services.DocumentoService;
@@ -134,7 +135,7 @@ public class DocumentoResource {
 
     @PostMapping(value = "/{id}/ocr-imagem")
     @PreAuthorize("hasRole('PROFESSOR')")
-    public ResponseEntity<OcrResultadoDTO> ocrImagem(@PathVariable Long id, @RequestParam String imagemUrl) {
+    public ResponseEntity<OcrStatusDTO> ocrImagem(@PathVariable Long id, @RequestParam String imagemUrl) {
         return ResponseEntity.ok(service.processarOcrImagem(id, imagemUrl));
     }
 

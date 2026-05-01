@@ -9,6 +9,13 @@ export interface OcrResultadoDTO {
     tipoDocumento?: string;
 }
 
+export interface OcrStatusDTO {
+    status: string;
+    mensagem: string;
+    documentoId: number;
+    imagemUrl: string;
+}
+
 export interface DocumentoDTO {
     id?: number;
     descricao: string;

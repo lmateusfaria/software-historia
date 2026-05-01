@@ -241,7 +241,7 @@ export class DocumentoDetalheComponent implements OnInit {
             },
             error: (err) => {
                 if (err.status === 504) {
-                    this.toast.warning('O processamento está demorando, mas continua em segundo plano. Verifique em instantes.');
+                    this.toast.info('O processamento está demorando, mas continua em segundo plano. Verifique em instantes.');
                 } else {
                     this.toast.error('Erro ao solicitar OCR da imagem.');
                 }

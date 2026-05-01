@@ -484,14 +484,30 @@ public class DocumentoService {
                         );
                         return fileStorageService.save(pageFile);
                     } catch (Exception e) {
-                        throw new RuntimeException("Erro ao processar página " + pageNum + " do PDF", e);
+                        log.error("Erro ao processar página {} do PDF '{}': {}", pageNum + 1, originalFilename, e.getMessage());
+                        return null;
                     }
-                }, pdfExecutor)); // Uso do executor limitado
+                }, pdfExecutor));
             }
 
-            return pageFutures.stream()
-                    .map(CompletableFuture::join)
+            List<String> results = pageFutures.stream()
+                    .map(future -> {
+                        try {
+                            return future.join();
+                        } catch (Exception e) {
+                            log.error("Falha ao aguardar processamento de página do PDF '{}': {}", originalFilename, e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(url -> url != null)
                     .collect(Collectors.toList());
+
+            if (results.isEmpty()) {
+                throw new RuntimeException("Nenhuma página do PDF pôde ser processada: " + originalFilename);
+            }
+
+            log.info("PDF '{}': {}/{} páginas processadas com sucesso", originalFilename, results.size(), pdfDocument.getNumberOfPages());
+            return results;
         }
     }
 

@@ -59,8 +59,8 @@ pipeline {
                     sh "docker compose -p bibliotecadigital pull"
                     sh "docker compose -p bibliotecadigital up -d --remove-orphans"
                     
-                    echo 'Aguardando inicialização dos serviços...'
-                    sh 'sleep 20'
+                    echo 'Aguardando inicialização dos serviços (60s)...'
+                    sh 'sleep 60'
                     
                     // Verifica logs se o backend não estiver saudável
                     sh '''

@@ -113,6 +113,10 @@ public class DocumentoService {
     @Autowired
     private AssuntoRepository assuntoRepository;
 
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private DocumentoService self;
+
     // Executor para processamento geral (OCR, sincronização, etc)
     private final ExecutorService generalExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     
@@ -642,10 +646,10 @@ public class DocumentoService {
     public OcrStatusDTO processarOcrImagem(Long documentoId, String imagemUrl) {
         log.info("Solicitação de OCR assíncrono recebida para documento {} e imagem {}", documentoId, imagemUrl);
         
-        // Inicia o processamento em background
+        // Inicia o processamento em background usando a instância injetada (self) para manter o contexto transacional
         CompletableFuture.runAsync(() -> {
             try {
-                executarOcrEPersistir(documentoId, imagemUrl);
+                self.executarOcrEPersistir(documentoId, imagemUrl);
             } catch (Exception e) {
                 log.error("Erro no processamento assíncrono de OCR para documento {}: {}", documentoId, e.getMessage());
             }

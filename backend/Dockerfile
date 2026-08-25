@@ -8,7 +8,7 @@ RUN mvn package -DskipTests
 
 # Estágio de Execução
 FROM eclipse-temurin:21-jre-alpine
-RUN apk add --no-cache libheif-tools
+RUN apk add --no-cache libheif-tools curl
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080

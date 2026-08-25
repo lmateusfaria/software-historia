@@ -8,12 +8,15 @@ import { AuthService } from '../../core/auth.service';
 import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO, OcrResultadoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
+import { SystemHealthPanelComponent } from '../../shared/system-health-panel/system-health-panel';
+import { SystemSummaryService } from '../../core/system-summary.service';
+import { OperationalSummaryDTO } from '../../core/models/operational-summary.model';
 import { DecimalPipe, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, DatePipe],
+  imports: [FormsModule, DecimalPipe, DatePipe, SystemHealthPanelComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -67,6 +70,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private routerSub?: Subscription;
   showDeleteAccountModal: boolean = false;
   deleteAccountPassword: string = '';
+  operationalSummary?: OperationalSummaryDTO;
+  operationalSummaryLoading = false;
 
   // OCR Test
   showOcrTest: boolean = false;
@@ -80,6 +85,7 @@ export class Dashboard implements OnInit, OnDestroy {
     private userService: UserService,
     private auth: AuthService,
     private documentoService: DocumentoService,
+    private systemSummaryService: SystemSummaryService,
     private toast: ToastService,
     private router: Router
   ) { }
@@ -184,12 +190,14 @@ export class Dashboard implements OnInit, OnDestroy {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       this.loadUser();
       this.loadDocumentos();
+      this.loadOperationalSummary();
     }
     this.routerSub = this.router.events.subscribe((event: any) => {
       if (event instanceof NavigationEnd && this.router.url.startsWith('/dashboard')) {
         if (typeof window !== 'undefined' && typeof document !== 'undefined') {
           this.loadUser();
           this.loadDocumentos();
+          this.loadOperationalSummary();
         }
       }
     });
@@ -226,8 +234,9 @@ export class Dashboard implements OnInit, OnDestroy {
     this.documentoService.findAll().subscribe({
       next: (docs) => {
         this.documentos = docs;
-        this.totalAcervos = docs.length;
-        this.totalAguardandoRevisao = docs.filter(d => d.status === 'PENDENTE' || d.status === 'AGUARDANDO_REVISAO' || !d.status).length;
+        this.totalAcervos = this.operationalSummary?.totalDocumentos ?? docs.length;
+        this.totalAguardandoRevisao = this.operationalSummary?.aguardandoAprovacao
+          ?? docs.filter(d => d.status === 'PENDENTE' || d.status === 'AGUARDANDO_REVISAO' || !d.status).length;
         
         // Logica para contribuicao do usuario logado
         if (this.usuario) {
@@ -255,6 +264,22 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erro ao carregar documentos', err);
+      }
+    });
+  }
+
+  loadOperationalSummary(): void {
+    this.operationalSummaryLoading = true;
+    this.systemSummaryService.getSummary().subscribe({
+      next: (summary) => {
+        this.operationalSummary = summary;
+        this.totalAcervos = summary.totalDocumentos;
+        this.totalAguardandoRevisao = summary.aguardandoAprovacao;
+        this.operationalSummaryLoading = false;
+      },
+      error: () => {
+        this.operationalSummaryLoading = false;
+        this.toast.warning('Resumo operacional indisponivel no momento.');
       }
     });
   }

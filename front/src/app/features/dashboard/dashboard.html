@@ -47,7 +47,42 @@
     </div>
   </header>
 
+  <section class="max-w-7xl mx-auto relative z-10 px-4 mb-8">
+    <app-system-health-panel></app-system-health-panel>
+  </section>
+
   <main class="max-w-7xl mx-auto relative z-10 space-y-8 fade-in" style="animation-delay: 0.1s">
+
+    @if (operationalSummary) {
+    <section class="card-premium !p-6 space-y-5">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-primary/80">Resumo operacional</p>
+          <h2 class="text-2xl font-bold">Indicadores reais do sistema</h2>
+        </div>
+        <span class="text-xs text-gray-500 dark:text-gray-400">Atualizado em {{ operationalSummary.checkedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/60 dark:bg-black/20">
+          <p class="text-xs uppercase tracking-widest text-gray-500">Documentos</p>
+          <strong class="block text-3xl mt-2">{{ operationalSummary.totalDocumentos }}</strong>
+        </div>
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/60 dark:bg-black/20">
+          <p class="text-xs uppercase tracking-widest text-gray-500">Aguardando</p>
+          <strong class="block text-3xl mt-2 text-primary">{{ operationalSummary.aguardandoAprovacao }}</strong>
+        </div>
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/60 dark:bg-black/20">
+          <p class="text-xs uppercase tracking-widest text-gray-500">Processando</p>
+          <strong class="block text-3xl mt-2 text-amber-500">{{ operationalSummary.processando }}</strong>
+        </div>
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/60 dark:bg-black/20">
+          <p class="text-xs uppercase tracking-widest text-gray-500">Usuários</p>
+          <strong class="block text-3xl mt-2">{{ operationalSummary.totalUsuarios }}</strong>
+        </div>
+      </div>
+    </section>
+    }
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

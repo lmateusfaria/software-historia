@@ -1,0 +1,225 @@
+.system-health-panel {
+  position: relative;
+  margin: 0 auto 2rem;
+  max-width: 72rem;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(0, 167, 157, 0.18);
+  background: linear-gradient(135deg, rgba(3, 7, 18, 0.92), rgba(12, 17, 28, 0.88));
+  box-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.55);
+  color: #e5eef2;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7ddbd4;
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.refresh-button {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.refresh-button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.skeleton-grid,
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.skeleton-card,
+.service-card {
+  min-height: 112px;
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.skeleton-line {
+  height: 0.9rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.skeleton-line.short {
+  width: 42%;
+}
+
+.skeleton-line.tiny {
+  width: 68%;
+  margin-bottom: 0;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summary.ok {
+  background: rgba(12, 106, 92, 0.18);
+}
+
+.summary.alert {
+  background: rgba(134, 76, 15, 0.2);
+}
+
+.summary-label,
+.summary-meta span {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 0.25rem;
+}
+
+.summary strong {
+  font-size: 1.05rem;
+}
+
+.summary-meta {
+  text-align: right;
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.service-row h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.service-card p {
+  margin: 0;
+  color: rgba(229, 238, 242, 0.75);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.service-card[data-status='UP'] {
+  border-color: rgba(43, 200, 141, 0.35);
+}
+
+.service-card[data-status='DEGRADED'] {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.service-card[data-status='DOWN'] {
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.error-box {
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(127, 29, 29, 0.22);
+}
+
+.error-box strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.error-box p {
+  margin: 0 0 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.error-box button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 0.9rem;
+  font-weight: 700;
+  background: #ef4444;
+  color: white;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .system-health-panel {
+    padding: 1.1rem;
+  }
+
+  .panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summary-meta {
+    text-align: left;
+  }
+}

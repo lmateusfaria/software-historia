@@ -1,9 +1,10 @@
 <div class="toast-container">
   @for (t of toasts; track t.id) {
-    <div class="toast" 
+    <div class="toast"
          [class.toast-success]="t.type === 'success'"
          [class.toast-error]="t.type === 'error'"
-         [class.toast-info]="t.type === 'info'">
+         [class.toast-info]="t.type === 'info'"
+         [class.toast-warning]="t.type === 'warning'">
       <span class="message">{{ t.message }}</span>
       <button class="close" (click)="close(t.id)" aria-label="Fechar">×</button>
     </div>

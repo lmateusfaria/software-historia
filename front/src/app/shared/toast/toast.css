@@ -3,6 +3,7 @@
 .toast-success{ @apply bg-success/10 border border-success; }
 .toast-error{ @apply bg-danger/10 border border-danger; }
 .toast-info{ @apply bg-info/10 border border-info; }
+.toast-warning{ @apply bg-amber-500/10 border border-amber-500 text-amber-700 dark:text-amber-300; }
 .message{ @apply flex-1; }
 .close{ @apply bg-transparent border-0 text-xl leading-none text-text-muted-light dark:text-text-muted-dark cursor-pointer; }
 .close:hover{ @apply text-text-light dark:text-text-dark; }

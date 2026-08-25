@@ -1,6 +1,7 @@
 package br.com.unifef.biblioteca.repositories;
 
 import br.com.unifef.biblioteca.domains.Usuario;
+import br.com.unifef.biblioteca.domains.enums.Perfil;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByCpf(String cpf);
+
+    long countByPerfil(Perfil perfil);
 
     Optional<Usuario> findByNome(String nome);
 

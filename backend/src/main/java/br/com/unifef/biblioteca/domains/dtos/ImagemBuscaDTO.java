@@ -35,11 +35,11 @@ public class ImagemBuscaDTO implements Serializable {
         this.imagemUrl = "/api/documentos/download/" + node.getImagemUrl();
         this.indice = node.getIndice();
         this.textoExtraido = node.getTextoExtraido();
-        
-        String originalName = node.getImagemUrl();
-        String baseName = originalName.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "");
-        this.urlThumbnail = "/api/documentos/download/" + baseName + "_thumb.jpg";
-        this.urlPreview = "/api/documentos/download/" + baseName + "_preview.jpg";
+
+        String thumbnail = node.getThumbnailUrl() != null ? node.getThumbnailUrl() : node.getImagemUrl();
+        String preview = node.getPreviewUrl() != null ? node.getPreviewUrl() : node.getImagemUrl();
+        this.urlThumbnail = "/api/documentos/download/" + thumbnail;
+        this.urlPreview = "/api/documentos/download/" + preview;
 
         if (node.getPessoas() != null) {
             this.pessoas = node.getPessoas().stream().map(Pessoa::getNome).collect(Collectors.toList());

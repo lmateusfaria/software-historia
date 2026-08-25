@@ -16,6 +16,8 @@ public class ImagemNode {
 
     private Long documentoId;
     private String imagemUrl;
+    private String thumbnailUrl;
+    private String previewUrl;
     private Integer indice;
     private String textoExtraido;
 
@@ -51,6 +53,12 @@ public class ImagemNode {
 
     public String getImagemUrl() { return imagemUrl; }
     public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
+
+    public String getThumbnailUrl() { return thumbnailUrl; }
+    public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
+
+    public String getPreviewUrl() { return previewUrl; }
+    public void setPreviewUrl(String previewUrl) { this.previewUrl = previewUrl; }
 
     public Integer getIndice() { return indice; }
     public void setIndice(Integer indice) { this.indice = indice; }

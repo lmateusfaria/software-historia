@@ -423,9 +423,11 @@ public class DocumentoService {
             // Aqui simplificamos salvando as listas conforme geradas
             doc.setThumbnailsUrls(new ArrayList<>(thumbnails));
             doc.setPreviewsUrls(new ArrayList<>(previews));
-            
+
             if (!thumbnails.isEmpty()) doc.setUrlThumbnail(thumbnails.get(0));
             if (!previews.isEmpty()) doc.setUrlPreview(previews.get(0));
+
+            sincronizarUrlsImagemNode(documentoId, thumbnails, previews);
 
             // Finalizar processamento
             doc.setStatus(StatusDocumento.PENDENTE_OCR);
@@ -716,6 +718,8 @@ public class DocumentoService {
             try {
                 ImagemNode imagemNode = new ImagemNode(documentoId, imagemUrl, indice);
                 imagemNode.setTextoExtraido(ocrResult.getTextoCompleto());
+                imagemNode.setThumbnailUrl(encontrarUrlCorrespondente(imagemUrl, doc.getThumbnailsUrls(), "_thumb.jpg"));
+                imagemNode.setPreviewUrl(encontrarUrlCorrespondente(imagemUrl, doc.getPreviewsUrls(), "_preview.jpg"));
                 
                 for (String nome : ocrResult.getPessoas()) {
                     if (nome != null && !nome.trim().isEmpty()) {
@@ -822,9 +826,10 @@ public class DocumentoService {
                     mudou = true;
                 }
             }
-            
+
             if (mudou) {
                 repository.save(doc);
+                sincronizarUrlsImagemNode(doc.getId(), thumbs, null);
                 count++;
             }
         }
@@ -856,11 +861,50 @@ public class DocumentoService {
                     mudou = true;
                 }
             }
-            
+
             if (mudou) {
                 repository.save(doc);
+                sincronizarUrlsImagemNode(doc.getId(), null, previews);
                 count++;
             }
+        }
+        return count;
+    }
+
+    private void sincronizarUrlsImagemNode(Long documentoId, List<String> thumbnails, List<String> previews) {
+        List<ImagemNode> nodes = imagemNodeRepository.findByDocumentoId(documentoId);
+        for (ImagemNode node : nodes) {
+            boolean mudou = false;
+            String thumbUrl = encontrarUrlCorrespondente(node.getImagemUrl(), thumbnails, "_thumb.jpg");
+            if (thumbUrl != null && !thumbUrl.equals(node.getThumbnailUrl())) {
+                node.setThumbnailUrl(thumbUrl);
+                mudou = true;
+            }
+            String previewUrl = encontrarUrlCorrespondente(node.getImagemUrl(), previews, "_preview.jpg");
+            if (previewUrl != null && !previewUrl.equals(node.getPreviewUrl())) {
+                node.setPreviewUrl(previewUrl);
+                mudou = true;
+            }
+            if (mudou) imagemNodeRepository.save(node);
+        }
+    }
+
+    private String encontrarUrlCorrespondente(String imagemUrl, List<String> candidatos, String sufixo) {
+        if (candidatos == null || imagemUrl == null) return null;
+        String baseName = imagemUrl.replaceAll("(?i)\\.(jpg|jpeg|png|heic|pdf)$", "");
+        for (String candidato : candidatos) {
+            if (candidato != null && candidato.endsWith(baseName + sufixo)) return candidato;
+        }
+        return null;
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public int sincronizarThumbnailsPreviewsNeo4j() {
+        List<Documento> documentos = repository.findAll();
+        int count = 0;
+        for (Documento doc : documentos) {
+            sincronizarUrlsImagemNode(doc.getId(), doc.getThumbnailsUrls(), doc.getPreviewsUrls());
+            count++;
         }
         return count;
     }

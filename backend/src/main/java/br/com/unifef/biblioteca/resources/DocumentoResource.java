@@ -158,4 +158,14 @@ public class DocumentoResource {
         response.put("processados", String.valueOf(processados));
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping(value = "/sincronizar-thumbnails-neo4j")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<Map<String, String>> sincronizarThumbnailsNeo4j() {
+        int processados = service.sincronizarThumbnailsPreviewsNeo4j();
+        Map<String, String> response = new HashMap<>();
+        response.put("mensagem", "Sincronizacao de thumbnails/previews com Neo4j finalizada");
+        response.put("processados", String.valueOf(processados));
+        return ResponseEntity.ok(response);
+    }
 }

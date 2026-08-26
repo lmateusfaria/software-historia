@@ -883,6 +883,62 @@ public class DocumentoService {
         return count;
     }
 
+    @Transactional(transactionManager = "transactionManager")
+    public DocumentoDTO removerPaginaComFalha(Long documentoId, String imagemUrl) {
+        Documento doc = repository.findById(documentoId)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
+
+        if (doc.getImagensUrls() == null || !doc.getImagensUrls().contains(imagemUrl)) {
+            throw new RuntimeException("Imagem não pertence a este documento");
+        }
+
+        String thumbUrl = encontrarUrlCorrespondente(imagemUrl, doc.getThumbnailsUrls(), "_thumb.jpg");
+        String previewUrl = encontrarUrlCorrespondente(imagemUrl, doc.getPreviewsUrls(), "_preview.jpg");
+
+        try { fileStorageService.delete(imagemUrl); } catch (Exception e) { log.error("Erro ao apagar imagem no MinIO: {}", e.getMessage()); }
+        if (thumbUrl != null) {
+            try { fileStorageService.delete(thumbUrl); } catch (Exception e) { log.error("Erro ao apagar thumb no MinIO: {}", e.getMessage()); }
+        }
+        if (previewUrl != null) {
+            try { fileStorageService.delete(previewUrl); } catch (Exception e) { log.error("Erro ao apagar preview no MinIO: {}", e.getMessage()); }
+        }
+
+        doc.getImagensUrls().remove(imagemUrl);
+        if (thumbUrl != null) doc.getThumbnailsUrls().remove(thumbUrl);
+        if (previewUrl != null) doc.getPreviewsUrls().remove(previewUrl);
+
+        if (thumbUrl != null && thumbUrl.equals(doc.getUrlThumbnail())) {
+            doc.setUrlThumbnail(doc.getThumbnailsUrls().isEmpty() ? null : doc.getThumbnailsUrls().get(0));
+        }
+        if (previewUrl != null && previewUrl.equals(doc.getUrlPreview())) {
+            doc.setUrlPreview(doc.getPreviewsUrls().isEmpty() ? null : doc.getPreviewsUrls().get(0));
+        }
+
+        doc = repository.save(doc);
+
+        try {
+            for (ImagemNode node : imagemNodeRepository.findByDocumentoId(documentoId)) {
+                if (imagemUrl.equals(node.getImagemUrl())) {
+                    imagemNodeRepository.delete(node);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Erro ao remover ImagemNode da pagina removida: {}", e.getMessage());
+        }
+
+        try {
+            for (ImagemOcrResultado ocr : imagemOcrRepository.findByDocumentoIdOrderByIndice(documentoId)) {
+                if (imagemUrl.equals(ocr.getImagemUrl())) {
+                    imagemOcrRepository.delete(ocr);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Erro ao remover resultado de OCR da pagina removida: {}", e.getMessage());
+        }
+
+        return new DocumentoDTO(doc);
+    }
+
     private void sincronizarUrlsImagemNode(Long documentoId, List<String> thumbnails, List<String> previews) {
         List<ImagemNode> nodes = imagemNodeRepository.findByDocumentoId(documentoId);
         for (ImagemNode node : nodes) {

@@ -178,4 +178,10 @@ public class DocumentoResource {
         response.put("processados", String.valueOf(processados));
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping(value = "/{id}/paginas")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<DocumentoDTO> removerPagina(@PathVariable Long id, @RequestParam String imagemUrl) {
+        return ResponseEntity.ok(service.removerPaginaComFalha(id, imagemUrl));
+    }
 }

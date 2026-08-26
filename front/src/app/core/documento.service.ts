@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DocumentoDTO, OcrResultadoDTO, OcrStatusDTO, ImagemBuscaDTO } from './models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO, OcrResultadoUpdateDTO, OcrStatusDTO, ImagemBuscaDTO } from './models/documento.model';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -65,5 +65,13 @@ export class DocumentoService {
         const formData = new FormData();
         formData.append('file', file);
         return this.http.post<OcrResultadoDTO>(`${this.apiUrl}/testar-ocr`, formData);
+    }
+
+    atualizarOcrResultado(documentoId: number, ocrResultadoId: number, payload: OcrResultadoUpdateDTO): Observable<OcrResultadoDTO> {
+        return this.http.put<OcrResultadoDTO>(`${this.apiUrl}/${documentoId}/ocr-resultados/${ocrResultadoId}`, payload);
+    }
+
+    excluirOcrResultado(documentoId: number, ocrResultadoId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${documentoId}/ocr-resultados/${ocrResultadoId}`);
     }
 }

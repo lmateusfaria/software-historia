@@ -1,4 +1,5 @@
 export interface OcrResultadoDTO {
+    id?: number;
     textoCompleto?: string;
     pessoas: string[];
     locais: string[];
@@ -7,6 +8,15 @@ export interface OcrResultadoDTO {
     assuntos: string[];
     datasMencionadas: string[];
     tipoDocumento?: string;
+}
+
+export interface OcrResultadoUpdateDTO {
+    textoCompleto?: string;
+    pessoas: string[];
+    locais: string[];
+    eventos: string[];
+    organizacoes: string[];
+    assuntos: string[];
 }
 
 export interface OcrStatusDTO {

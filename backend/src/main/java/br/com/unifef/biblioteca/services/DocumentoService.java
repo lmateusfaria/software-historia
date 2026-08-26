@@ -19,6 +19,7 @@ import br.com.unifef.biblioteca.repositories.graph.OrganizacaoRepository;
 import br.com.unifef.biblioteca.repositories.graph.AssuntoRepository;
 import br.com.unifef.biblioteca.events.DocumentoCriadoEvent;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.domains.dtos.OcrResultadoUpdateDTO;
 import br.com.unifef.biblioteca.domains.dtos.OcrStatusDTO;
 import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +47,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -231,22 +233,11 @@ public class DocumentoService {
         // Carregar resultados de OCR persistidos para cada imagem
         List<ImagemOcrResultado> ocrResultados = imagemOcrRepository.findByDocumentoIdOrderByIndice(id);
         if (ocrResultados != null && !ocrResultados.isEmpty()) {
-            ObjectMapper mapper = new ObjectMapper();
             Map<String, OcrResultadoDTO> ocrMap = new HashMap<>();
-            
+
             for (ImagemOcrResultado res : ocrResultados) {
                 try {
-                    OcrResultadoDTO ocrDto = new OcrResultadoDTO();
-                    ocrDto.setTextoCompleto(res.getTextoExtraido());
-                    ocrDto.setTipoDocumento(res.getTipoDocumento());
-                    
-                    if (res.getPessoasExtraidas() != null) ocrDto.setPessoas(mapper.readValue(res.getPessoasExtraidas(), new TypeReference<List<String>>(){}));
-                    if (res.getLocaisExtraidos() != null) ocrDto.setLocais(mapper.readValue(res.getLocaisExtraidos(), new TypeReference<List<String>>(){}));
-                    if (res.getEventosExtraidos() != null) ocrDto.setEventos(mapper.readValue(res.getEventosExtraidos(), new TypeReference<List<String>>(){}));
-                    if (res.getOrganizacoesExtraidas() != null) ocrDto.setOrganizacoes(mapper.readValue(res.getOrganizacoesExtraidas(), new TypeReference<List<String>>(){}));
-                    if (res.getAssuntosExtraidos() != null) ocrDto.setAssuntos(mapper.readValue(res.getAssuntosExtraidos(), new TypeReference<List<String>>(){}));
-                    if (res.getDatasMencionadas() != null) ocrDto.setDatasMencionadas(mapper.readValue(res.getDatasMencionadas(), new TypeReference<List<String>>(){}));
-                    
+                    OcrResultadoDTO ocrDto = toOcrResultadoDTO(res);
                     // A chave deve ser a URL formatada para o download, para coincidir com o frontend
                     String fullUrl = "/api/documentos/download/" + res.getImagemUrl();
                     ocrMap.put(fullUrl, ocrDto);
@@ -256,8 +247,163 @@ public class DocumentoService {
             }
             dto.setOcrResultadosImagem(ocrMap);
         }
-        
+
         return dto;
+    }
+
+    private OcrResultadoDTO toOcrResultadoDTO(ImagemOcrResultado res) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        OcrResultadoDTO ocrDto = new OcrResultadoDTO();
+        ocrDto.setId(res.getId());
+        ocrDto.setTextoCompleto(res.getTextoExtraido());
+        ocrDto.setTipoDocumento(res.getTipoDocumento());
+
+        if (res.getPessoasExtraidas() != null) ocrDto.setPessoas(mapper.readValue(res.getPessoasExtraidas(), new TypeReference<List<String>>(){}));
+        if (res.getLocaisExtraidos() != null) ocrDto.setLocais(mapper.readValue(res.getLocaisExtraidos(), new TypeReference<List<String>>(){}));
+        if (res.getEventosExtraidos() != null) ocrDto.setEventos(mapper.readValue(res.getEventosExtraidos(), new TypeReference<List<String>>(){}));
+        if (res.getOrganizacoesExtraidas() != null) ocrDto.setOrganizacoes(mapper.readValue(res.getOrganizacoesExtraidas(), new TypeReference<List<String>>(){}));
+        if (res.getAssuntosExtraidos() != null) ocrDto.setAssuntos(mapper.readValue(res.getAssuntosExtraidos(), new TypeReference<List<String>>(){}));
+        if (res.getDatasMencionadas() != null) ocrDto.setDatasMencionadas(mapper.readValue(res.getDatasMencionadas(), new TypeReference<List<String>>(){}));
+
+        return ocrDto;
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public OcrResultadoDTO atualizarOcrResultado(Long documentoId, Long ocrResultadoId, OcrResultadoUpdateDTO dto) {
+        ImagemOcrResultado entity = imagemOcrRepository.findById(ocrResultadoId)
+                .orElseThrow(() -> new RuntimeException("Resultado de OCR não encontrado"));
+        if (!entity.getDocumentoId().equals(documentoId)) {
+            throw new RuntimeException("Resultado de OCR não pertence a este documento");
+        }
+
+        entity.setTextoExtraido(dto.getTextoCompleto());
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            entity.setPessoasExtraidas(mapper.writeValueAsString(dto.getPessoas()));
+            entity.setLocaisExtraidos(mapper.writeValueAsString(dto.getLocais()));
+            entity.setEventosExtraidos(mapper.writeValueAsString(dto.getEventos()));
+            entity.setOrganizacoesExtraidas(mapper.writeValueAsString(dto.getOrganizacoes()));
+            entity.setAssuntosExtraidos(mapper.writeValueAsString(dto.getAssuntos()));
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao serializar entidades do OCR", e);
+        }
+        entity = imagemOcrRepository.save(entity);
+
+        try {
+            sincronizarEntidadesImagemNode(documentoId, entity.getImagemUrl(), dto);
+        } catch (Exception e) {
+            log.error("Erro ao sincronizar edição de OCR com Neo4j (doc {}, img {}): {}",
+                    documentoId, entity.getImagemUrl(), e.getMessage(), e);
+        }
+
+        try {
+            return toOcrResultadoDTO(entity);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao converter resultado de OCR atualizado", e);
+        }
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public void excluirOcrResultado(Long documentoId, Long ocrResultadoId) {
+        ImagemOcrResultado entity = imagemOcrRepository.findById(ocrResultadoId)
+                .orElseThrow(() -> new RuntimeException("Resultado de OCR não encontrado"));
+        if (!entity.getDocumentoId().equals(documentoId)) {
+            throw new RuntimeException("Resultado de OCR não pertence a este documento");
+        }
+        String imagemUrl = entity.getImagemUrl();
+        imagemOcrRepository.delete(entity);
+
+        try {
+            ImagemNode node = encontrarImagemNodeAlvo(documentoId, imagemUrl, false);
+            if (node != null) {
+                node.setTextoExtraido(null);
+                node.getPessoas().clear();
+                node.getLocais().clear();
+                node.getEventos().clear();
+                node.getOrganizacoes().clear();
+                node.getAssuntos().clear();
+                imagemNodeRepository.save(node);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao limpar ImagemNode ao excluir OCR (doc {}, img {}): {}",
+                    documentoId, imagemUrl, e.getMessage(), e);
+        }
+    }
+
+    private ImagemNode encontrarImagemNodeAlvo(Long documentoId, String imagemUrl, boolean criarSeAusente) {
+        List<ImagemNode> candidatos = imagemNodeRepository.findByDocumentoId(documentoId).stream()
+                .filter(n -> imagemUrl.equals(n.getImagemUrl()))
+                .collect(Collectors.toList());
+        if (!candidatos.isEmpty()) {
+            return candidatos.stream()
+                    .sorted(Comparator
+                            .comparing((ImagemNode n) -> (n.getTextoExtraido() != null && !n.getTextoExtraido().isBlank()) ? 1 : 0)
+                            .thenComparing(ImagemNode::getNeoId, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .reduce((a, b) -> b)
+                    .orElse(null);
+        }
+        if (!criarSeAusente) return null;
+        Documento doc = repository.findById(documentoId)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
+        Integer indice = doc.getImagensUrls() != null ? doc.getImagensUrls().indexOf(imagemUrl) : -1;
+        return new ImagemNode(documentoId, imagemUrl, indice != null && indice >= 0 ? indice : null);
+    }
+
+    private void sincronizarEntidadesImagemNode(Long documentoId, String imagemUrl, OcrResultadoUpdateDTO dto) {
+        ImagemNode node = encontrarImagemNodeAlvo(documentoId, imagemUrl, true);
+        node.setTextoExtraido(dto.getTextoCompleto());
+
+        node.getPessoas().clear();
+        for (String nome : dto.getPessoas()) {
+            if (nome != null && !nome.trim().isEmpty()) {
+                br.com.unifef.biblioteca.domains.graph.Pessoa p = pessoaRepository.findById(nome)
+                    .orElse(new br.com.unifef.biblioteca.domains.graph.Pessoa(nome));
+                pessoaRepository.save(p);
+                node.getPessoas().add(p);
+            }
+        }
+
+        node.getLocais().clear();
+        for (String local : dto.getLocais()) {
+            if (local != null && !local.trim().isEmpty()) {
+                br.com.unifef.biblioteca.domains.graph.Local l = localRepository.findById(local)
+                    .orElse(new br.com.unifef.biblioteca.domains.graph.Local(local));
+                localRepository.save(l);
+                node.getLocais().add(l);
+            }
+        }
+
+        node.getEventos().clear();
+        for (String evento : dto.getEventos()) {
+            if (evento != null && !evento.trim().isEmpty()) {
+                br.com.unifef.biblioteca.domains.graph.Evento e = eventoRepository.findById(evento)
+                    .orElse(new br.com.unifef.biblioteca.domains.graph.Evento(evento));
+                eventoRepository.save(e);
+                node.getEventos().add(e);
+            }
+        }
+
+        node.getOrganizacoes().clear();
+        for (String org : dto.getOrganizacoes()) {
+            if (org != null && !org.trim().isEmpty()) {
+                br.com.unifef.biblioteca.domains.graph.Organizacao o = organizacaoRepository.findById(org)
+                    .orElse(new br.com.unifef.biblioteca.domains.graph.Organizacao(org));
+                organizacaoRepository.save(o);
+                node.getOrganizacoes().add(o);
+            }
+        }
+
+        node.getAssuntos().clear();
+        for (String assunto : dto.getAssuntos()) {
+            if (assunto != null && !assunto.trim().isEmpty()) {
+                br.com.unifef.biblioteca.domains.graph.Assunto a = assuntoRepository.findById(assunto)
+                    .orElse(new br.com.unifef.biblioteca.domains.graph.Assunto(assunto));
+                assuntoRepository.save(a);
+                node.getAssuntos().add(a);
+            }
+        }
+
+        imagemNodeRepository.save(node);
     }
 
     @Transactional(transactionManager = "transactionManager")

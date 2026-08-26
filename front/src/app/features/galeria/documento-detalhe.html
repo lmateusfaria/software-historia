@@ -152,8 +152,112 @@
                         </div>
                     </div>
 
+                    <!-- Ações de edição dos dados extraídos por IA (Professor/Aluno) -->
+                    <div *ngIf="podeEditarDadosIA && ocrAtual?.id && !editandoOcr" class="flex justify-end gap-3 fade-in">
+                        <button (click)="excluirOcrAtual()"
+                                class="inline-flex items-center px-4 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white text-sm font-bold rounded-xl transition-all border border-rose-600/20 active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Excluir dados extraídos
+                        </button>
+                        <button (click)="iniciarEdicaoOcr()"
+                                class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg hover:shadow-amber-600/20 active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar
+                        </button>
+                    </div>
+
+                    <!-- Formulário de edição dos dados extraídos por IA -->
+                    <div *ngIf="editandoOcr && ocrEmEdicao" class="space-y-6 fade-in">
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Conexões Históricas
+                            </h3>
+
+                            <div class="space-y-3">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span *ngFor="let p of ocrEmEdicao.pessoas; let i = index" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm font-medium rounded-lg border border-blue-500/20">
+                                        👤 {{ p }}
+                                        <button type="button" (click)="removerChip('pessoas', i)" class="hover:text-blue-700 font-bold">×</button>
+                                    </span>
+                                    <input type="text" [(ngModel)]="novoChip.pessoas" (keydown.enter)="adicionarChip('pessoas')" placeholder="Adicionar pessoa..."
+                                           class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 w-40">
+                                    <button type="button" (click)="adicionarChip('pessoas')" class="px-2.5 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm font-bold">+</button>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span *ngFor="let l of ocrEmEdicao.locais; let i = index" class="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-500 text-sm font-medium rounded-lg border border-green-500/20">
+                                        📍 {{ l }}
+                                        <button type="button" (click)="removerChip('locais', i)" class="hover:text-green-700 font-bold">×</button>
+                                    </span>
+                                    <input type="text" [(ngModel)]="novoChip.locais" (keydown.enter)="adicionarChip('locais')" placeholder="Adicionar local..."
+                                           class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 w-40">
+                                    <button type="button" (click)="adicionarChip('locais')" class="px-2.5 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm font-bold">+</button>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span *ngFor="let e of ocrEmEdicao.eventos; let i = index" class="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 text-purple-500 text-sm font-medium rounded-lg border border-purple-500/20">
+                                        📅 {{ e }}
+                                        <button type="button" (click)="removerChip('eventos', i)" class="hover:text-purple-700 font-bold">×</button>
+                                    </span>
+                                    <input type="text" [(ngModel)]="novoChip.eventos" (keydown.enter)="adicionarChip('eventos')" placeholder="Adicionar evento..."
+                                           class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 w-40">
+                                    <button type="button" (click)="adicionarChip('eventos')" class="px-2.5 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm font-bold">+</button>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span *ngFor="let o of ocrEmEdicao.organizacoes; let i = index" class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 text-orange-500 text-sm font-medium rounded-lg border border-orange-500/20">
+                                        🏢 {{ o }}
+                                        <button type="button" (click)="removerChip('organizacoes', i)" class="hover:text-orange-700 font-bold">×</button>
+                                    </span>
+                                    <input type="text" [(ngModel)]="novoChip.organizacoes" (keydown.enter)="adicionarChip('organizacoes')" placeholder="Adicionar organização..."
+                                           class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 w-40">
+                                    <button type="button" (click)="adicionarChip('organizacoes')" class="px-2.5 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm font-bold">+</button>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <span *ngFor="let a of ocrEmEdicao.assuntos; let i = index" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 text-indigo-500 text-sm font-medium rounded-lg border border-indigo-500/20">
+                                        📚 {{ a }}
+                                        <button type="button" (click)="removerChip('assuntos', i)" class="hover:text-indigo-700 font-bold">×</button>
+                                    </span>
+                                    <input type="text" [(ngModel)]="novoChip.assuntos" (keydown.enter)="adicionarChip('assuntos')" placeholder="Adicionar assunto..."
+                                           class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 w-40">
+                                    <button type="button" (click)="adicionarChip('assuntos')" class="px-2.5 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Transcrição Digital (OCR)
+                            </h3>
+                            <textarea rows="12" [(ngModel)]="ocrEmEdicao.textoCompleto"
+                                      class="w-full glass p-6 rounded-2xl text-sm text-gray-700 dark:text-neutral-300 bg-white/30 dark:bg-black/20 leading-loose whitespace-pre-wrap font-mono border-l-4 border-l-amber-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button" (click)="cancelarEdicaoOcr()"
+                                    class="px-6 py-3 border border-black/10 dark:border-white/10 text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 font-bold rounded-xl transition-all active:scale-95">
+                                Cancelar
+                            </button>
+                            <button type="button" (click)="salvarOcr()" [disabled]="salvandoOcr"
+                                    class="px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-amber-600/20 active:scale-95">
+                                {{ salvandoOcr ? 'Salvando...' : 'Salvar' }}
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Conexões Neo4j -->
-                    <div class="space-y-4 fade-in" style="animation-delay: 0.3s" *ngIf="(ocrAtual?.pessoas?.length || ocrAtual?.locais?.length || ocrAtual?.eventos?.length || ocrAtual?.organizacoes?.length || ocrAtual?.assuntos?.length) || (!ocrAtual && (documento.pessoas?.length || documento.locais?.length || documento.eventos?.length || documento.organizacoes?.length))">
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.3s" *ngIf="!editandoOcr && ((ocrAtual?.pessoas?.length || ocrAtual?.locais?.length || ocrAtual?.eventos?.length || ocrAtual?.organizacoes?.length || ocrAtual?.assuntos?.length) || (!ocrAtual && (documento.pessoas?.length || documento.locais?.length || documento.eventos?.length || documento.organizacoes?.length)))">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -161,7 +265,7 @@
                             Conexões Históricas
                             <span *ngIf="ocrAtual" class="ml-3 px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-wider rounded border border-amber-500/20">Desta Imagem</span>
                         </h3>
-                        
+
                         <!-- Dados Específicos da Imagem Extraída (OCR Atual) -->
                         <div *ngIf="ocrAtual" class="flex flex-wrap gap-2">
                             <span *ngFor="let p of ocrAtual.pessoas" class="px-3 py-1.5 bg-blue-500/10 text-blue-500 text-sm font-medium rounded-lg border border-blue-500/20 transition-all hover:bg-blue-500/20 cursor-default">
@@ -199,7 +303,7 @@
                     </div>
 
                     <!-- OCR Conteúdo -->
-                    <div class="space-y-4 fade-in" style="animation-delay: 0.4s" *ngIf="ocrAtual?.textoCompleto || documento.conteudoOcr">
+                    <div class="space-y-4 fade-in" style="animation-delay: 0.4s" *ngIf="!editandoOcr && (ocrAtual?.textoCompleto || documento.conteudoOcr)">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

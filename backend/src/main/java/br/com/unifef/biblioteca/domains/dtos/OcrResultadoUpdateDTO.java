@@ -4,24 +4,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OcrResultadoDTO implements Serializable {
+public class OcrResultadoUpdateDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Long id;
     private String textoCompleto;
     private List<String> pessoas = new ArrayList<>();
     private List<String> locais = new ArrayList<>();
     private List<String> eventos = new ArrayList<>();
     private List<String> organizacoes = new ArrayList<>();
     private List<String> assuntos = new ArrayList<>();
-    private List<String> datasMencionadas = new ArrayList<>();
-    private String tipoDocumento;
 
-    public OcrResultadoDTO() {}
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public OcrResultadoUpdateDTO() {}
 
     public String getTextoCompleto() { return textoCompleto; }
     public void setTextoCompleto(String textoCompleto) { this.textoCompleto = textoCompleto; }
@@ -40,10 +33,4 @@ public class OcrResultadoDTO implements Serializable {
 
     public List<String> getAssuntos() { return assuntos; }
     public void setAssuntos(List<String> assuntos) { this.assuntos = assuntos; }
-
-    public List<String> getDatasMencionadas() { return datasMencionadas; }
-    public void setDatasMencionadas(List<String> datasMencionadas) { this.datasMencionadas = datasMencionadas; }
-
-    public String getTipoDocumento() { return tipoDocumento; }
-    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
 }

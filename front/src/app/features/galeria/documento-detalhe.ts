@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentoService } from '../../core/documento.service';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
-import { DocumentoDTO, OcrResultadoDTO } from '../../core/models/documento.model';
+import { DocumentoDTO, OcrResultadoDTO, OcrResultadoUpdateDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
+
+type CategoriaEntidade = 'pessoas' | 'locais' | 'eventos' | 'organizacoes' | 'assuntos';
 
 @Component({
     selector: 'app-documento-detalhe',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './documento-detalhe.html',
     styleUrls: ['./documento-detalhe.css']
 })
@@ -22,6 +25,11 @@ export class DocumentoDetalheComponent implements OnInit {
     ocrResultados: { [url: string]: OcrResultadoDTO } = {};
     imageLoaded = false;
     mostrarOriginal = false;
+
+    editandoOcr = false;
+    ocrEmEdicao?: OcrResultadoDTO;
+    salvandoOcr = false;
+    novoChip: { [k in CategoriaEntidade]: string } = { pessoas: '', locais: '', eventos: '', organizacoes: '', assuntos: '' };
 
     // Zoom e Pan State
     zoom = 1;
@@ -59,6 +67,14 @@ export class DocumentoDetalheComponent implements OnInit {
 
     get isProfessor(): boolean {
         return this.usuario?.perfil === 'ROLE_PROFESSOR' || this.usuario?.perfil === 'PROFESSOR';
+    }
+
+    get isAluno(): boolean {
+        return this.usuario?.perfil === 'ROLE_ALUNO' || this.usuario?.perfil === 'ALUNO';
+    }
+
+    get podeEditarDadosIA(): boolean {
+        return this.isProfessor || this.isAluno;
     }
 
     get aguardandoAprovacao(): boolean {
@@ -115,6 +131,8 @@ export class DocumentoDetalheComponent implements OnInit {
         this.imagemSelecionada = url;
         this.imageLoaded = false;
         this.mostrarOriginal = false; // Volta para preview ao trocar de imagem
+        this.editandoOcr = false;
+        this.ocrEmEdicao = undefined;
         this.resetZoom();
     }
 
@@ -252,6 +270,76 @@ export class DocumentoDetalheComponent implements OnInit {
 
     get ocrAtual(): OcrResultadoDTO | undefined {
         return this.imagemSelecionada ? this.ocrResultados[this.imagemSelecionada] : undefined;
+    }
+
+    iniciarEdicaoOcr() {
+        if (!this.ocrAtual) return;
+        this.ocrEmEdicao = {
+            ...this.ocrAtual,
+            pessoas: [...(this.ocrAtual.pessoas ?? [])],
+            locais: [...(this.ocrAtual.locais ?? [])],
+            eventos: [...(this.ocrAtual.eventos ?? [])],
+            organizacoes: [...(this.ocrAtual.organizacoes ?? [])],
+            assuntos: [...(this.ocrAtual.assuntos ?? [])],
+        };
+        this.editandoOcr = true;
+    }
+
+    cancelarEdicaoOcr() {
+        this.editandoOcr = false;
+        this.ocrEmEdicao = undefined;
+    }
+
+    adicionarChip(categoria: CategoriaEntidade) {
+        const valor = this.novoChip[categoria]?.trim();
+        if (!valor || !this.ocrEmEdicao) return;
+        this.ocrEmEdicao[categoria].push(valor);
+        this.novoChip[categoria] = '';
+    }
+
+    removerChip(categoria: CategoriaEntidade, index: number) {
+        if (!this.ocrEmEdicao) return;
+        this.ocrEmEdicao[categoria].splice(index, 1);
+    }
+
+    salvarOcr() {
+        if (!this.documento?.id || !this.ocrEmEdicao?.id || !this.imagemSelecionada) return;
+        this.salvandoOcr = true;
+        const payload: OcrResultadoUpdateDTO = {
+            textoCompleto: this.ocrEmEdicao.textoCompleto,
+            pessoas: this.ocrEmEdicao.pessoas,
+            locais: this.ocrEmEdicao.locais,
+            eventos: this.ocrEmEdicao.eventos,
+            organizacoes: this.ocrEmEdicao.organizacoes,
+            assuntos: this.ocrEmEdicao.assuntos,
+        };
+        this.documentoService.atualizarOcrResultado(this.documento.id, this.ocrEmEdicao.id, payload).subscribe({
+            next: (res) => {
+                this.ocrResultados[this.imagemSelecionada!] = res;
+                this.editandoOcr = false;
+                this.ocrEmEdicao = undefined;
+                this.salvandoOcr = false;
+                this.toast.success('Dados extraídos atualizados com sucesso!');
+            },
+            error: () => {
+                this.salvandoOcr = false;
+                this.toast.error('Erro ao salvar as alterações.');
+            }
+        });
+    }
+
+    excluirOcrAtual() {
+        if (!this.documento?.id || !this.ocrAtual?.id || !this.imagemSelecionada) return;
+        if (!confirm('Tem certeza que deseja excluir os dados extraídos por IA desta imagem? O texto e as entidades desta página serão apagados.')) return;
+        this.documentoService.excluirOcrResultado(this.documento.id, this.ocrAtual.id).subscribe({
+            next: () => {
+                delete this.ocrResultados[this.imagemSelecionada!];
+                this.editandoOcr = false;
+                this.ocrEmEdicao = undefined;
+                this.toast.success('Dados extraídos removidos.');
+            },
+            error: () => this.toast.error('Erro ao excluir dados extraídos.')
+        });
     }
 
     voltar() {

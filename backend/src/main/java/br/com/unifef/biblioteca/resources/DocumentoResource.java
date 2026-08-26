@@ -3,6 +3,7 @@ package br.com.unifef.biblioteca.resources;
 import br.com.unifef.biblioteca.domains.Documento;
 import br.com.unifef.biblioteca.domains.dtos.DocumentoDTO;
 import br.com.unifef.biblioteca.domains.dtos.OcrResultadoDTO;
+import br.com.unifef.biblioteca.domains.dtos.OcrResultadoUpdateDTO;
 import br.com.unifef.biblioteca.domains.dtos.OcrStatusDTO;
 import br.com.unifef.biblioteca.domains.dtos.ImagemBuscaDTO;
 import br.com.unifef.biblioteca.domains.enums.StatusDocumento;
@@ -183,5 +184,21 @@ public class DocumentoResource {
     @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<DocumentoDTO> removerPagina(@PathVariable Long id, @RequestParam String imagemUrl) {
         return ResponseEntity.ok(service.removerPaginaComFalha(id, imagemUrl));
+    }
+
+    @PutMapping(value = "/{id}/ocr-resultados/{ocrResultadoId}")
+    @PreAuthorize("hasAnyRole('PROFESSOR','ALUNO')")
+    public ResponseEntity<OcrResultadoDTO> atualizarOcrResultado(
+            @PathVariable Long id, @PathVariable Long ocrResultadoId,
+            @RequestBody OcrResultadoUpdateDTO dto) {
+        return ResponseEntity.ok(service.atualizarOcrResultado(id, ocrResultadoId, dto));
+    }
+
+    @DeleteMapping(value = "/{id}/ocr-resultados/{ocrResultadoId}")
+    @PreAuthorize("hasAnyRole('PROFESSOR','ALUNO')")
+    public ResponseEntity<Void> excluirOcrResultado(
+            @PathVariable Long id, @PathVariable Long ocrResultadoId) {
+        service.excluirOcrResultado(id, ocrResultadoId);
+        return ResponseEntity.noContent().build();
     }
 }

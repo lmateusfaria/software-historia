@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "**").permitAll()
                         .requestMatchers("/documentos/download/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/documentos", "/documentos/*").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/system/health").permitAll()

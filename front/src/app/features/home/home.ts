@@ -292,6 +292,7 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
 
   onGetStarted(): void { this.router.navigate(['/login']); }
   onExploreFeatures(): void { this.router.navigate(['/register']); }
+  onAcessarAcervo(): void { this.router.navigate(['/acervo']); }
 
   scrollToSection(sectionId: string): void {
     if (isPlatformBrowser(this.platformId)) {

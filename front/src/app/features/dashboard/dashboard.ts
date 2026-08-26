@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
+import { UsuarioInfo } from '../../core/user-info.service';
 import { UserService, UsuarioDTO } from '../../core/user.service';
 import { AuthService } from '../../core/auth.service';
 import { DocumentoService } from '../../core/documento.service';
-import { DocumentoDTO, OcrResultadoDTO } from '../../core/models/documento.model';
+import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 import { SystemHealthPanelComponent } from '../../shared/system-health-panel/system-health-panel';
 import { SystemSummaryService } from '../../core/system-summary.service';
@@ -14,10 +14,17 @@ import { OperationalSummaryDTO } from '../../core/models/operational-summary.mod
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { statusBadgeClassLight } from '../../shared/utils/status-badge.util';
 
+interface DistribuicaoTipo {
+  tipo: string;
+  quantidade: number;
+  percentual: number;
+  cor: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, DatePipe, SystemHealthPanelComponent],
+  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, SystemHealthPanelComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -27,40 +34,7 @@ export class Dashboard implements OnInit, OnDestroy {
   totalAcervos: number = 0;
   totalAguardandoRevisao: number = 0;
   minhaContribuicao: number = 0;
-  statusCrescimento: 'positivo' | 'negativo' | 'neutro' = 'neutro';
-  crescimentoVariavel: number = 0;
-  statusRevisao: 'positivo' | 'negativo' | 'neutro' = 'neutro';
-  crescimentoRevisao: number = 0;
-  tempoUltimaRevisao: string = 'Nenhuma revisão recente';
-  atividades: any[] = [];
-  distribuicaoTipos: any[] = [];
-  /*
-# Projeto Biblioteca Digital: Refatoração e Integração
-
-## Fase 1: Refinamento e Planejamento
-- [x] Explorar estrutura atual do Backend e Frontend
-- [x] Validar modelos de dados atuais e necessários
-- [x] Definir perguntas de refinamento para o usuário
-- [x] Criar Plano de Implementação detalhado
-
-## Fase 2: Reformulação do Backend
-- [x] Ajustar perfis de usuário (Professor, Aluno, Pesquisador)
-- [x] Criar/Ajustar entidades para Documentos e Escaneamento
-- [x] Implementar lógica de permissões e segurança
-
-## Fase 3: Reformulação do Frontend
-- [x] Reformular tela de Login
-- [x] Implementar novo design premium/histórico no Frontend (Login/Register)
-- [x] Adaptar Dashboard para Biblioteca Digital
-- [x] Implementar Componente de Escaneamento (Para Alunos)
-- [x] Implementar interface de busca para Pesquisadores
-
-## Fase 4: Integração e Verificação
-- [x] Testar integração Backend-Frontend
-- [x] Validar fluxo de escaneamento
-- [x] Walkthrough final
-*/
-  lastUpdated?: Date;
+  distribuicaoTipos: DistribuicaoTipo[] = [];
   usuario: UsuarioInfo | undefined;
   usuarioLoading = false;
   usuarioError = '';
@@ -70,20 +44,10 @@ export class Dashboard implements OnInit, OnDestroy {
   editError = '';
   userServiceUpdateLoading = false;
   private routerSub?: Subscription;
-  showDeleteAccountModal: boolean = false;
-  deleteAccountPassword: string = '';
   operationalSummary?: OperationalSummaryDTO;
   operationalSummaryLoading = false;
 
-  // OCR Test
-  showOcrTest: boolean = false;
-  ocrFile: File | null = null;
-  ocrResult: OcrResultadoDTO | null = null;
-  ocrLoading: boolean = false;
-  ocrError: string = '';
-
   constructor(
-    private userInfo: UserInfoService,
     private userService: UserService,
     private auth: AuthService,
     private documentoService: DocumentoService,
@@ -239,30 +203,19 @@ export class Dashboard implements OnInit, OnDestroy {
         this.totalAcervos = this.operationalSummary?.totalDocumentos ?? docs.length;
         this.totalAguardandoRevisao = this.operationalSummary?.aguardandoAprovacao
           ?? docs.filter(d => d.status === 'PENDENTE' || d.status === 'AGUARDANDO_REVISAO' || !d.status).length;
-        
+
         // Logica para contribuicao do usuario logado
         if (this.usuario) {
           this.minhaContribuicao = docs.filter(d => d.usuarioId === this.usuario?.id).length;
         }
 
-        // Dados simulados para manter a estetica do dashboard (podem ser integrados futuramente)
-        this.statusCrescimento = 'positivo';
-        this.crescimentoVariavel = 12;
-        this.statusRevisao = 'negativo';
-        this.crescimentoRevisao = 5;
-        this.tempoUltimaRevisao = 'Ha 2 horas';
-
-        this.atividades = [
-          { inicial: 'AD', nome: 'Admin', acao: 'Aprovou 5 documentos', tempo: '15 min atras', cor: 'bg-primary/20 text-primary' },
-          { inicial: 'US', nome: 'Usuario', acao: 'Fez upload de "Ata_1950.pdf"', tempo: '1 hora atras', cor: 'bg-blue-100 text-blue-600' },
-          { inicial: 'LG', nome: 'Log', acao: 'Processamento OCR concluido', tempo: '3 horas atras', cor: 'bg-green-100 text-green-600' }
-        ];
-
-        this.distribuicaoTipos = [
-          { tipo: 'Documentos Oficiais', percentual: 45, quantidade: Math.round(this.totalAcervos * 0.45), cor: 'bg-primary' },
-          { tipo: 'Fotografias', percentual: 30, quantidade: Math.round(this.totalAcervos * 0.30), cor: 'bg-blue-500' },
-          { tipo: 'Raridades', percentual: 25, quantidade: Math.round(this.totalAcervos * 0.25), cor: 'bg-amber-500' }
-        ];
+        const cores = ['bg-primary', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-green-500', 'bg-pink-500'];
+        const tipos = [...new Set(docs.map(d => d.tipo))].filter(Boolean) as string[];
+        this.distribuicaoTipos = tipos.map((tipo, i) => {
+          const quantidade = docs.filter(d => d.tipo === tipo).length;
+          const percentual = docs.length ? Math.round((quantidade / docs.length) * 100) : 0;
+          return { tipo, quantidade, percentual, cor: cores[i % cores.length] };
+        });
       },
       error: (err) => {
         console.error('Erro ao carregar documentos', err);
@@ -282,51 +235,6 @@ export class Dashboard implements OnInit, OnDestroy {
       error: () => {
         this.operationalSummaryLoading = false;
         this.toast.warning('Resumo operacional indisponivel no momento.');
-      }
-    });
-  }
-
-  // OCR Test Methods
-  onTestarOcr() {
-    this.showOcrTest = true;
-    this.ocrFile = null;
-    this.ocrResult = null;
-    this.ocrError = '';
-  }
-
-  onCloseOcr() {
-    this.showOcrTest = false;
-    this.ocrFile = null;
-    this.ocrResult = null;
-    this.ocrError = '';
-    this.ocrLoading = false;
-  }
-
-  onOcrFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.ocrFile = input.files[0];
-      this.ocrResult = null;
-      this.ocrError = '';
-    }
-  }
-
-  onSubmitOcr() {
-    if (!this.ocrFile) return;
-    this.ocrLoading = true;
-    this.ocrError = '';
-    this.ocrResult = null;
-
-    this.documentoService.testarOcr(this.ocrFile).subscribe({
-      next: (result) => {
-        this.ocrResult = result;
-        this.ocrLoading = false;
-        this.toast.success('Extracao OCR concluida com sucesso!');
-      },
-      error: (err) => {
-        this.ocrLoading = false;
-        this.ocrError = err.error?.textoCompleto || 'Erro ao processar OCR. Verifique se a API Key esta configurada.';
-        this.toast.error('Erro ao processar OCR');
       }
     });
   }

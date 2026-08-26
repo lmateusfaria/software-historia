@@ -8,6 +8,8 @@
     @if (!isLoggedIn()) {
     <a routerLink="/" routerLinkActive="active" (click)="goTo('/')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Início</a>
+    <a routerLink="/acervo" routerLinkActive="active" (click)="goTo('acervo')"
+      class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Acervo</a>
     <a routerLink="/register" routerLinkActive="active" (click)="goTo('register')"
       class="hidden md:inline-block px-3 py-2 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition cursor-pointer text-text-light dark:text-text-dark">Cadastrar-se</a>
     <a routerLink="/login" routerLinkActive="active" (click)="goTo('login')"
@@ -51,6 +53,8 @@
     @if (!isLoggedIn()) {
     <a routerLink="/" (click)="isMenuOpen = false"
       class="px-4 py-3 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition text-text-light dark:text-text-dark">Início</a>
+    <a routerLink="/acervo" (click)="isMenuOpen = false"
+      class="px-4 py-3 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition text-text-light dark:text-text-dark">Acervo</a>
     <a routerLink="/register" (click)="isMenuOpen = false"
       class="px-4 py-3 rounded hover:bg-surface-light dark:hover:bg-surface-dark font-medium transition text-text-light dark:text-text-dark">Cadastrar-se</a>
     <a routerLink="/login" (click)="isMenuOpen = false"

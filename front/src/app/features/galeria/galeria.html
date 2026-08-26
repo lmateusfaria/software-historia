@@ -57,7 +57,7 @@
         </div>
 
         <!-- Filtros Rápidos (Apenas se não houver busca profunda ou se for modo documentos) -->
-        <div *ngIf="viewMode === 'documentos'" class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-12 fade-in" style="animation-delay: 0.15s">
+        <div *ngIf="viewMode === 'documentos'" class="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-12 fade-in" style="animation-delay: 0.15s">
             <div class="relative flex-1">
                 <input type="text" [(ngModel)]="filtro"
                        class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 shadow-sm"
@@ -94,6 +94,19 @@
                 <input type="text" [(ngModel)]="filtroLocal"
                     class="input-premium w-full bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 shadow-sm"
                     placeholder="Filtrar por Local">
+            </div>
+
+            <div class="relative">
+                <select [(ngModel)]="filtroStatus"
+                    class="input-premium w-full appearance-none bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-100 rounded-xl p-4 pr-10 shadow-sm">
+                    <option value="">Todos os Status</option>
+                    <option *ngFor="let status of statusesDisponiveis" [value]="status">{{ status }}</option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
             </div>
         </div>
 

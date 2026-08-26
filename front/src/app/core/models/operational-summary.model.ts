@@ -1,5 +1,3 @@
-import { SystemHealthDTO } from './system-health.model';
-
 export interface OperationalSummaryDTO {
   totalDocumentos: number;
   aguardandoAprovacao: number;
@@ -11,5 +9,4 @@ export interface OperationalSummaryDTO {
   alunos: number;
   pesquisadores: number;
   checkedAt: string;
-  systemHealth: SystemHealthDTO;
 }

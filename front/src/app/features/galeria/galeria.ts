@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../shared/toast/toast.service';
 import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO, ImagemBuscaDTO } from '../../core/models/documento.model';
@@ -21,6 +21,7 @@ export class GaleriaComponent implements OnInit {
     filtroTipo = '';
     filtroAno = '';
     filtroLocal = '';
+    filtroStatus = '';
     loading = false;
     viewMode: 'documentos' | 'imagens' = 'documentos';
     termoBuscaEnriquecida = '';
@@ -28,10 +29,12 @@ export class GaleriaComponent implements OnInit {
     constructor(
         private documentoService: DocumentoService,
         private toast: ToastService,
-        private router: Router
+        private router: Router,
+        private route: ActivatedRoute
     ) { }
 
     ngOnInit() {
+        this.filtroStatus = this.route.snapshot.queryParamMap.get('status') || '';
         this.carregarAcervo();
     }
 
@@ -93,8 +96,9 @@ export class GaleriaComponent implements OnInit {
             const matchesTipo = !this.filtroTipo || doc.tipo === this.filtroTipo;
             const matchesAno = !this.filtroAno || doc.anoDocumento?.toString() === this.filtroAno;
             const matchesLocal = !this.filtroLocal || doc.localOrigem?.toLowerCase().includes(this.filtroLocal.toLowerCase());
+            const matchesStatus = !this.filtroStatus || doc.status === this.filtroStatus;
 
-            return matchesTexto && matchesTipo && matchesAno && matchesLocal;
+            return matchesTexto && matchesTipo && matchesAno && matchesLocal && matchesStatus;
         });
     }
 
@@ -104,5 +108,9 @@ export class GaleriaComponent implements OnInit {
 
     get anosDisponiveis() {
         return [...new Set(this.documentos.map(d => d.anoDocumento))].filter(Boolean).sort((a, b) => b! - a!);
+    }
+
+    get statusesDisponiveis() {
+        return [...new Set(this.documentos.map(d => d.status))].filter(Boolean);
     }
 }

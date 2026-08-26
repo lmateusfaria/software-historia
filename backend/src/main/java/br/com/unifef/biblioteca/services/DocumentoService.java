@@ -26,6 +26,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Set;
 import java.util.HashSet;
@@ -126,9 +129,17 @@ public class DocumentoService {
     // Executor dedicado para processamento de PDF (limitado para preservar RAM)
     private final ExecutorService pdfExecutor = Executors.newFixedThreadPool(4);
 
+    private boolean isAnonimo() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth == null || auth instanceof AnonymousAuthenticationToken || !auth.isAuthenticated();
+    }
+
     @Transactional(readOnly = true)
     public List<DocumentoDTO> findAll() {
-        return repository.findAll().stream().map(DocumentoDTO::new).collect(Collectors.toList());
+        List<Documento> documentos = isAnonimo()
+                ? repository.findByStatus(StatusDocumento.APROVADO)
+                : repository.findAll();
+        return documentos.stream().map(DocumentoDTO::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -157,9 +168,12 @@ public class DocumentoService {
             // Se o Neo4j falhar, continuamos apenas com a busca SQL por descrição
         }
 
+        boolean anonimo = isAnonimo();
+
         if (allIds.isEmpty()) {
             log.info("Nenhum resultado no grafo (ou erro no Neo4j), buscando apenas por descrição no SQL.");
             return repository.findByDescricaoContainingIgnoreCase(termo).stream()
+                    .filter(doc -> !anonimo || doc.getStatus() == StatusDocumento.APROVADO)
                     .map(DocumentoDTO::new)
                     .collect(Collectors.toList());
         }
@@ -169,6 +183,7 @@ public class DocumentoService {
         sqlResults.forEach(doc -> allIds.add(doc.getId()));
 
         return repository.findAllById(allIds).stream()
+                .filter(doc -> !anonimo || doc.getStatus() == StatusDocumento.APROVADO)
                 .map(doc -> {
                     DocumentoNode node = documentoNodeRepository.findById(doc.getId()).orElse(null);
                     return new DocumentoDTO(doc, node);
@@ -178,9 +193,17 @@ public class DocumentoService {
 
     @Transactional(readOnly = true)
     public List<ImagemBuscaDTO> searchEnrichedImages(String termo) {
+        boolean anonimo = isAnonimo();
+        Set<Long> idsDocumentosAprovados = anonimo
+                ? repository.findByStatus(StatusDocumento.APROVADO).stream()
+                        .map(Documento::getId)
+                        .collect(Collectors.toSet())
+                : null;
+
         if (termo == null || termo.trim().isEmpty()) {
             log.info("Buscando todas as imagens enriquecidas (sem termo)");
             return imagemNodeRepository.findAll().stream()
+                    .filter(node -> !anonimo || idsDocumentosAprovados.contains(node.getDocumentoId()))
                     .map(ImagemBuscaDTO::new)
                     .collect(Collectors.toList());
         }
@@ -189,7 +212,10 @@ public class DocumentoService {
         try {
             List<ImagemNode> nodes = imagemNodeRepository.findByEntidadeNomeOuTexto(termo);
             log.info("Encontradas {} imagens correspondentes no Neo4j", nodes.size());
-            return nodes.stream().map(ImagemBuscaDTO::new).collect(Collectors.toList());
+            return nodes.stream()
+                    .filter(node -> !anonimo || idsDocumentosAprovados.contains(node.getDocumentoId()))
+                    .map(ImagemBuscaDTO::new)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Erro na busca enriquecida de imagens (Neo4j): {}", e.getMessage());
             return Collections.emptyList();
@@ -208,7 +234,11 @@ public class DocumentoService {
         // Busca o documento no PostgreSQL
         Documento doc = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
-        
+
+        if (isAnonimo() && doc.getStatus() != StatusDocumento.APROVADO) {
+            throw new RuntimeException("Documento não encontrado");
+        }
+
         // Força o carregamento da coleção ElementCollection (Lazy) para evitar LazyInitializationException no DTO
         if (doc.getImagensUrls() != null) {
             doc.getImagensUrls().size(); 

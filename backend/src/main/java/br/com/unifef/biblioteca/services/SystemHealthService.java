@@ -76,7 +76,6 @@ public class SystemHealthService {
         summary.setAlunos(usuarioRepository.countByPerfil(Perfil.ALUNO));
         summary.setPesquisadores(usuarioRepository.countByPerfil(Perfil.PESQUISADOR));
         summary.setCheckedAt(OffsetDateTime.now().toString());
-        summary.setSystemHealth(getHealth());
         return summary;
     }
 

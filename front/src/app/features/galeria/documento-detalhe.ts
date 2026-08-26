@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentoService } from '../../core/documento.service';
 import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
+import { AuthService } from '../../core/auth.service';
 import { DocumentoDTO, OcrResultadoDTO, OcrResultadoUpdateDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
 
@@ -45,11 +46,14 @@ export class DocumentoDetalheComponent implements OnInit {
         private router: Router,
         private documentoService: DocumentoService,
         private userInfoService: UserInfoService,
+        private auth: AuthService,
         private toast: ToastService
     ) { }
 
     ngOnInit() {
-        this.carregarUsuario();
+        if (this.auth.getToken()) {
+            this.carregarUsuario();
+        }
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.carregarDocumento(+id);

@@ -12,7 +12,6 @@ public class OperationalSummaryDTO {
     private long alunos;
     private long pesquisadores;
     private String checkedAt;
-    private SystemHealthDTO systemHealth;
 
     public long getTotalDocumentos() {
         return totalDocumentos;
@@ -92,13 +91,5 @@ public class OperationalSummaryDTO {
 
     public void setCheckedAt(String checkedAt) {
         this.checkedAt = checkedAt;
-    }
-
-    public SystemHealthDTO getSystemHealth() {
-        return systemHealth;
-    }
-
-    public void setSystemHealth(SystemHealthDTO systemHealth) {
-        this.systemHealth = systemHealth;
     }
 }

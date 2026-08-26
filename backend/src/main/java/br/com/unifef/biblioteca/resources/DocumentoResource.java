@@ -168,4 +168,14 @@ public class DocumentoResource {
         response.put("processados", String.valueOf(processados));
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping(value = "/corrigir-status-ocr")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<Map<String, String>> corrigirStatusOcr() {
+        int processados = service.corrigirStatusDocumentosComOcrCompleto();
+        Map<String, String> response = new HashMap<>();
+        response.put("mensagem", "Correcao de status de documentos com OCR completo finalizada");
+        response.put("processados", String.valueOf(processados));
+        return ResponseEntity.ok(response);
+    }
 }

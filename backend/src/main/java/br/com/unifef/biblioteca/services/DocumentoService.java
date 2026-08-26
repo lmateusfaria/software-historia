@@ -714,6 +714,18 @@ public class DocumentoService {
             entity.setTipoDocumento(ocrResult.getTipoDocumento());
             imagemOcrRepository.save(entity);
 
+            // 3b. Se todas as paginas do documento ja tiverem OCR, libera para aprovacao
+            int totalPaginas = doc.getImagensUrls() != null ? doc.getImagensUrls().size() : 0;
+            long paginasComOcr = imagemOcrRepository.findByDocumentoIdOrderByIndice(documentoId).stream()
+                    .map(ImagemOcrResultado::getIndice)
+                    .distinct()
+                    .count();
+            if (totalPaginas > 0 && paginasComOcr >= totalPaginas
+                    && (doc.getStatus() == StatusDocumento.PENDENTE_OCR || doc.getStatus() == StatusDocumento.PROCESSANDO_OCR)) {
+                doc.setStatus(StatusDocumento.AGUARDANDO_APROVACAO);
+                repository.save(doc);
+            }
+
             // 4. Salvar no Neo4J
             try {
                 ImagemNode imagemNode = new ImagemNode(documentoId, imagemUrl, indice);
@@ -896,6 +908,28 @@ public class DocumentoService {
             if (candidato != null && candidato.endsWith(baseName + sufixo)) return candidato;
         }
         return null;
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public int corrigirStatusDocumentosComOcrCompleto() {
+        List<Documento> candidatos = new ArrayList<>();
+        candidatos.addAll(repository.findByStatus(StatusDocumento.PENDENTE_OCR));
+        candidatos.addAll(repository.findByStatus(StatusDocumento.PROCESSANDO_OCR));
+
+        int count = 0;
+        for (Documento doc : candidatos) {
+            int totalPaginas = doc.getImagensUrls() != null ? doc.getImagensUrls().size() : 0;
+            long paginasComOcr = imagemOcrRepository.findByDocumentoIdOrderByIndice(doc.getId()).stream()
+                    .map(ImagemOcrResultado::getIndice)
+                    .distinct()
+                    .count();
+            if (totalPaginas > 0 && paginasComOcr >= totalPaginas) {
+                doc.setStatus(StatusDocumento.AGUARDANDO_APROVACAO);
+                repository.save(doc);
+                count++;
+            }
+        }
+        return count;
     }
 
     @Transactional(transactionManager = "transactionManager")

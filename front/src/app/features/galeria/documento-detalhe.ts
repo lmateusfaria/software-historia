@@ -23,6 +23,7 @@ export class DocumentoDetalheComponent implements OnInit {
     loading = true;
     imagemSelecionada?: string;
     loadingOcr: { [url: string]: boolean } = {};
+    ocrLoteLoading = false;
     ocrResultados: { [url: string]: OcrResultadoDTO } = {};
     imageLoaded = false;
     mostrarOriginal = false;
@@ -274,6 +275,38 @@ export class DocumentoDetalheComponent implements OnInit {
 
     get ocrAtual(): OcrResultadoDTO | undefined {
         return this.imagemSelecionada ? this.ocrResultados[this.imagemSelecionada] : undefined;
+    }
+
+    get paginasSemOcr(): number {
+        if (!this.documento?.imagensUrls) return 0;
+        return this.documento.imagensUrls.filter(url => !this.ocrResultados[url]).length;
+    }
+
+    ocrTodasPaginas() {
+        if (!this.documento?.id) return;
+        this.ocrLoteLoading = true;
+        this.documentoService.ocrTodasPaginas(this.documento.id).subscribe({
+            next: (res) => {
+                this.toast.info(res.mensagem || 'Processamento em lote iniciado em segundo plano!');
+                this.ocrLoteLoading = false;
+
+                // Documento com varias paginas demora mais - agendamos uma recarga um pouco
+                // mais tardia que a do OCR por pagina para dar tempo do lote terminar
+                setTimeout(() => {
+                    if (this.documento?.id) {
+                        this.carregarDocumento(this.documento.id);
+                    }
+                }, 20000);
+            },
+            error: (err) => {
+                if (err.status === 504) {
+                    this.toast.info('O processamento está demorando, mas continua em segundo plano. Verifique em instantes.');
+                } else {
+                    this.toast.error('Erro ao solicitar OCR em lote.');
+                }
+                this.ocrLoteLoading = false;
+            }
+        });
     }
 
     iniciarEdicaoOcr() {

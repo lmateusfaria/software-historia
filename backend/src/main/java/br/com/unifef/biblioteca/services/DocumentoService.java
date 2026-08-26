@@ -852,6 +852,39 @@ public class DocumentoService {
     }
 
     @Transactional(transactionManager = "transactionManager")
+    public OcrStatusDTO processarOcrTodasPaginas(Long documentoId) {
+        Documento doc = repository.findById(documentoId)
+                .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
+
+        List<String> imagensUrls = doc.getImagensUrls() != null ? doc.getImagensUrls() : Collections.emptyList();
+        Set<String> imagensComOcr = imagemOcrRepository.findByDocumentoIdOrderByIndice(documentoId).stream()
+                .map(ImagemOcrResultado::getImagemUrl)
+                .collect(Collectors.toSet());
+
+        List<String> pendentes = imagensUrls.stream()
+                .filter(url -> !imagensComOcr.contains(url))
+                .collect(Collectors.toList());
+
+        log.info("Solicitação de OCR em lote recebida para documento {}: {} página(s) pendente(s)", documentoId, pendentes.size());
+
+        // Despacha cada pagina no mesmo generalExecutor usado pelo OCR individual - o tamanho
+        // do pool ja limita naturalmente quantas chamadas concorrentes a OpenAI acontecem de vez
+        for (String url : pendentes) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    self.executarOcrEPersistir(documentoId, url);
+                } catch (Exception e) {
+                    log.error("Erro no processamento em lote de OCR (documento {}, imagem {}): {}", documentoId, url, e.getMessage());
+                }
+            }, generalExecutor);
+        }
+
+        return new OcrStatusDTO("PROCESSANDO",
+                "Extração de dados com IA iniciada em segundo plano para " + pendentes.size() + " página(s).",
+                documentoId, null);
+    }
+
+    @Transactional(transactionManager = "transactionManager")
     public OcrResultadoDTO executarOcrEPersistir(Long documentoId, String imagemUrl) {
         Documento doc = repository.findById(documentoId)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado"));
@@ -879,17 +912,23 @@ public class DocumentoService {
             
             // 2. Pré-processamento avançado da imagem (Grayscale, Crop, Resize, JPEG)
             byte[] processedBytes = preProcessarImagemParaOcr(imageBytes);
-            
-            // 3. Processar OCR GPT-4o-mini com imagem otimizada
-            OcrResultadoDTO ocrResult = gptOcrService.extrairDadosImagem(processedBytes, "image/jpeg");
 
-            // 3. Salvar no Postgres
-            ImagemOcrResultado entity = new ImagemOcrResultado();
+            // 3. Processar OCR GPT-4o-mini com imagem otimizada (com 1 nova tentativa
+            // automatica se a chamada falhar ou o resultado parecer um loop de repeticao)
+            OcrResultadoDTO ocrResult = extrairComRetry(processedBytes, imagemUrl);
+
+            // 3. Salvar no Postgres - reaproveita a linha existente desta imagem (se houver)
+            // em vez de sempre inserir uma nova, evitando duplicatas a cada reprocessamento
+            ImagemOcrResultado entity = imagemOcrRepository.findByDocumentoIdOrderByIndice(documentoId).stream()
+                    .filter(r -> imagemUrl.equals(r.getImagemUrl()))
+                    .findFirst()
+                    .orElseGet(ImagemOcrResultado::new);
             entity.setDocumentoId(documentoId);
             entity.setImagemUrl(imagemUrl);
             entity.setIndice(indice);
             entity.setTextoExtraido(ocrResult.getTextoCompleto());
-            
+            entity.setDataExtracao(LocalDateTime.now());
+
             try {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                 entity.setPessoasExtraidas(mapper.writeValueAsString(ocrResult.getPessoas()));
@@ -917,13 +956,19 @@ public class DocumentoService {
                 repository.save(doc);
             }
 
-            // 4. Salvar no Neo4J
+            // 4. Salvar no Neo4J - reaproveita o ImagemNode existente desta imagem (se houver)
+            // em vez de sempre criar um novo, evitando nos duplicados a cada reprocessamento
             try {
-                ImagemNode imagemNode = new ImagemNode(documentoId, imagemUrl, indice);
+                ImagemNode imagemNode = encontrarImagemNodeAlvo(documentoId, imagemUrl, true);
+                imagemNode.getPessoas().clear();
+                imagemNode.getLocais().clear();
+                imagemNode.getEventos().clear();
+                imagemNode.getOrganizacoes().clear();
+                imagemNode.getAssuntos().clear();
                 imagemNode.setTextoExtraido(ocrResult.getTextoCompleto());
                 imagemNode.setThumbnailUrl(encontrarUrlCorrespondente(imagemUrl, doc.getThumbnailsUrls(), "_thumb.jpg"));
                 imagemNode.setPreviewUrl(encontrarUrlCorrespondente(imagemUrl, doc.getPreviewsUrls(), "_preview.jpg"));
-                
+
                 for (String nome : ocrResult.getPessoas()) {
                     if (nome != null && !nome.trim().isEmpty()) {
                         br.com.unifef.biblioteca.domains.graph.Pessoa p = pessoaRepository.findById(nome)
@@ -979,6 +1024,24 @@ public class DocumentoService {
             log.error("Erro ao processar OCR para imagem {}: {}", imagemUrl, e.getMessage());
             throw new RuntimeException("Falha no processo de OCR da imagem: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Executa a extracao via GPT e tenta mais uma vez automaticamente se a chamada falhar
+     * ou se o resultado parecer um loop de repeticao do modelo - torna falhas transitorias
+     * auto-recuperaveis sem exigir que um humano note e reprocessadamente a mesma pagina.
+     */
+    private OcrResultadoDTO extrairComRetry(byte[] processedBytes, String imagemUrl) {
+        try {
+            OcrResultadoDTO resultado = gptOcrService.extrairDadosImagem(processedBytes, "image/jpeg");
+            if (!gptOcrService.pareceLoopRepeticao(resultado.getTextoCompleto())) {
+                return resultado;
+            }
+            log.warn("Resultado de OCR da imagem {} parece loop de repeticao, tentando novamente", imagemUrl);
+        } catch (Exception e) {
+            log.warn("Falha na 1a tentativa de OCR da imagem {}: {} - tentando novamente", imagemUrl, e.getMessage());
+        }
+        return gptOcrService.extrairDadosImagem(processedBytes, "image/jpeg");
     }
 
     @Transactional(transactionManager = "transactionManager")

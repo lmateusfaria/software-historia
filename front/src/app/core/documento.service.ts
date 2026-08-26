@@ -57,9 +57,13 @@ export class DocumentoService {
     }
 
     ocrImagem(id: number, imagemUrl: string): Observable<OcrStatusDTO> {
-        return this.http.post<OcrStatusDTO>(`${this.apiUrl}/${id}/ocr-imagem`, null, { 
-            params: { imagemUrl } 
+        return this.http.post<OcrStatusDTO>(`${this.apiUrl}/${id}/ocr-imagem`, null, {
+            params: { imagemUrl }
         });
+    }
+
+    ocrTodasPaginas(id: number): Observable<OcrStatusDTO> {
+        return this.http.post<OcrStatusDTO>(`${this.apiUrl}/${id}/ocr-todas-paginas`, null);
     }
     testarOcr(file: File): Observable<OcrResultadoDTO> {
         const formData = new FormData();

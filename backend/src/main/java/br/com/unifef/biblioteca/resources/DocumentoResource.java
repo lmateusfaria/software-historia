@@ -140,6 +140,12 @@ public class DocumentoResource {
         return ResponseEntity.ok(service.processarOcrImagem(id, imagemUrl));
     }
 
+    @PostMapping(value = "/{id}/ocr-todas-paginas")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ResponseEntity<OcrStatusDTO> ocrTodasPaginas(@PathVariable Long id) {
+        return ResponseEntity.ok(service.processarOcrTodasPaginas(id));
+    }
+
     @PostMapping(value = "/migrar-thumbnails")
     @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<Map<String, String>> migrarThumbnails() {

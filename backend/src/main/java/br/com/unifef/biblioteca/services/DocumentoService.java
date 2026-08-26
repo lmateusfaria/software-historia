@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -234,13 +235,21 @@ public class DocumentoService {
         List<ImagemOcrResultado> ocrResultados = imagemOcrRepository.findByDocumentoIdOrderByIndice(id);
         if (ocrResultados != null && !ocrResultados.isEmpty()) {
             Map<String, OcrResultadoDTO> ocrMap = new HashMap<>();
+            // Podem existir linhas duplicadas por imagem (re-execucoes de OCR); entre duplicatas,
+            // sempre prevalece a de dataExtracao mais recente (atualizarOcrResultado atualiza esse
+            // campo a cada edicao, entao uma correcao humana sempre "vence" uma extracao antiga).
+            Map<String, LocalDateTime> ocrMapDataExtracao = new HashMap<>();
 
             for (ImagemOcrResultado res : ocrResultados) {
                 try {
-                    OcrResultadoDTO ocrDto = toOcrResultadoDTO(res);
-                    // A chave deve ser a URL formatada para o download, para coincidir com o frontend
                     String fullUrl = "/api/documentos/download/" + res.getImagemUrl();
+                    LocalDateTime existente = ocrMapDataExtracao.get(fullUrl);
+                    if (existente != null && res.getDataExtracao() != null && res.getDataExtracao().isBefore(existente)) {
+                        continue;
+                    }
+                    OcrResultadoDTO ocrDto = toOcrResultadoDTO(res);
                     ocrMap.put(fullUrl, ocrDto);
+                    ocrMapDataExtracao.put(fullUrl, res.getDataExtracao());
                 } catch (Exception e) {
                     log.error("Erro ao converter OCR persistido para DTO no documento {}", id, e);
                 }
@@ -277,6 +286,7 @@ public class DocumentoService {
         }
 
         entity.setTextoExtraido(dto.getTextoCompleto());
+        entity.setDataExtracao(LocalDateTime.now());
         ObjectMapper mapper = new ObjectMapper();
         try {
             entity.setPessoasExtraidas(mapper.writeValueAsString(dto.getPessoas()));
@@ -311,7 +321,12 @@ public class DocumentoService {
             throw new RuntimeException("Resultado de OCR não pertence a este documento");
         }
         String imagemUrl = entity.getImagemUrl();
-        imagemOcrRepository.delete(entity);
+        // Remove tambem eventuais duplicatas desta mesma imagem (re-execucoes de OCR), para que
+        // "excluir dados extraidos" realmente zere a pagina, em vez de uma duplicata reaparecer.
+        List<ImagemOcrResultado> duplicatas = imagemOcrRepository.findByDocumentoIdOrderByIndice(documentoId).stream()
+                .filter(r -> imagemUrl.equals(r.getImagemUrl()))
+                .collect(Collectors.toList());
+        imagemOcrRepository.deleteAll(duplicatas);
 
         try {
             ImagemNode node = encontrarImagemNodeAlvo(documentoId, imagemUrl, false);

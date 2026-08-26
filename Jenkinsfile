@@ -43,8 +43,12 @@ pipeline {
                 echo 'Realizando deploy no ambiente de Produção...'
                 script {
                     // Copia o .env do local correto no servidor
+                    // Caminho real (dentro do container do Jenkins): /home/devlmateusfaria/projects
+                    // no host esta montado em /home/user/projects
                     sh '''
-                        if [ -f /home/user/projects/bibliotecadigitalunifef/.env ]; then
+                        if [ -f /home/user/projects/software-historia/.env ]; then
+                            cp /home/user/projects/software-historia/.env .env
+                        elif [ -f /home/user/projects/bibliotecadigitalunifef/.env ]; then
                             cp /home/user/projects/bibliotecadigitalunifef/.env .env
                         elif [ -f /home/user/bibliotecadigitalunifef/.env ]; then
                             cp /home/user/bibliotecadigitalunifef/.env .env

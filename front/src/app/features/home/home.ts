@@ -1,12 +1,11 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { SystemHealthPanelComponent } from '../../shared/system-health-panel/system-health-panel';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, SystemHealthPanelComponent],
+  imports: [CommonModule],
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })

@@ -8,7 +8,6 @@ import { AuthService } from '../../core/auth.service';
 import { DocumentoService } from '../../core/documento.service';
 import { DocumentoDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
-import { SystemHealthPanelComponent } from '../../shared/system-health-panel/system-health-panel';
 import { SystemSummaryService } from '../../core/system-summary.service';
 import { OperationalSummaryDTO } from '../../core/models/operational-summary.model';
 import { DecimalPipe, DatePipe } from '@angular/common';
@@ -24,7 +23,7 @@ interface DistribuicaoTipo {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, SystemHealthPanelComponent],
+  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })

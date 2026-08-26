@@ -249,7 +249,8 @@
                 <p class="text-xs text-gray-400">Preservado em {{ l.dataDigitalizacao }}</p>
               </div>
               <span
-                class="inline-flex px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-bold rounded uppercase w-fit">
+                class="inline-flex px-2 py-0.5 text-[10px] font-bold rounded uppercase w-fit"
+                [class]="statusBadgeClassLight(l.status)">
                 {{ l.status || 'PENDENTE' }}
               </span>
             </div>

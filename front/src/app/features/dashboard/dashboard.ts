@@ -12,6 +12,7 @@ import { SystemHealthPanelComponent } from '../../shared/system-health-panel/sys
 import { SystemSummaryService } from '../../core/system-summary.service';
 import { OperationalSummaryDTO } from '../../core/models/operational-summary.model';
 import { DecimalPipe, DatePipe } from '@angular/common';
+import { statusBadgeClassLight } from '../../shared/utils/status-badge.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +22,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy {
+  statusBadgeClassLight = statusBadgeClassLight;
   documentos: DocumentoDTO[] = [];
   totalAcervos: number = 0;
   totalAguardandoRevisao: number = 0;

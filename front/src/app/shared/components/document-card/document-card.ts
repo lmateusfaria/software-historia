@@ -1,6 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { DocumentoDTO } from '../../../core/models/documento.model';
+import { statusBadgeClass } from '../../utils/status-badge.util';
 
 @Component({
   selector: 'app-document-card',
@@ -23,5 +24,9 @@ export class DocumentCardComponent {
 
   get delay() {
     return (this.index * 0.05) + 's';
+  }
+
+  get statusClass() {
+    return statusBadgeClass(this.document?.status);
   }
 }

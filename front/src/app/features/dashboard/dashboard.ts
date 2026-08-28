@@ -55,7 +55,6 @@ export class Dashboard implements OnInit, OnDestroy {
     private router: Router
   ) { }
   onShowUser() {
-    console.log('[DASHBOARD] onShowUser chamado');
     this.showUser = true;
     this.editMode = false;
     this.editError = '';
@@ -84,13 +83,11 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   onEditUser() {
-    console.log('[DASHBOARD] onEditUser chamado');
     if (this.usuario) {
       // Cria um objeto de edição para bind no formulário
       this.editUsuario = { ...this.usuario, senha: '' };
       this.editMode = true;
       this.editError = '';
-      console.log('[DASHBOARD] editUsuario:', this.editUsuario);
     }
   }
 
@@ -102,13 +99,9 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   onSaveEdit() {
-    console.log('[DASHBOARD] onSaveEdit chamado');
     if (!this.editUsuario) {
       console.warn('[DASHBOARD] editUsuario está indefinido');
-      return;
-    }
-    if (!this.editUsuario.senha) {
-      alert('A senha é obrigatória para atualizar o usuário.');
+      this.toast.error('Erro: dados do usuário não encontrados.');
       return;
     }
     const dto: UsuarioDTO = {
@@ -116,16 +109,18 @@ export class Dashboard implements OnInit, OnDestroy {
       nome: this.editUsuario.nome,
       email: this.editUsuario.email,
       cpf: this.editUsuario.cpf,
-      senha: this.editUsuario.senha,
       perfil: this.editUsuario.perfil
     };
-    console.log('[DASHBOARD] Enviando update para userService.update:', dto);
+    if (this.editUsuario.senha) {
+      dto.senha = this.editUsuario.senha;
+    }
     this.userServiceUpdate(dto);
   }
 
   private userServiceUpdate(dto: UsuarioDTO) {
     if (!dto.id) {
       console.warn('[DASHBOARD] userServiceUpdate chamado sem id');
+      this.toast.error('Erro: usuário sem identificador válido.');
       return;
     }
     this.userServiceUpdateLoading = true;
@@ -218,6 +213,7 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erro ao carregar documentos', err);
+        this.toast.error('Erro ao carregar documentos recentes.');
       }
     });
   }

@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, UsuarioDTO } from '../../core/user.service';
 import { Router } from '@angular/router';
+import { ToastService } from '../../shared/toast/toast.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   templateUrl: './user-management.html'
 })
 export class UserManagementComponent implements OnInit {
@@ -15,7 +17,8 @@ export class UserManagementComponent implements OnInit {
   loading = true;
   usuarioSelecionado: UsuarioDTO | null = null;
   editando = false;
-  
+  usuarioIdParaExcluir: number | null = null;
+
   perfis = [
     { label: 'Professor / Gestor', value: 'PROFESSOR' },
     { label: 'Aluno / Digitalizador', value: 'ALUNO' },
@@ -24,7 +27,8 @@ export class UserManagementComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -41,7 +45,7 @@ export class UserManagementComponent implements OnInit {
       error: (err) => {
         console.error('Erro ao carregar usuários', err);
         this.loading = false;
-        alert('Erro ao carregar lista de usuários.');
+        this.toast.error('Erro ao carregar lista de usuários.');
       }
     });
   }
@@ -61,30 +65,40 @@ export class UserManagementComponent implements OnInit {
 
     this.userService.update(this.usuarioSelecionado.id, this.usuarioSelecionado).subscribe({
       next: () => {
-        alert('Usuário atualizado com sucesso!');
+        this.toast.success('Usuário atualizado com sucesso!');
         this.fecharEdicao();
         this.carregarUsuarios();
       },
       error: (err) => {
         console.error('Erro ao atualizar usuário', err);
-        alert('Erro ao atualizar usuário. Verifique os dados.');
+        this.toast.error('Erro ao atualizar usuário. Verifique os dados.');
       }
     });
   }
 
-  excluir(id: number): void {
-    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
-      this.userService.delete(id).subscribe({
-        next: () => {
-          alert('Usuário excluído com sucesso!');
-          this.carregarUsuarios();
-        },
-        error: (err) => {
-          console.error('Erro ao excluir usuário', err);
-          alert('Erro ao excluir usuário. Verifique se você tem permissão ou se o usuário não é você mesmo.');
-        }
-      });
-    }
+  pedirExclusao(id: number): void {
+    this.usuarioIdParaExcluir = id;
+  }
+
+  cancelarExclusao(): void {
+    this.usuarioIdParaExcluir = null;
+  }
+
+  confirmarExclusao(): void {
+    if (!this.usuarioIdParaExcluir) return;
+    const id = this.usuarioIdParaExcluir;
+    this.usuarioIdParaExcluir = null;
+
+    this.userService.delete(id).subscribe({
+      next: () => {
+        this.toast.success('Usuário excluído com sucesso!');
+        this.carregarUsuarios();
+      },
+      error: (err) => {
+        console.error('Erro ao excluir usuário', err);
+        this.toast.error('Erro ao excluir usuário. Verifique se você tem permissão ou se o usuário não é você mesmo.');
+      }
+    });
   }
 
   voltar(): void {

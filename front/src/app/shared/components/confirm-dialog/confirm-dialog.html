@@ -1,0 +1,36 @@
+<div *ngIf="isVisible" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in transition-all" (click)="onCancel()">
+    <div class="glass card-premium w-full max-w-md p-8 relative overflow-hidden" (click)="$event.stopPropagation()">
+        <!-- Background Blurs -->
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/10 blur-3xl rounded-full"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-teal-500/10 blur-3xl rounded-full"></div>
+
+        <div class="relative z-10">
+            <div class="flex items-start space-x-4 mb-6">
+                <div class="p-2 rounded-lg" [ngClass]="danger ? 'bg-red-500/20' : 'bg-amber-500/20'">
+                    <svg *ngIf="danger" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.334-.213 2.987-1.743 2.987H3.482c-1.53 0-2.493-1.653-1.743-2.987l6.518-11.59zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <svg *ngIf="!danger" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-neutral-100">{{ title }}</h3>
+                    <p class="text-sm text-gray-500 dark:text-neutral-400 mt-2 leading-relaxed">{{ message }}</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4 pt-2">
+                <button type="button" (click)="onCancel()"
+                    class="flex-1 py-3 border border-black/10 dark:border-white/10 text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-bold transition-all">
+                    {{ cancelLabel }}
+                </button>
+                <button type="button" (click)="onConfirm()"
+                    class="flex-1 py-3 text-white rounded-xl font-bold transition-all shadow-lg"
+                    [ngClass]="danger ? 'bg-red-600 hover:bg-red-500 shadow-red-900/20' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-900/20'">
+                    {{ confirmLabel }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

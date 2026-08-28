@@ -7,13 +7,15 @@ import { UserInfoService, UsuarioInfo } from '../../core/user-info.service';
 import { AuthService } from '../../core/auth.service';
 import { DocumentoDTO, OcrResultadoDTO, OcrResultadoUpdateDTO } from '../../core/models/documento.model';
 import { ToastService } from '../../shared/toast/toast.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 
 type CategoriaEntidade = 'pessoas' | 'locais' | 'eventos' | 'organizacoes' | 'assuntos';
+type ConfirmAction = 'documento' | 'ocr' | null;
 
 @Component({
     selector: 'app-documento-detalhe',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ConfirmDialogComponent],
     templateUrl: './documento-detalhe.html',
     styleUrls: ['./documento-detalhe.css']
 })
@@ -32,6 +34,7 @@ export class DocumentoDetalheComponent implements OnInit {
     ocrEmEdicao?: OcrResultadoDTO;
     salvandoOcr = false;
     novoChip: { [k in CategoriaEntidade]: string } = { pessoas: '', locais: '', eventos: '', organizacoes: '', assuntos: '' };
+    confirmAction: ConfirmAction = null;
 
     // Zoom e Pan State
     zoom = 1;
@@ -66,7 +69,10 @@ export class DocumentoDetalheComponent implements OnInit {
     carregarUsuario() {
         this.userInfoService.getMe().subscribe({
             next: (user) => this.usuario = user,
-            error: () => console.error('Erro ao carregar info do usuário')
+            error: () => {
+                console.error('Erro ao carregar info do usuário');
+                this.toast.error('Erro ao carregar dados do usuário.');
+            }
         });
     }
 
@@ -86,6 +92,16 @@ export class DocumentoDetalheComponent implements OnInit {
         return this.documento?.status === 'AGUARDANDO_APROVACAO';
     }
 
+    get confirmDialogTitle(): string {
+        return this.confirmAction === 'ocr' ? 'Excluir Dados Extraídos' : 'Excluir Documento';
+    }
+
+    get confirmDialogMessage(): string {
+        return this.confirmAction === 'ocr'
+            ? 'Tem certeza que deseja excluir os dados extraídos por IA desta imagem? O texto e as entidades desta página serão apagados.'
+            : 'Tem certeza que deseja excluir este documento? Esta ação é irreversível.';
+    }
+
     aprovar() {
         if (this.documento?.id) {
             this.documentoService.approve(this.documento.id).subscribe({
@@ -99,14 +115,8 @@ export class DocumentoDetalheComponent implements OnInit {
     }
 
     excluir() {
-        if (this.documento?.id && confirm('Tem certeza que deseja excluir este documento? Esta ação é irreversível.')) {
-            this.documentoService.delete(this.documento.id).subscribe({
-                next: () => {
-                    this.toast.success('Documento excluído com sucesso!');
-                    this.router.navigate(['/acervo']);
-                },
-                error: () => this.toast.error('Erro ao excluir documento.')
-            });
+        if (this.documento?.id) {
+            this.confirmAction = 'documento';
         }
     }
 
@@ -367,7 +377,37 @@ export class DocumentoDetalheComponent implements OnInit {
 
     excluirOcrAtual() {
         if (!this.documento?.id || !this.ocrAtual?.id || !this.imagemSelecionada) return;
-        if (!confirm('Tem certeza que deseja excluir os dados extraídos por IA desta imagem? O texto e as entidades desta página serão apagados.')) return;
+        this.confirmAction = 'ocr';
+    }
+
+    cancelarConfirmacao() {
+        this.confirmAction = null;
+    }
+
+    confirmarAcao() {
+        const acao = this.confirmAction;
+        this.confirmAction = null;
+
+        if (acao === 'documento') {
+            this.confirmarExclusaoDocumento();
+        } else if (acao === 'ocr') {
+            this.confirmarExclusaoOcr();
+        }
+    }
+
+    private confirmarExclusaoDocumento() {
+        if (!this.documento?.id) return;
+        this.documentoService.delete(this.documento.id).subscribe({
+            next: () => {
+                this.toast.success('Documento excluído com sucesso!');
+                this.router.navigate(['/acervo']);
+            },
+            error: () => this.toast.error('Erro ao excluir documento.')
+        });
+    }
+
+    private confirmarExclusaoOcr() {
+        if (!this.documento?.id || !this.ocrAtual?.id || !this.imagemSelecionada) return;
         this.documentoService.excluirOcrResultado(this.documento.id, this.ocrAtual.id).subscribe({
             next: () => {
                 delete this.ocrResultados[this.imagemSelecionada!];

@@ -353,4 +353,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Confirmação de Exclusão -->
+    <app-confirm-dialog
+        [isVisible]="confirmAction !== null"
+        [title]="confirmDialogTitle"
+        [message]="confirmDialogMessage"
+        confirmLabel="Excluir"
+        [danger]="true"
+        (confirmed)="confirmarAcao()"
+        (cancelled)="cancelarConfirmacao()">
+    </app-confirm-dialog>
 </div>

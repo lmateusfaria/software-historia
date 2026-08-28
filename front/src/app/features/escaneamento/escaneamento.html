@@ -117,7 +117,7 @@
                 </div>
 
                 <div class="pt-4 flex justify-end gap-4">
-                    <button type="button"
+                    <button type="button" (click)="onCancel()"
                         class="px-6 py-2 text-neutral-400 hover:text-neutral-200 transition-colors">Cancelar</button>
                     <button type="submit" [disabled]="loading"
                         class="btn-premium px-8 py-3 bg-amber-600 hover:bg-amber-500 text-neutral-900 font-bold rounded-lg transition-all shadow-lg shadow-amber-900/20 disabled:opacity-50">

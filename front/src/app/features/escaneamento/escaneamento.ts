@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { ToastService } from '../../shared/toast/toast.service';
 import { UserService } from '../../core/user.service';
 import { DocumentoService } from '../../core/documento.service';
@@ -42,7 +43,8 @@ export class EscaneamentoComponent implements OnInit {
     constructor(
         private documentoService: DocumentoService,
         private toast: ToastService,
-        private userService: UserService
+        private userService: UserService,
+        private router: Router
     ) { }
 
     ngOnInit() {
@@ -75,6 +77,11 @@ export class EscaneamentoComponent implements OnInit {
         this.previews.splice(index, 1);
     }
 
+    onCancel() {
+        this.resetForm();
+        this.router.navigate(['/dashboard']);
+    }
+
     async onSubmit() {
         if (this.selectedFiles.length === 0) {
             this.toast.error('Selecione pelo menos uma imagem do documento.');
@@ -103,7 +110,6 @@ export class EscaneamentoComponent implements OnInit {
 
         try {
             // 1. Comprimir arquivos em paralelo
-            console.log('Iniciando compressão de imagens...');
             const compressedFiles = await Promise.all(
                 this.selectedFiles.map(async (file) => {
                     if (file.type === 'application/pdf') return file;
@@ -127,8 +133,6 @@ export class EscaneamentoComponent implements OnInit {
                 const file = compressedFiles[fileIndex];
                 const totalChunks = fileChunksInfo[fileIndex];
                 const uploadId = Math.random().toString(36).substring(7);
-
-                console.log(`Enviando: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * chunkSize;

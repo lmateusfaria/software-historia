@@ -29,6 +29,7 @@ public class SecurityConfig {
         "/h2-console/**",
         "/auth/**",          // endpoint de autenticação
         "/system/health",
+        "/actuator/**",      // Actuator (health, metrics, prometheus) - rede interna
         "/swagger-ui.html",  // Swagger
         "/swagger-ui/**",
         "/v3/api-docs/**",
@@ -66,6 +67,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/system/health").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/usuarios").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()

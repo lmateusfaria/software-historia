@@ -26,7 +26,34 @@ services:
       - neo4j_logs_dev:/logs
     restart: always
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: atb-prometheus-dev
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./observability/prometheus/prometheus-dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_dev:/prometheus
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: atb-grafana-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data_dev:/var/lib/grafana
+    restart: always
+
 volumes:
   minio_data_dev:
   neo4j_data_dev:
   neo4j_logs_dev:
+  prometheus_data_dev:
+  grafana_data_dev:

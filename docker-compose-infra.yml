@@ -32,6 +32,35 @@ services:
       - infra_neo4j_logs:/logs
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: atb-prometheus
+    init: true
+    ports:
+      - "9090:9090"
+    networks:
+      - infra_default
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - infra_prometheus_data:/prometheus
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: atb-grafana
+    init: true
+    ports:
+      - "3001:3000"
+    networks:
+      - infra_default
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - infra_grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
 networks:
   infra_default:
     external: true
@@ -43,3 +72,5 @@ volumes:
     external: true
   infra_neo4j_logs:
     external: true
+  infra_prometheus_data:
+  infra_grafana_data:

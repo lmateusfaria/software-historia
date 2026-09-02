@@ -37,7 +37,7 @@ services:
     container_name: atb-prometheus
     init: true
     ports:
-      - "9090:9090"
+      - "9091:9090"
     networks:
       - infra_default
     volumes:
@@ -50,7 +50,7 @@ services:
     container_name: atb-grafana
     init: true
     ports:
-      - "3001:3000"
+      - "3003:3000"
     networks:
       - infra_default
     environment:

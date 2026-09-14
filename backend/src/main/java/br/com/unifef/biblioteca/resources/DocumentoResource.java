@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import java.net.URLConnection;
 import java.util.List;
 import java.io.InputStream;
 import java.util.Map;
@@ -86,18 +87,25 @@ public class DocumentoResource {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/download/{filename}", produces = MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(value = "/download/{filename}")
     public ResponseEntity<Resource> download(@PathVariable String filename) {
         InputStream stream = service.getFileStream(filename);
         if (stream == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
+        // Detecta o Content-Type dinamicamente pelo nome do arquivo
+        String contentType = URLConnection.guessContentTypeFromName(filename);
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
         InputStreamResource resource = new InputStreamResource(stream);
-        
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
     }
 

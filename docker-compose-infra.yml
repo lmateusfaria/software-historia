@@ -11,6 +11,10 @@ services:
       - "5432:5432"
     networks:
       - infra_default
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     volumes:
       - infra_postgres_data:/var/lib/postgresql/data
 
@@ -42,6 +46,13 @@ services:
       - infra_default
     environment:
       - NEO4J_AUTH=${NEO4J_AUTH:-neo4j/password123}
+      - server.memory.heap.initial_size=256m
+      - server.memory.heap.max_size=512m
+      - server.memory.pagecache.size=256m
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
     volumes:
       - infra_neo4j_data:/data
       - infra_neo4j_logs:/logs

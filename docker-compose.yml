@@ -54,6 +54,8 @@ services:
         aliases:
           - biblioteca-digital-unifef
           - frontend
+    ports:
+      - "8088:80"
     restart: always
     deploy:
       resources:

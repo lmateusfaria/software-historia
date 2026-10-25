@@ -1,4 +1,4 @@
-﻿name: CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64]
     steps:
       - name: Atualizar Servicos Locais no Ubuntu
         run: |

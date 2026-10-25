@@ -1,3 +1,5 @@
+name: software-infra
+
 services:
   atb-db-postgres:
     image: postgres:15-alpine

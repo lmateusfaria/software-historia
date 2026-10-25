@@ -1,3 +1,5 @@
+name: software-app
+
 services:
   bibliotecadigitalunifef-back:
     image: agenciatelabranca/bibliotecadigital-backend:latest

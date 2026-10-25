@@ -45,11 +45,13 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: [self-hosted, linux, x64]
+    runs-on: self-hosted
     steps:
       - name: Atualizar Servicos Locais no Ubuntu
         run: |
           cd ~/projects/software-historia
+          git pull origin main
           docker compose pull bibliotecadigitalunifef-back bibliotecadigitalunifef-front
           docker compose --profile tunnel up -d --remove-orphans
           docker ps --filter "name=bibliotecadigitalunifef"
+
